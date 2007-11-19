@@ -1,6 +1,6 @@
 #include <moonunit/test.h>
 
-typedef enum MoonTestResult
+typedef enum MoonUnitTestResult
 {
     // Success
     MOON_RESULT_SUCCESS = 0,
@@ -10,51 +10,53 @@ typedef enum MoonTestResult
     MOON_RESULT_ASSERTION = 2,
     // Failure due to crash (segfault, usually)
     MOON_RESULT_CRASH = 3,
-} MoonTestResult;
+} MoonUnitTestResult;
 
-typedef enum MoonTestStage
+typedef enum MoonUnitTestStage
 {
     MOON_STAGE_SETUP = 0,
     MOON_STAGE_TEST = 1,
     MOON_STAGE_TEARDOWN = 2,
-} MoonTestStage;
+    MOON_STAGE_UNKNOWN = 3
+} MoonUnitTestStage;
 
-typedef struct MoonTestSummary
+typedef struct MoonUnitTestSummary
 {
-    MoonTestResult result;
-    MoonTestStage stage;
+    MoonUnitTestResult result;
+    MoonUnitTestStage stage;
     const char* reason;
     // Note that we do not store
     // the file since it should be the
     // same as the test.
     unsigned int line;
-} MoonTestSummary;
+} MoonUnitTestSummary;
 
-typedef struct MoonHarness
+typedef struct MoonUnitHarness
 {
     // Called by a unit test when it determines its result
     // early (through a failed assertion, etc.).  The structure
     // passed in will be stack-allocated and should be copied if
     // preservation is required
-    void (*result)(MoonUnitTest*, const MoonTestSummary*);
+    void (*result)(MoonUnitTest*, const MoonUnitTestSummary*);
 
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.
-    void (*dispatch)(MoonUnitTest*, MoonTestSummary*);
+    void (*dispatch)(MoonUnitTest*, MoonUnitTestSummary*);
     // Clean up any memory in a MoonTestSummary filled in by
     // a call to dispatch
-    void (*cleanup)(MoonTestSummary*);
-} MoonHarness;
+    void (*cleanup)(MoonUnitTestSummary*);
+} MoonUnitHarness;
 
-typedef struct MoonLogger
+typedef struct MoonUnitLogger
 {
     void (*library_enter) (const char*);
     void (*library_leave) ();
     void (*suite_enter) (const char*);
     void (*suite_leave) ();
-    void (*result) (MoonUnitTest*, MoonTestSummary*);
-} MoonLogger;
+    void (*result) (MoonUnitTest*, MoonUnitTestSummary*);
+} MoonUnitLogger;
 
-extern MoonHarness mu_unixharness;
+extern MoonUnitHarness mu_unixharness;
 
-const char* Mu_TestResultToString(MoonTestResult result);
+const char* Mu_TestResultToString(MoonUnitTestResult result);
+const char* Mu_TestStageToString(MoonUnitTestStage stage);

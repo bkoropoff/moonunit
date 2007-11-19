@@ -1,22 +1,21 @@
-#ifndef __MU_SCAN_H__
-#define __MU_SCAN_H__
+#ifndef __MU_LOADER_H__
+#define __MU_LOADER_H__
 
-#include <moonunit/test.h>
-
-struct __mu_library;
-typedef struct __mu_library MoonUnitLibrary;
+struct MoonUnitTest;
+struct MoonUnitLibrary;
+typedef struct MoonUnitLibrary MoonUnitLibrary;
 
 typedef void (*MoonUnitThunk) (void);
 
-typedef struct MoonScanner
+typedef struct MoonUnitLoader
 {
     // Opens a library and returns a handle
     MoonUnitLibrary* (*open) (const char* path);
     // Scans an open library for unit tests
     // and returns a NULL-terminated list
-    MoonUnitTest** (*scan) (MoonUnitLibrary* handle);
+    struct MoonUnitTest** (*scan) (MoonUnitLibrary* handle);
     // Frees a list acquired with scan
-    void (*cleanup) (MoonUnitTest** list);
+    void (*cleanup) (struct MoonUnitTest** list);
     // Returns the library setup routine for handle
     MoonUnitThunk (*library_setup)(MoonUnitLibrary* handle);
     // Returns the library teardown routine for handle
@@ -27,8 +26,10 @@ typedef struct MoonScanner
     MoonUnitThunk (*fixture_teardown)(const char* name, MoonUnitLibrary* handle);
     // Closes a library
     void (*close) (MoonUnitLibrary* handle);
-} MoonScanner;
+    // Get name of a library
+    const char * (*name) (MoonUnitLibrary* handle);
+} MoonUnitLoader;
 
-extern MoonScanner mu_unixscanner;
+extern MoonUnitLoader mu_unixloader;
 
 #endif

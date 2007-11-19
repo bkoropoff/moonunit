@@ -13,7 +13,7 @@ __mu_assert(MoonUnitTest* test, int result, const char* expr,
         return;
     else
     {
-        MoonTestSummary summary;
+        MoonUnitTestSummary summary;
         
         summary.result = MOON_RESULT_ASSERTION;
         summary.stage = MOON_STAGE_TEST;
@@ -29,7 +29,7 @@ __mu_assert(MoonUnitTest* test, int result, const char* expr,
 void
 __mu_success(MoonUnitTest* test)
 {
-    MoonTestSummary summary;
+    MoonUnitTestSummary summary;
 
     summary.result = MOON_RESULT_SUCCESS;
     summary.stage = MOON_STAGE_TEST;
@@ -43,7 +43,7 @@ void
 __mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char* message, ...)
 {
     va_list ap;
-    MoonTestSummary summary;
+    MoonUnitTestSummary summary;
 
     va_start(ap, message);
     summary.result = MOON_RESULT_FAILURE;

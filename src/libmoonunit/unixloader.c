@@ -1,4 +1,4 @@
-#include <moonunit/scan.h>
+#include <moonunit/loader.h>
 #include <moonunit/util.h>
 #include <moonunit/test.h>
 
@@ -9,14 +9,14 @@
 
 // Opens a library and returns a handle
 
-struct __mu_library
+struct MoonUnitLibrary
 {
 	const char* path;
 	void* dlhandle;
 };
 
 static MoonUnitLibrary*
-unixscanner_open(const char* path)
+unixloader_open(const char* path)
 {
 	MoonUnitLibrary* library = malloc(sizeof (MoonUnitLibrary));
 	
@@ -27,7 +27,7 @@ unixscanner_open(const char* path)
 }
 
 static MoonUnitTest** 
-unixscanner_scan (MoonUnitLibrary* handle)
+unixloader_scan (MoonUnitLibrary* handle)
 {
 	FILE* stream;
 	const char* command;
@@ -51,7 +51,8 @@ unixscanner_scan (MoonUnitLibrary* handle)
 		
 		if (test)
 		{
-			test->library = basename(handle->path);
+			test->library = handle;
+			test->loader = &mu_unixloader;
 			
 			if (index == tests_capacity - 1)
 			{
@@ -69,26 +70,26 @@ unixscanner_scan (MoonUnitLibrary* handle)
 }
 
 void 
-unixscanner_cleanup (MoonUnitTest** list)
+unixloader_cleanup (MoonUnitTest** list)
 {
 	free(list);
 }
     
 // Returns the library setup routine for handle
 MoonUnitThunk
-unixscanner_library_setup (MoonUnitLibrary* handle)
+unixloader_library_setup (MoonUnitLibrary* handle)
 {
 	return dlsym(handle->dlhandle, "__mu_ls");
 }
 
 MoonUnitThunk
-unixscanner_library_teardown (MoonUnitLibrary* handle)
+unixloader_library_teardown (MoonUnitLibrary* handle)
 {
 	return dlsym(handle->dlhandle, "__mu_lt");
 }
 
 MoonUnitThunk
-unixscanner_fixture_setup (const char* name, MoonUnitLibrary* handle)
+unixloader_fixture_setup (const char* name, MoonUnitLibrary* handle)
 {
 	char* symbol_name = format(MU_FS_PREFIX "%s", name);
 	void* result = dlsym(handle->dlhandle, symbol_name);
@@ -97,7 +98,7 @@ unixscanner_fixture_setup (const char* name, MoonUnitLibrary* handle)
 }
 
 MoonUnitThunk
-unixscanner_fixture_teardown (const char* name, MoonUnitLibrary* handle)
+unixloader_fixture_teardown (const char* name, MoonUnitLibrary* handle)
 {
 	char* symbol_name = format(MU_FT_PREFIX "%s", name);
 	void* result = dlsym(handle->dlhandle, symbol_name);
@@ -106,21 +107,28 @@ unixscanner_fixture_teardown (const char* name, MoonUnitLibrary* handle)
 }
    
 void
-unixscanner_close (MoonUnitLibrary* handle)
+unixloader_close (MoonUnitLibrary* handle)
 {
 	dlclose(handle->dlhandle);
 	free((void*) handle->path);
 	free(handle);
 }
 
-MoonScanner mu_unixscanner =
+const char*
+unixloader_name (MoonUnitLibrary* handle)
 {
-	unixscanner_open,
-	unixscanner_scan,
-	unixscanner_cleanup,
-	unixscanner_library_setup,
-	unixscanner_library_teardown,
-	unixscanner_fixture_setup,
-	unixscanner_fixture_teardown,
-	unixscanner_close
+	return basename(handle->path);
+}
+
+MoonUnitLoader mu_unixloader =
+{
+	unixloader_open,
+	unixloader_scan,
+	unixloader_cleanup,
+	unixloader_library_setup,
+	unixloader_library_teardown,
+	unixloader_fixture_setup,
+	unixloader_fixture_teardown,
+	unixloader_close,
+	unixloader_name
 };

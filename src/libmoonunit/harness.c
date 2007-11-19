@@ -1,7 +1,7 @@
 #include <moonunit/harness.h>
 
 const char*
-Mu_TestResultToString(MoonTestResult result)
+Mu_TestResultToString(MoonUnitTestResult result)
 {
 	switch (result)
 	{
@@ -15,5 +15,22 @@ Mu_TestResultToString(MoonTestResult result)
     		return "crash";
     	default:
     		return "unknown";
+	}
+}
+
+const char*
+Mu_TestStageToString(MoonUnitTestStage stage)
+{
+	switch (stage)
+	{
+		case MOON_STAGE_SETUP:
+			return "setup";
+		case MOON_STAGE_TEST:
+			return "test";
+		case MOON_STAGE_TEARDOWN:
+			return "teardown";
+		case MOON_STAGE_UNKNOWN:	
+		default:
+			return "unknown stage";
 	}
 }

@@ -1,8 +1,12 @@
+#define _GNU_SOURCE
+
 #include <moonunit/test.h>
 #include <moonunit/harness.h>
+#include <moonunit/loader.h>
 #include <urpc/rpc.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
@@ -11,17 +15,20 @@ static urpc_typeinfo testsummary_info =
 {
 	1,
 	{
-		URPC_POINTER(MoonTestSummary, reason, NULL)
+		URPC_POINTER(MoonUnitTestSummary, reason, NULL)
 	}
 };
 
-void unixharness_result(MoonUnitTest* test, const MoonTestSummary* _summary)
+static MoonUnitTestStage current_stage;
+static MoonUnitTest* current_test;
+
+void unixharness_result(MoonUnitTest* test, const MoonUnitTestSummary* _summary)
 {	
 	urpc_handle* rpc_handle = test->data;
 
 	urpc_message* message = urpc_msg_new(rpc_handle, 2048);
 	
-	MoonTestSummary* summary = urpc_msg_alloc(message, sizeof(MoonTestSummary));
+	MoonUnitTestSummary* summary = urpc_msg_alloc(message, sizeof(MoonUnitTestSummary));
 	
 	*summary = *_summary;
 	
@@ -35,53 +42,108 @@ void unixharness_result(MoonUnitTest* test, const MoonTestSummary* _summary)
 	urpc_msg_send(message);
 	urpc_msg_free(message);
 	urpc_process(rpc_handle);
+	urpc_process(rpc_handle);
 	
 	exit(0);
 }
 
-void unixharness_dispatch(MoonUnitTest* test, MoonTestSummary* summary)
+static void
+signal_handler(int sig)
+{
+	MoonUnitTestSummary summary;
+	
+	summary.result = MOON_RESULT_CRASH;
+	summary.stage = current_stage;
+	summary.reason = strdup(strsignal(sig));
+	summary.line = 0;
+	
+	unixharness_result(current_test, &summary);
+}
+
+
+void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 {
 	int sockets[2];
+	pid_t pid;
 	
 	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
 	
-	urpc_handle* rpc_harness = urpc_connect(sockets[0]);
-	
-	if (!fork())
+	if (!(pid = fork()))
 	{
+		MoonUnitThunk thunk;
 		urpc_handle* rpc_test = urpc_connect(sockets[1]);
+
+		close(sockets[0]);
+
+		current_test = test;
 
 		test->harness = &mu_unixharness;
 		test->data = rpc_test;
 		
+		signal(11, signal_handler);
+		
+		current_stage = MOON_STAGE_SETUP;
+		
+		if ((thunk = test->loader->fixture_setup(test->suite, test->library)))
+			thunk();
+			
+		current_stage = MOON_STAGE_TEST;
+		
 		test->function(test);
 		
+		current_stage = MOON_STAGE_TEARDOWN;
+		
+		if ((thunk = test->loader->fixture_teardown(test->suite, test->library)))
+			thunk();
+		
 		__mu_success(test);
+	
 		exit(0);
 	}
 	else
 	{
-		MoonTestSummary *_summary;
+		urpc_handle* rpc_harness = urpc_connect(sockets[0]);
+		MoonUnitTestSummary *_summary;
 		urpc_message* message;
+		int status;
 		
-		while (!(message = urpc_read(rpc_harness)))
-			urpc_process(rpc_harness);
-			
-		_summary = urpc_msg_payload_get(message, &testsummary_info);
+		close(sockets[1]);
 		
-		*summary = *_summary;
-		if (summary->reason)
-			summary->reason = strdup(_summary->reason);
-		urpc_msg_free(message);
+		waitpid(pid, &status, 0);
+		message = urpc_waitread(rpc_harness);
+		
+		if (message)
+		{
+			_summary = urpc_msg_payload_get(message, &testsummary_info);
+			*summary = *_summary;
+			if (summary->reason)
+				summary->reason = strdup(_summary->reason);
+			urpc_msg_free(message);
+		}
+		else
+		{
+			// Couldn't get message, try to figure out what happend
+			if (WIFSIGNALED(status))
+			{
+				summary->result = MOON_RESULT_CRASH;
+				summary->stage = MOON_STAGE_UNKNOWN;
+				summary->line = 0;
+				
+				if (WTERMSIG(status) == 11)
+					summary->reason = strdup(strsignal(WTERMSIG(status)));
+			}
+		}
+		
+		close(sockets[0]);
 	}
 }
   
-void unixharness_cleanup (MoonTestSummary* summary)
+void unixharness_cleanup (MoonUnitTestSummary* summary)
 {
 	free((void*) summary->reason);
 }
 
-MoonHarness mu_unixharness =
+MoonUnitHarness mu_unixharness =
 {
 	unixharness_result,
 	unixharness_dispatch,

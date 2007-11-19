@@ -25,6 +25,7 @@ struct __urpc_message
 struct __urpc_handle
 {
 	int socket;
+	int error;
 	unsigned int shmem_count;
 	unsigned int id_count;
 	urpc_message* send_queue;
@@ -68,14 +69,18 @@ send_message(urpc_message* message)
 static void
 ack_message(urpc_message* message)
 {
-	urpc_packet* packet = malloc(sizeof(urpc_packet) + sizeof(urpc_packet_ack));
-	
-	packet->header.type = PACKET_ACK;
-	packet->header.length = sizeof(urpc_packet_ack);
-	packet->ack.message_id = message->id;
-	
-	urpc_packet_send(message->handle->socket, packet);
-	free(packet);
+	/*
+	if (urpc_packet_sendable(message->handle->socket, -1))
+	{
+		urpc_packet* packet = malloc(sizeof(urpc_packet) + sizeof(urpc_packet_ack));
+		
+		packet->header.type = PACKET_ACK;
+		packet->header.length = sizeof(urpc_packet_ack);
+		packet->ack.message_id = message->id;
+		
+		urpc_packet_send(message->handle->socket, packet);
+		free(packet);
+	}*/
 }
 
 static urpc_message* message_from_packet(urpc_packet* packet)
@@ -106,6 +111,7 @@ urpc_handle* urpc_connect(int socket)
 	handle->recv_queue = NULL;
 	handle->ack_queue = NULL;
 	handle->id_count = 0;
+	handle->error = 0;
 	
 	return handle;
 }
@@ -123,7 +129,7 @@ void urpc_process(urpc_handle* handle)
 		handle->ack_queue = message;
 	}
 	
-	while (urpc_packet_available(handle->socket))
+	while (urpc_packet_available(handle->socket, 0))
 	{
 		urpc_packet* packet = NULL;
 		
@@ -167,6 +173,11 @@ void urpc_process(urpc_handle* handle)
 				}
 			}
 		}
+		else
+		{
+			handle->error = 1;
+			break;
+		}
 	}
 }
 
@@ -184,7 +195,22 @@ urpc_read(urpc_handle* handle)
 		
 		return message;
 	}
+
 }
+
+urpc_message*
+urpc_waitread(urpc_handle* handle)
+{
+	while (!handle->recv_queue)
+	{
+		if (handle->error || !urpc_packet_available(handle->socket, -1))
+			return NULL;
+		urpc_process(handle);
+	}
+	
+	return urpc_read(handle);
+}
+
 
 urpc_message* 
 urpc_msg_new(urpc_handle* handle, size_t max_size)

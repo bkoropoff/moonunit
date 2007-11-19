@@ -1,7 +1,7 @@
 #include <moonunit/test.h>
 
-static int x = 2;
-static int y = 3;
+static int x = 0;
+static int y = 0;
 
 MU_FIXTURE_SETUP(Math)
 {
@@ -22,4 +22,9 @@ MU_TEST(Math, subtract)
 MU_TEST(Math, bad)
 {
 	MU_ASSERT(x + y == 4);	
+}
+
+MU_TEST(Math, crash)
+{
+	*(int*)0 = 42;
 }

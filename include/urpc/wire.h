@@ -35,6 +35,7 @@ typedef struct urpc_packet
 
 void urpc_packet_send(int socket, urpc_packet* packet);
 void urpc_packet_recv(int socket, urpc_packet** packet);
-int urpc_packet_available(int socket);
+int urpc_packet_available(int socket, long timeout);
+int urpc_packet_sendable(int socket, long timeout);
 
 #endif

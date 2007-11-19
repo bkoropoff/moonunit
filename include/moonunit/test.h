@@ -6,13 +6,12 @@
 #define MU_FS_PREFIX "__mu_fs_"
 #define MU_FT_PREFIX "__my_ft_"
 
-struct MoonHarness;
+struct MoonUnitHarness;
+struct MoonUnitLoader;
+struct MoonUnitLibrary;
 
 typedef struct MoonUnitTest
 {
-    // File name of library test is in
-    // (filled in by harness)
-    const char* library;
     // Test suite name
     const char* suite;
     // Test name
@@ -23,9 +22,13 @@ typedef struct MoonUnitTest
     unsigned int line;
     // Test function
     void (*function) (struct MoonUnitTest*);
-    // Harness responsible for this test
+    // Loader that loaded this test and library
+    // (filled in by loader)
+    struct MoonUnitLoader* loader;
+    struct MoonUnitLibrary* library;
+    // Harness running this test
     // (filled in by harness)
-    struct MoonHarness* harness;
+    struct MoonUnitHarness* harness;
     void* data;
 } MoonUnitTest;
 
@@ -35,13 +38,12 @@ typedef struct MoonUnitTest
     __attribute__((used)) void __mu_f_##suite##_##name(MoonUnitTest*); \
     MoonUnitTest __mu_t_##suite##_##name =                             \
     {                                                                  \
-        0,                                                             \
         #suite,                                                        \
         #name,                                                         \
         __FILE__,                                                      \
         __LINE__,                                                      \
         __mu_f_##suite##_##name,                                       \
-        0,                                                             \
+        0, 0, 0                                                        \
     };                                                                 \
     void __mu_f_##suite##_##name(MoonUnitTest* __mu_self__)            \
         

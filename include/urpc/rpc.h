@@ -14,6 +14,7 @@ typedef struct __urpc_message urpc_message;
 urpc_handle* urpc_connect(int socket);
 void urpc_process(urpc_handle* handle);
 urpc_message* urpc_read(urpc_handle* handle);
+urpc_message* urpc_waitread(urpc_handle* handle);
 urpc_message* urpc_msg_new(urpc_handle* handle, size_t max_size);
 void* urpc_msg_alloc(urpc_message* message, size_t size);
 void urpc_msg_send(urpc_message* message);

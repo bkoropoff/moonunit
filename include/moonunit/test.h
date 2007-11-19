@@ -4,7 +4,7 @@
 #define MU_TEST_PREFIX "__mu_t_"
 #define MU_FUNC_PREFIX "__mu_f_"
 #define MU_FS_PREFIX "__mu_fs_"
-#define MU_FT_PREFIX "__my_ft_"
+#define MU_FT_PREFIX "__mu_ft_"
 
 struct MoonUnitHarness;
 struct MoonUnitLoader;

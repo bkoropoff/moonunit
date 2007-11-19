@@ -1,5 +1,7 @@
 bin_PROGRAMS = moonunit
 
+EXTRA_DIST = moonunit-lt
+
 lib_LTLIBRARIES = libtest.la
 
 moonunit_SOURCES = main.c

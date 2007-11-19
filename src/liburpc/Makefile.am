@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS= foreign
 
 SUBDIRS=
 
-lib_LTLIBRARIES=liburpc.la
+noinst_LTLIBRARIES=liburpc.la
 
 liburpc_la_SOURCES= \
 	marshal.c shmem.c wire.c

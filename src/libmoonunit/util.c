@@ -39,7 +39,7 @@ const char* basename(const char* filename)
 	char* final_slash = strrchr(filename, '/');
 	
 	if (final_slash)
-		return final_slash - 1;
+		return final_slash + 1;
 	else
 		return filename;
 }

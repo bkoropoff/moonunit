@@ -80,8 +80,11 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		test->harness = &mu_unixharness;
 		test->data = rpc_test;
 		
-		signal(11, signal_handler);
-		
+		signal(SIGSEGV, signal_handler);
+		signal(SIGPIPE, signal_handler);
+		signal(SIGFPE, signal_handler);
+		signal(SIGABRT, signal_handler);
+				
 		current_stage = MOON_STAGE_SETUP;
 		
 		if ((thunk = test->loader->fixture_setup(test->suite, test->library)))

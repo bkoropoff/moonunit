@@ -46,7 +46,7 @@ static void result(MoonUnitTest* test, MoonUnitTestSummary* summary)
 	const char* reason;
 	char* failure_message;
 	printf("        %s:", test->name);
-	for (i = ALIGNMENT - strlen(test->name) - 9; i; i--)
+	for (i = ALIGNMENT - strlen(test->name) - 9 - 4; i; i--)
 		printf(" ");
 	
 	switch (summary->result)
@@ -63,7 +63,7 @@ static void result(MoonUnitTest* test, MoonUnitTestSummary* summary)
 				  format("%s:%i (%s): %s", test->file, summary->line, Mu_TestStageToString(summary->stage), reason)
 				: format("(%s): %s", Mu_TestStageToString(summary->stage), reason);
 				
-			for (i = 4 + ALIGNMENT - strlen(failure_message); i; i--)
+			for (i = ALIGNMENT - strlen(failure_message); i; i--)
 				printf(" ");
 			printf("%s\n", failure_message);
 	}

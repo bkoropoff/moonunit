@@ -1,10 +1,10 @@
 #ifndef __MU_TEST_H__
 #define __MU_TEST_H__
 
-#define MU_TEST_PREFIX __mu_t_
-#define MU_FUNC_PREFIX __mu_f_
-#define MU_FS_PREFIX __mu_fs_
-#define MU_FT_PREFIX __my_ft_
+#define MU_TEST_PREFIX "__mu_t_"
+#define MU_FUNC_PREFIX "__mu_f_"
+#define MU_FS_PREFIX "__mu_fs_"
+#define MU_FT_PREFIX "__my_ft_"
 
 struct MoonHarness;
 
@@ -22,26 +22,28 @@ typedef struct MoonUnitTest
     // First line of test definition
     unsigned int line;
     // Test function
-    void (*function) (void);
+    void (*function) (struct MoonUnitTest*);
     // Harness responsible for this test
     // (filled in by harness)
     struct MoonHarness* harness;
+    void* data;
 } MoonUnitTest;
 
 
 
-#define MU_TEST(suite, name)                                        \
-    void __mu_f_##suite##_##name(MoonUnitTest*);                    \
-    GibUnitTest __mu_t_##suite##_##name =                           \
-    {                                                               \
-        NULL,                                                       \
-        #suite,                                                     \
-        #name,                                                      \
-        __FILE__,                                                   \
-        __LINE__,                                                   \
-        __mu_f_##suite##_##name                                     \
-    };                                                              \
-    static void __mu_f_##suite##_##name(MoonUnitTest* __mu_self__)  \
+#define MU_TEST(suite, name)                                           \
+    __attribute__((used)) void __mu_f_##suite##_##name(MoonUnitTest*); \
+    MoonUnitTest __mu_t_##suite##_##name =                             \
+    {                                                                  \
+        0,                                                             \
+        #suite,                                                        \
+        #name,                                                         \
+        __FILE__,                                                      \
+        __LINE__,                                                      \
+        __mu_f_##suite##_##name,                                       \
+        0,                                                             \
+    };                                                                 \
+    void __mu_f_##suite##_##name(MoonUnitTest* __mu_self__)            \
         
 #define MU_LIBRARY_SETUP                        \
     void __mu_ls()                              \
@@ -59,9 +61,14 @@ typedef struct MoonUnitTest
     __mu_assert(__mu_self__, expr, #expr, __FILE__, __LINE__)   \
 
 #define MU_SUCCESS                              \
-    __mu_success()
+    __mu_success(__mu_self__)
     
 #define MU_FAILURE(...)                                                 \
     __mu_failure(__mu_self__, __FILE__, __LINE__, format, __VA_ARGS__)  \
+
+
+void __mu_assert(MoonUnitTest* test, int result, const char* expr, const char* file, unsigned int line);
+void __mu_success(MoonUnitTest* test);
+void __mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char* message, ...);
 
 #endif

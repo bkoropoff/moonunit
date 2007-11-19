@@ -2,6 +2,8 @@
 #include <moonunit/harness.h>
 #include <moonunit/util.h>
 
+#include <stdlib.h>
+
 void
 __mu_assert(MoonUnitTest* test, int result, const char* expr,
             const char* file, unsigned int line)
@@ -18,9 +20,9 @@ __mu_assert(MoonUnitTest* test, int result, const char* expr,
         summary.reason = format("Assertion '%s' failed", expr);
         summary.line = line;
         
-        test->harness->result(&summary);
+        test->harness->result(test, &summary);
 
-        free(summary.reason())
+        free((void*) summary.reason);
     }
 }
 
@@ -32,13 +34,13 @@ __mu_success(MoonUnitTest* test)
     summary.result = MOON_RESULT_SUCCESS;
     summary.stage = MOON_STAGE_TEST;
     summary.reason = NULL;
-    summary.line = line;
+    summary.line = 0;
 
-    test->harness->result(&summary);
+    test->harness->result(test, &summary);
 }
  
 void   
-__mu_failure(MoonUnitTest*, const char* file, unsigned int line, const char* message, ...)
+__mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char* message, ...)
 {
     va_list ap;
     MoonTestSummary summary;
@@ -49,7 +51,7 @@ __mu_failure(MoonUnitTest*, const char* file, unsigned int line, const char* mes
     summary.reason = formatv(message, ap);
     summary.line = line;
 
-    test->harness->result(&summary);
+    test->harness->result(test, &summary);
 
-    free(summary.reason);
+    free((void*) summary.reason);
 }

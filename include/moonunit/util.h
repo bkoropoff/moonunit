@@ -3,7 +3,8 @@
 
 #include <stdarg.h>
 
-const char* format(const char* format, ...);
-const char* formatv(const char* format, va_list ap);
+char* format(const char* format, ...);
+char* formatv(const char* format, va_list ap);
+const char* basename(const char* filename);
 
 #endif

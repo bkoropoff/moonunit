@@ -54,3 +54,7 @@ typedef struct MoonLogger
     void (*suite_leave) ();
     void (*result) (MoonUnitTest*, MoonTestSummary*);
 } MoonLogger;
+
+extern MoonHarness mu_unixharness;
+
+const char* Mu_TestResultToString(MoonTestResult result);

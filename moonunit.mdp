@@ -36,17 +36,17 @@
     <File name="include/Makefile.am" subtype="Code" buildaction="Nothing" />
     <File name="src/libmoonunit/unixloader.c" subtype="Code" buildaction="Compile" />
     <File name="src/libmoonunit/Makefile.am" subtype="Code" buildaction="Nothing" />
-    <File name="src/moonunit/test.c" subtype="Code" buildaction="Compile" />
+    <File name="src/moonunit/example.c" subtype="Code" buildaction="Compile" />
     <File name="src/moonunit/Makefile.am" subtype="Code" buildaction="Nothing" />
     <File name="src/libmoonunit/unixharness.c" subtype="Code" buildaction="Compile" />
     <File name="src/libmoonunit/harness.c" subtype="Code" buildaction="Compile" />
     <File name="include/moonunit/runner.h" subtype="Code" buildaction="Nothing" />
     <File name="src/libmoonunit/runner.c" subtype="Code" buildaction="Compile" />
     <File name="include/moonunit/Makefile.am" subtype="Code" buildaction="Nothing" />
-    <File name="src/moonunit/moonunit-lt" subtype="Code" buildaction="Nothing" />
+    <File name="src/moonunit/moonunit-lt.sh" subtype="Code" buildaction="Nothing" />
   </Contents>
   <compiler ctype="GccCompiler" />
-  <MonoDevelop.Autotools.MakefileInfo IntegrationEnabled="True" RelativeMakefileName="Makefile" IsAutotoolsProject="True" RelativeConfigureInPath=".">
+  <MonoDevelop.Autotools.MakefileInfo IntegrationEnabled="True" RelativeMakefileName="Makefile" ExecuteTargetName="run" IsAutotoolsProject="True" RelativeConfigureInPath=".">
     <BuildFilesVar />
     <DeployFilesVar />
     <ResourcesVar />

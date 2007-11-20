@@ -88,7 +88,7 @@ unixloader_library_teardown (MoonUnitLibrary* handle)
 	return dlsym(handle->dlhandle, "__mu_lt");
 }
 
-MoonUnitThunk
+MoonUnitTestThunk
 unixloader_fixture_setup (const char* name, MoonUnitLibrary* handle)
 {
 	char* symbol_name = format(MU_FS_PREFIX "%s", name);
@@ -97,7 +97,7 @@ unixloader_fixture_setup (const char* name, MoonUnitLibrary* handle)
 	return result;
 }
 
-MoonUnitThunk
+MoonUnitTestThunk
 unixloader_fixture_teardown (const char* name, MoonUnitLibrary* handle)
 {
 	char* symbol_name = format(MU_FT_PREFIX "%s", name);

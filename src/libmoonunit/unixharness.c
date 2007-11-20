@@ -70,7 +70,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 	
 	if (!(pid = fork()))
 	{
-		MoonUnitThunk thunk;
+		MoonUnitTestThunk thunk;
 		urpc_handle* rpc_test = urpc_connect(sockets[1]);
 
 		close(sockets[0]);
@@ -88,7 +88,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		current_stage = MOON_STAGE_SETUP;
 		
 		if ((thunk = test->loader->fixture_setup(test->suite, test->library)))
-			thunk();
+			thunk(test);
 			
 		current_stage = MOON_STAGE_TEST;
 		
@@ -97,7 +97,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		current_stage = MOON_STAGE_TEARDOWN;
 		
 		if ((thunk = test->loader->fixture_teardown(test->suite, test->library)))
-			thunk();
+			thunk(test);
 		
 		__mu_success(test);
 	

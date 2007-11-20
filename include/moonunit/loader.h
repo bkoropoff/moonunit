@@ -6,6 +6,7 @@ struct MoonUnitLibrary;
 typedef struct MoonUnitLibrary MoonUnitLibrary;
 
 typedef void (*MoonUnitThunk) (void);
+typedef void (*MoonUnitTestThunk) (struct MoonUnitTest*);
 
 typedef struct MoonUnitLoader
 {
@@ -21,9 +22,9 @@ typedef struct MoonUnitLoader
     // Returns the library teardown routine for handle
     MoonUnitThunk (*library_teardown)(MoonUnitLibrary* handle);
     // Returns the fixture setup routine for suite name in handle
-    MoonUnitThunk (*fixture_setup)(const char* name, MoonUnitLibrary* handle);
+    MoonUnitTestThunk (*fixture_setup)(const char* name, MoonUnitLibrary* handle);
     // Returns the fixture teardown routine for suite name in handle
-    MoonUnitThunk (*fixture_teardown)(const char* name, MoonUnitLibrary* handle);
+    MoonUnitTestThunk (*fixture_teardown)(const char* name, MoonUnitLibrary* handle);
     // Closes a library
     void (*close) (MoonUnitLibrary* handle);
     // Get name of a library

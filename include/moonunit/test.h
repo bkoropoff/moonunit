@@ -53,14 +53,21 @@ typedef struct MoonUnitTest
 #define MU_LIBRARY_TEARDOWN                     \
     void __mu_lt()                              \
         
-#define MU_FIXTURE_SETUP(name)                  \
-    void __mu_fs_##name()                       \
+#define MU_FIXTURE_SETUP(name)                     \
+    void __mu_fs_##name(MoonUnitTest* __mu_self__) \
         
-#define MU_FIXTURE_TEARDOWN(name)               \
-    void __mu_ft_##name()                       \
+#define MU_FIXTURE_TEARDOWN(name)                  \
+    void __mu_ft_##name(MoonUnitTest* __mu_self__) \
 
 #define MU_ASSERT(expr)                                         \
     __mu_assert(__mu_self__, expr, #expr, __FILE__, __LINE__)   \
+
+#define MU_ASSERT_EQUAL(type, expr, expected) \
+	__mu_assert_equal(__mu_self__, #expr, #expected, __FILE__, __LINE__, type, (expr), (expected))
+
+#define MU_INTEGER "%i"
+#define MU_STRING "%s"
+#define MU_FLOAT "%f"
 
 #define MU_SUCCESS                              \
     __mu_success(__mu_self__)
@@ -68,8 +75,10 @@ typedef struct MoonUnitTest
 #define MU_FAILURE(...)                                                 \
     __mu_failure(__mu_self__, __FILE__, __LINE__, format, __VA_ARGS__)  \
 
+#define MU_CURRENT_TEST (__mu_self__)
 
 void __mu_assert(MoonUnitTest* test, int result, const char* expr, const char* file, unsigned int line);
+void __mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected, const char* file, unsigned int line, const char* type, ...);
 void __mu_success(MoonUnitTest* test);
 void __mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char* message, ...);
 

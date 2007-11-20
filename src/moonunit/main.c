@@ -14,7 +14,7 @@
 #include <moonunit/runner.h>
 #include <moonunit/util.h>
 
-#define ALIGNMENT 80
+#define ALIGNMENT 60
 
 #define die(...)                                \
     do {                                        \
@@ -29,41 +29,49 @@ static void library_enter(const char* name)
 
 static void library_leave()
 {
+	printf("\n");
 }
 
 static void suite_enter(const char* name)
 {
-	printf("    Suite: %s\n", name);
+	printf("  Suite: %s\n", name);
 }
 
 static void suite_leave()
 {
+	printf("\n");
 }
 
 static void result(MoonUnitTest* test, MoonUnitTestSummary* summary)
 {
 	int i;
-	const char* reason;
+	const char* reason, * stage;
 	char* failure_message;
-	printf("        %s:", test->name);
-	for (i = ALIGNMENT - strlen(test->name) - 9 - 4; i; i--)
-		printf(" ");
+	printf("    %s:", test->name);
 	
 	switch (summary->result)
 	{
 		case MOON_RESULT_SUCCESS:
+			for (i = ALIGNMENT - strlen(test->name) - 5 - 4; i > 0; i--)
+				printf(" ");
 			printf("\e[32mPASS\e[0m\n");
 			break;
 		case MOON_RESULT_FAILURE:
 		case MOON_RESULT_ASSERTION:
 		case MOON_RESULT_CRASH:
-			printf("\e[31mFAIL\e[0m\n");
+			stage = Mu_TestStageToString(summary->stage);
+			
+			for (i = ALIGNMENT - strlen(test->name) - strlen(stage) - 3 - 5 - 4; i > 0; i--)
+				printf(" ");
+			
 			reason = summary->reason ? summary->reason : "unknown";
+			printf("(%s) \e[31mFAIL\e[0m\n", stage);
+			
 			failure_message = summary->line != 0 ? 
-				  format("%s:%i (%s): %s", test->file, summary->line, Mu_TestStageToString(summary->stage), reason)
-				: format("(%s): %s", Mu_TestStageToString(summary->stage), reason);
-				
-			for (i = ALIGNMENT - strlen(failure_message); i; i--)
+				  format("%s:%i: %s", test->file, summary->line, reason)
+				: format("%s", reason);
+
+			for (i = ALIGNMENT - strlen(failure_message); i > 0; i--)
 				printf(" ");
 			printf("%s\n", failure_message);
 	}

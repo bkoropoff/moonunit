@@ -1,13 +1,16 @@
 bin_PROGRAMS = moonunit
+bin_SCRIPTS = moonunit-lt
 
-EXTRA_DIST = moonunit-lt
-
-lib_LTLIBRARIES = libtest.la
+lib_LTLIBRARIES = libexample.la
 
 moonunit_SOURCES = main.c
 moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
 
-libtest_la_SOURCES = test.c
-libtest_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
+libexample_la_SOURCES = example.c
+libexample_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
+
+moonunit-lt: moonunit-lt.sh moonunit
+	cp $< $@
+	chmod +x $@
 
 INCLUDES = -I$(top_srcdir)/include

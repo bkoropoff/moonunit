@@ -12,13 +12,16 @@ objdir=`libtool --config | grep ^objdir= | cut -d= -f2`
 
 for arg in "$@"
 do
-	if echo $arg | grep '\.la$' 2>&1 >/dev/null
+	if [ $arg == "--gdb" ]
+	then
+		gdb="gdb --args"
+	elif echo $arg | grep '\.la$' 2>&1 >/dev/null
 	then
 		dlopens=("${dlopens[@]}" -dlopen $arg)
-		command=("${command[@]}" $objdir/`echo $arg | sed 's/\.la/.so/'`)
+		command=("${command[@]}" `dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`)
 	else
 		command=("${command[@]}" $arg)
 	fi
 done
 
-libtool --mode=execute "${dlopens[@]}" $moonunit "${command[@]}"
+libtool --mode=execute "${dlopens[@]}" $gdb $moonunit "${command[@]}"

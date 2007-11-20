@@ -15,6 +15,9 @@ do
 	if [ $arg == "--gdb" ]
 	then
 		gdb="gdb --args"
+	elif [ $arg == "--valgrind" ]
+	then
+		gdb="valgrind"
 	elif echo $arg | grep '\.la$' 2>&1 >/dev/null
 	then
 		dlopens=("${dlopens[@]}" -dlopen $arg)

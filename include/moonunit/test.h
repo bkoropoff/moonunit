@@ -72,8 +72,8 @@ typedef struct MoonUnitTest
 #define MU_SUCCESS                              \
     __mu_success(__mu_self__)
     
-#define MU_FAILURE(...)                                                 \
-    __mu_failure(__mu_self__, __FILE__, __LINE__, format, __VA_ARGS__)  \
+#define MU_FAILURE(...) \
+    __mu_failure(__mu_self__, __FILE__, __LINE__, __VA_ARGS__)
 
 #define MU_CURRENT_TEST (__mu_self__)
 

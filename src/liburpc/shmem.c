@@ -54,7 +54,7 @@ static void
 send_message(urpc_message* message)
 {
 	unsigned int length = sizeof(urpc_packet_message) + strlen(message->shmem_path) + 1;
-	urpc_packet* packet = malloc(sizeof (urpc_packet) + length);
+	urpc_packet* packet = malloc(sizeof (urpc_packet_header) + length);
 	
 	packet->header.type = PACKET_MESSAGE;
 	packet->header.length = length;

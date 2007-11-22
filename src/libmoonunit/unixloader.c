@@ -113,6 +113,9 @@ unixloader_scan (MoonUnitLibrary* handle)
 	
 	ElfScan_GetScanner()(handle->dlhandle, test_filter, test_add, &buffer);
 	
+	buffer.test.tests[buffer.test.index] = NULL;
+	buffer.fixture.thunks[buffer.fixture.index] = NULL;
+	
 	handle->tests = buffer.test.tests;
 	handle->fixture_thunks = buffer.fixture.thunks;
 }

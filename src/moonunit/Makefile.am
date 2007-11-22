@@ -1,5 +1,5 @@
 bin_PROGRAMS = moonunit
-bin_SCRIPTS = moonunit-lt
+bin_SCRIPTS = moonunit-lt moonunit-strip
 
 lib_LTLIBRARIES = libexample.la
 
@@ -12,5 +12,10 @@ libexample_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
 moonunit-lt: moonunit-lt.sh moonunit
 	cp $< $@
 	chmod +x $@
+
+moonunit-strip: moonunit-strip.sh
+	cp $< $@
+	chmod +x $@
+
 
 INCLUDES = -I$(top_srcdir)/include

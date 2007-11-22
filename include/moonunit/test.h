@@ -32,10 +32,24 @@ typedef struct MoonUnitTest
     void* data;
 } MoonUnitTest;
 
-
+#ifdef __GNUC__
+#    define __MU_USED__ __attribute__((used))
+#    define __MU_SECTION__(name) __attribute__((section(name)))
+#    define __MU_HIDDEN__ __attribute__((visibility("hidden")))
+#else
+#    define __MU_USED__
+#    define __MU_SECTION__(name)
+#    define __MU_HIDDEN__ __attribute__((visibility("hidden")))
+#endif
+#define __MU_SECTION_TEXT__ __MU_SECTION__(".moonunit_text")
+#define __MU_SECTION_DATA__ __MU_SECTION__(".moonunit_data")
 
 #define MU_TEST(suite, name)                                           \
-    __attribute__((used)) void __mu_f_##suite##_##name(MoonUnitTest*); \
+    __MU_USED__                                                        \
+    __MU_SECTION_TEXT__                                                \
+    __MU_HIDDEN__                                                      \
+    void __mu_f_##suite##_##name(MoonUnitTest*);                       \
+    __MU_SECTION_DATA__                                                \
     MoonUnitTest __mu_t_##suite##_##name =                             \
     {                                                                  \
         #suite,                                                        \

@@ -69,7 +69,6 @@ send_message(urpc_message* message)
 static void
 ack_message(urpc_message* message)
 {
-	/*
 	if (urpc_packet_sendable(message->handle->socket, -1))
 	{
 		urpc_packet* packet = malloc(sizeof(urpc_packet) + sizeof(urpc_packet_ack));
@@ -80,7 +79,7 @@ ack_message(urpc_message* message)
 		
 		urpc_packet_send(message->handle->socket, packet);
 		free(packet);
-	}*/
+	}
 }
 
 static urpc_message* message_from_packet(urpc_packet* packet)

@@ -6,10 +6,11 @@
 #include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 
 void urpc_packet_send(int socket, urpc_packet* packet)
 {
-	write(socket, packet, sizeof(urpc_packet_header) + packet->header.length);
+	send(socket, packet, sizeof(urpc_packet_header) + packet->header.length, MSG_NOSIGNAL);
 }
 
 void urpc_packet_recv(int socket, urpc_packet** packet)

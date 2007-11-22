@@ -7,7 +7,6 @@ moonunit_SOURCES = main.c
 moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
 
 libexample_la_SOURCES = example.c
-libexample_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
 
 moonunit-lt: moonunit-lt.sh moonunit
 	cp $< $@
@@ -18,4 +17,4 @@ moonunit-strip: moonunit-strip.sh
 	chmod +x $@
 
 
-INCLUDES = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include

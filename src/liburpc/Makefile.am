@@ -9,4 +9,4 @@ liburpc_la_SOURCES= \
 
 liburpc_la_LIBADD = -lrt
 
-INCLUDES = -I@top_srcdir@/include/urpc
+AM_CPPFLAGS = -I@top_srcdir@/include/urpc

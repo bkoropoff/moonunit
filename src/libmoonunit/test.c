@@ -40,8 +40,30 @@ assert_equal_integer(const char* expr, const char* expected, va_list ap, int* re
 		*reason = format("Assertion '%s == %s' failed (%i != %i)", expr, expected, a, b);
 }
 
+static void
+assert_equal_string(const char* expr, const char* expected, va_list ap, int* result, char** reason)
+{
+	const char* a = va_arg(ap, char*);
+	const char* b = va_arg(ap, char*);
+	
+	*result = !strcmp(a,b);
+	if (!*result)
+		*reason = format("Assertion '\"%s\" == \"%s\"' failed (\"%s\" != \"%s\")", expr, expected, a, b);
+}
+
+static void
+assert_equal_float(const char* expr, const char* expected, va_list ap, int* result, char** reason)
+{
+	double a = va_arg(ap, double);
+	double b = va_arg(ap, double);
+	
+	*result = a == b;
+	if (!*result)
+		*reason = format("Assertion '%s == %s' failed (%f != %f)", expr, expected, a, b);
+}
+
 void
-__mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected, const char* file, unsigned int line, const char* type, ...)
+__mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected, const char* file, unsigned int line, unsigned int type, ...)
 {
 	int result;
 	char* reason;
@@ -50,9 +72,16 @@ __mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected, co
 	
 	va_start(ap, type);
 	
-	if (!strcmp (type, "%i"))
+	switch (type)
 	{
-		assert_equal_integer(expr, expected, ap, &result, &reason);
+		case MU_INTEGER:
+			assert_equal_integer(expr, expected, ap, &result, &reason);
+			break;
+		case MU_STRING:
+			assert_equal_string(expr, expected, ap, &result, &reason);
+			break;
+		case MU_FLOAT:
+			assert_equal_float(expr, expected, ap, &result, &reason);
 	}
 	
     if (result)
@@ -101,3 +130,11 @@ __mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char
 
     free((void*) summary.reason);
 }
+
+MoonUnitTestMethods Mu_TestMethods =
+{
+	__mu_assert,
+	__mu_assert_equal,
+	__mu_success,
+	__mu_failure
+};

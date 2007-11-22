@@ -51,7 +51,7 @@ void Mu_Runner_RunTests(MoonUnitRunner* runner, const char* path)
 	
 	runner->logger->library_enter(basename(path));
 	
-	MoonUnitTest** tests = runner->loader->scan(library);
+	MoonUnitTest** tests = runner->loader->tests(library);
 	
 	qsort(tests, test_count(tests), sizeof(*tests), test_compare);
 	
@@ -82,7 +82,6 @@ void Mu_Runner_RunTests(MoonUnitRunner* runner, const char* path)
 	if (current_suite)
 		runner->logger->suite_leave();
 	runner->logger->library_leave();
-	runner->loader->cleanup(tests);
 	
 	if ((thunk = runner->loader->library_teardown(library)))
 		thunk();

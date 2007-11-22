@@ -12,11 +12,8 @@ typedef struct MoonUnitLoader
 {
     // Opens a library and returns a handle
     MoonUnitLibrary* (*open) (const char* path);
-    // Scans an open library for unit tests
-    // and returns a NULL-terminated list
-    struct MoonUnitTest** (*scan) (MoonUnitLibrary* handle);
-    // Frees a list acquired with scan
-    void (*cleanup) (struct MoonUnitTest** list);
+    // Returns a null-terminated list of unit tests
+    struct MoonUnitTest** (*tests) (MoonUnitLibrary* handle);
     // Returns the library setup routine for handle
     MoonUnitThunk (*library_setup)(MoonUnitLibrary* handle);
     // Returns the library teardown routine for handle

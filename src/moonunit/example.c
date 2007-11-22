@@ -1,3 +1,5 @@
+#define MU_HIDE_TESTS
+
 #include <moonunit/test.h>
 
 #include <string.h>

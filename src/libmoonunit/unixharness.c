@@ -99,7 +99,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		if ((thunk = test->loader->fixture_teardown(test->suite, test->library)))
 			thunk(test);
 		
-		__mu_success(test);
+		test->methods->success(test);
 	
 		exit(0);
 	}

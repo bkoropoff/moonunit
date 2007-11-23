@@ -31,8 +31,12 @@
  */
 
 /**
- * @defgroup test
- * @brief Unit Tests
+ * @defgroup test Unit Tests
+ * @brief Macros, structures, and constants to define and
+ * inspect unit tests
+ *
+ * This module contains the essential ingredients to add unit tests
+ * to your code which Moonunit can discover and run.
  */
 /*@{*/
 
@@ -40,74 +44,6 @@
 #define __MU_TEST_H__
 
 #ifndef DOXYGEN
-#define MU_TEST_PREFIX "__mu_t_"
-#define MU_FUNC_PREFIX "__mu_f_"
-#define MU_FS_PREFIX "__mu_fs_"
-#define MU_FT_PREFIX "__mu_ft_"
-
-struct MoonUnitHarness;
-struct MoonUnitLoader;
-struct MoonUnitLibrary;
-struct MoonUnitTestMethods;
-#endif
-
-/**
- * @brief Unit test structure
- *
- * Contains all information describing a particular
- * unit test
- */
-typedef struct MoonUnitTest
-{
-    /** Test suite name */
-    const char* suite;
-    /** Test name */
-    const char* name;
-    /** Source file where test is located */
-    const char* file;
-    /** First line of test definition */
-    unsigned int line;
-    /** Test function */
-    void (*function) (struct MoonUnitTest*);
-    
-    // Members filled in before running a test
-    
-    // Loader that loaded this test and library
-    // (filled in by loader)
-
-	/** Loader which loaded this test */
-    struct MoonUnitLoader* loader;
-    /** Library which contains this test */
-    struct MoonUnitLibrary* library;
-    
-    // Harness running this test
-    // (filled in by harness)
-
-	/** Harness which is running this test */
-    struct MoonUnitHarness* harness;
-    
-    // Methods (assertions, etc.)
-    // (filled in by loader)
-#ifndef DOXYGEN
-    struct MoonUnitTestMethods* methods;
-#endif    
-
-    /** Custom user data */
-    void* data;
-} MoonUnitTest;
-
-#ifndef DOXYGEN
-typedef struct MoonUnitTestMethods
-{
-	void (*assert)(MoonUnitTest* test, 
-				   int result, const char* expr, const char* file, unsigned int line);
-	void (*assert_equal)(MoonUnitTest* test, 
-				   		 const char* expr, const char* expected, 
-				 		 const char* file, unsigned int line, unsigned int type, ...);
-	void (*success)(MoonUnitTest* test);
-	void (*failure)(MoonUnitTest* test, 
-				    const char* file, unsigned int line, const char* message, ...);
-} MoonUnitTestMethods;
 
 #ifdef __GNUC__
 #    define __MU_USED__ __attribute__((used))
@@ -128,6 +64,16 @@ typedef struct MoonUnitTestMethods
 #endif
 
 #endif
+
+/**
+ * @defgroup test_def Definition
+ * @brief Macros to define unit tests
+ * @ingroup test
+ *
+ * This module contains macros to define unit tests as well as
+ * library and fixture setup and teardown routines.
+ */
+/*@{*/
 
 /**
  * @brief Defines a unit test
@@ -316,6 +262,18 @@ typedef struct MoonUnitTestMethods
     void __mu_ft_##name(MoonUnitTest* __mu_self__)
 #endif
 
+/*@}*/
+
+/**
+ * @defgroup test_result Testing
+ * @ingroup test
+ * @brief Macros to test assertions and flag failures
+ *
+ * This module contains macros for use in the body of unit tests
+ * to make assertions, raise errors, and report unexpected results.
+ */
+/*@{*/
+
 /**
  * @brief Confirm truth of predicate or fail
  *
@@ -336,7 +294,7 @@ typedef struct MoonUnitTestMethods
  *
  * @param expr the expression to test
  */
-#ifdef OXYGEN
+#ifdef DOXYGEN
 #define MU_ASSERT(expr)
 #else
 #define MU_ASSERT(expr)                                                          \
@@ -391,11 +349,13 @@ typedef struct MoonUnitTestMethods
 #define MU_INTEGER 0
 /**
  * @brief String type token
+ *
  * Specifies that the arguments of an equality assertion are strings
  */
 #define MU_STRING  1
 /**
  * @brief Float type token
+ *
  * Specifies that the arguments of an equality assertion are floats
  */
 #define MU_FLOAT   2
@@ -450,6 +410,53 @@ typedef struct MoonUnitTestMethods
     __mu_self__->methods->failure(__mu_self__, __FILE__, __LINE__, __VA_ARGS__)
 #endif
 
+/*@}*/
+
+/**
+ * @defgroup test_reflect Reflection
+ * @ingroup test
+ * @brief Macros and structures to inspect live unit tests
+ *
+ * This modules contains macros and structures that allow running
+ * unit tests to inspect their own attributes and environment
+ */
+/*@{*/
+
+/**
+ * @brief Unit test structure
+ *
+ * Contains all information describing a particular
+ * unit test
+ */
+typedef struct MoonUnitTest
+{
+    /*@{*/
+    /** Test suite name */
+    const char* suite;
+    /** Test name */
+    const char* name;
+    /** Source file where test is located */
+    const char* file;
+    /** First line of test definition */
+    unsigned int line;
+    /** Test function */
+    void (*function) (struct MoonUnitTest*);
+    /*@}*/
+
+#ifndef DOXYGEN
+	/** Loader which loaded this test */
+    struct MoonUnitLoader* loader;
+    /** Library which contains this test */
+    struct MoonUnitLibrary* library;
+	/** Harness which is running this test */
+    struct MoonUnitHarness* harness;  
+    struct MoonUnitTestMethods* methods;
+#endif    
+
+    /** Custom user data */
+    void* data;
+} MoonUnitTest;
+
 /**
  * @brief Access current unit test
  *
@@ -477,10 +484,36 @@ typedef struct MoonUnitTestMethods
 #define MU_CURRENT_TEST (__mu_self__)
 #endif
 
-#ifndef DOXYGEN
-extern MoonUnitTestMethods Mu_TestMethods;
-#endif
+/*@}*/
 
 /*@}*/
+
+#ifndef DOXYGEN
+#define MU_TEST_PREFIX "__mu_t_"
+#define MU_FUNC_PREFIX "__mu_f_"
+#define MU_FS_PREFIX "__mu_fs_"
+#define MU_FT_PREFIX "__mu_ft_"
+
+struct MoonUnitHarness;
+struct MoonUnitLoader;
+struct MoonUnitLibrary;
+struct MoonUnitTestMethods;
+
+typedef struct MoonUnitTestMethods
+{
+	void (*assert)(MoonUnitTest* test, 
+				   int result, const char* expr, const char* file, unsigned int line);
+	void (*assert_equal)(MoonUnitTest* test, 
+				   		 const char* expr, const char* expected, 
+				 		 const char* file, unsigned int line, unsigned int type, ...);
+	void (*success)(MoonUnitTest* test);
+	void (*failure)(MoonUnitTest* test, 
+				    const char* file, unsigned int line, const char* message, ...);
+} MoonUnitTestMethods;
+
+
+
+extern MoonUnitTestMethods Mu_TestMethods;
+#endif
 
 #endif

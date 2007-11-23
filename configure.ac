@@ -1,5 +1,8 @@
-AC_INIT([moonunit], [0.1], [bkoropoff __at__ gmail_com])
+AC_INIT([moonunit],[0.1],[bkoropoff __at__ gmail_com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+
+AC_CONFIG_HEADERS(include/config.h)
+
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
@@ -10,7 +13,7 @@ AC_ARG_ENABLE([debug],
 	[AS_HELP_STRING([--enable-debug],
 		[enable debugging])],
 	[
-		AC_DEFINE(DEBUG)
+		AC_DEFINE([DEBUG], [], [Debugging enabled])
 		CFLAGS="$CFLAGS -O0 -g"
 	],
 	[])
@@ -54,7 +57,7 @@ then
     	    x"$FOUND_LIBELF_LIB" = x"yes"
 	then
 		LIBELF_LIBADD="$LIBELF_LDFLAGS -lelf"
-		AC_DEFINE(HAVE_LIBELF)
+		AC_DEFINE(HAVE_LIBELF, [], [libelf available])
 		FOUND_LIBELF=yes
 		BACKEND=libelf
 	else
@@ -75,9 +78,20 @@ LDFLAGS=$saved_LDFLAGS
 CPPFLAGS=$saved_CPPFLAGS
 			 
 
-AC_OUTPUT(Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile 
-		  include/Makefile include/moonunit/Makefile src/liburpc/Makefile
-		  include/urpc/Makefile)
+AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [false])
+
+AM_CONDITIONAL([HAVE_DOXYGEN], [test x"$DOXYGEN" != x"false"])
+
+AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile
+		include/Makefile include/moonunit/Makefile src/liburpc/Makefile
+	  	include/urpc/Makefile])
+
+if test x"$DOXYGEN" != x"false"
+then
+	AC_CONFIG_FILES([doc/Makefile doc/Doxyfile])
+fi
+
+AC_OUTPUT
 
 echo ""
 echo ""

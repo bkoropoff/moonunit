@@ -34,6 +34,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <config.h>
+
 #ifdef HAVE_LIBELF
 #include "elfscan.h"
 #endif

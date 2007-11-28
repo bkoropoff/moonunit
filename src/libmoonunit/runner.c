@@ -30,26 +30,27 @@
 #include <moonunit/harness.h>
 #include <moonunit/util.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
-struct MoonUnitRunner
+#include "gdb.h"
+
+typedef struct UnixRunner
 {
+    MoonUnitRunner base;
+
 	MoonUnitLoader* loader;
 	MoonUnitHarness* harness;
 	MoonUnitLogger* logger;
-};
+    const char* self;
 
-MoonUnitRunner*
-Mu_Runner_New(MoonUnitLoader* loader, MoonUnitHarness* harness, MoonUnitLogger* logger)
-{
-	MoonUnitRunner* runner = malloc(sizeof(*runner));
-	runner->loader = loader;
-	runner->harness = harness;
-	runner->logger = logger;
-	
-	return runner;
-}
+    struct 
+    {
+        bool gdb;
+    } option;
+} UnixRunner;
 
 static int test_compare(const void* _a, const void* _b)
 {
@@ -72,8 +73,34 @@ static unsigned int test_count(MoonUnitTest** tests)
 	return result;
 }
 
-void Mu_Runner_RunTests(MoonUnitRunner* runner, const char* path)
+static char UnixRunner_OptionType(MoonUnitRunner* _runner, const char* name)
 {
+    if (!strcmp(name, "gdb"))
+    {
+        return 'b';
+    }
+    else
+    {
+        return '\0';
+    }
+}
+
+static void UnixRunner_Option(MoonUnitRunner* _runner, const char* name, void* _value)
+{
+    UnixRunner* runner = (UnixRunner*) _runner;
+
+    if (!strcmp(name, "gdb"))
+    {
+        bool value = *(bool*) _value;
+        
+        runner->option.gdb = value;
+    }
+}
+
+static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path)
+{
+    UnixRunner* runner = (UnixRunner*) _runner;
+
 	MoonUnitLibrary* library = runner->loader->open(path);
 	
 	runner->logger->library_enter(basename(path));
@@ -103,6 +130,24 @@ void Mu_Runner_RunTests(MoonUnitRunner* runner, const char* path)
 		
 		runner->harness->dispatch(test, &summary);
 		runner->logger->result(test, &summary);
+
+        if (summary.result != MOON_RESULT_SUCCESS && runner->option.gdb)
+        {
+            pid_t pid = runner->harness->debug(test);
+            char* breakpoint;
+
+            if (summary.line)
+                breakpoint = format("%s:%u", test->file, summary.line);
+            else if (summary.stage == MOON_STAGE_SETUP)
+                breakpoint = format("*%p", runner->loader->fixture_setup(test->suite, library));
+            else if (summary.stage == MOON_STAGE_TEARDOWN)
+                breakpoint = format("*%p", runner->loader->fixture_teardown(test->suite, library));
+            else
+                breakpoint = format("*%p", test->function);
+
+            gdb_attach_interactive(runner->self, pid, breakpoint);
+        }
+
 		runner->harness->cleanup(&summary);
 	}
 	
@@ -114,4 +159,79 @@ void Mu_Runner_RunTests(MoonUnitRunner* runner, const char* path)
 		thunk();
 	
 	runner->loader->close(library);
+}
+
+MoonUnitRunner*
+Mu_UnixRunner_Create(const char* self, MoonUnitLoader* loader, MoonUnitHarness* harness, MoonUnitLogger* logger)
+{
+	UnixRunner* runner = malloc(sizeof(*runner));
+
+	runner->loader = loader;
+	runner->harness = harness;
+	runner->logger = logger;
+    runner->self = strdup(self);
+	
+    runner->base.run_all = UnixRunner_RunAll;
+    runner->base.run_set = NULL;
+    runner->base.option = UnixRunner_Option;
+    runner->base.option_type = UnixRunner_OptionType;
+
+    runner->option.gdb = false;
+
+	return (MoonUnitRunner*) runner;
+}
+
+void Mu_Runner_RunAll(MoonUnitRunner* runner, const char* library)
+{
+    runner->run_all(runner, library);
+}
+
+void Mu_Runner_RunSet(MoonUnitRunner* runner, const char* library, int setc, char** set)
+{
+    runner->run_set(runner, library, setc, set);
+}
+
+void Mu_Runner_Option(MoonUnitRunner* runner, const char *name, ...)
+{
+    va_list ap;
+    void* data;
+    bool boolean;
+    int integer;
+    char* string;
+    double fpoint;
+    void* pointer;
+
+    va_start(ap, name);
+
+    switch (runner->option_type(runner, name))
+    {
+    case 'b':
+        boolean = va_arg(ap, int);
+        data = &boolean;
+        break;
+    case 'i':
+        integer = va_arg(ap, int);
+        data = &integer;
+        break;
+    case 's':
+        string = va_arg(ap, char*);
+        data = string;
+        break;
+    case 'f':
+        fpoint = va_arg(ap, double);
+        data = &fpoint;
+        break;
+    case 'p':
+        pointer = va_arg(ap, void*);
+        data = pointer;
+        break;
+    default:
+        data = NULL;
+        break;
+    }
+
+    va_end(ap);
+
+    if (data)
+        runner->option(runner, name, data);
 }

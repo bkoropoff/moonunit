@@ -28,28 +28,25 @@
 dir=`dirname $0`
 if [ -z "$dir" ]
 then
-	moonunit="moonunit"
+    moonunit="moonunit"
 else
-	moonunit="$dir/moonunit"
+    moonunit="$dir/moonunit"
 fi
 
 objdir=`libtool --config | grep ^objdir= | cut -d= -f2`
 
 for arg in "$@"
 do
-	if [ $arg == "--gdb" ]
-	then
-		gdb="gdb --args"
-	elif [ $arg == "--valgrind" ]
-	then
-		gdb="valgrind"
-	elif echo $arg | grep '\.la$' 2>&1 >/dev/null
-	then
-		dlopens=("${dlopens[@]}" -dlopen $arg)
-		command=("${command[@]}" `dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`)
-	else
-		command=("${command[@]}" $arg)
-	fi
+    if echo $arg | grep "^--wrap=" >/dev/null 2>&1
+    then
+	wrap=`echo $arg | cut -d= -f2`	   
+    elif echo $arg | grep '\.la$' >/dev/null 2>&1
+    then
+	dlopens=("${dlopens[@]}" -dlopen $arg)
+	command=("${command[@]}" `dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`)
+    else
+	command=("${command[@]}" $arg)
+    fi
 done
 
-libtool --mode=execute "${dlopens[@]}" $gdb $moonunit "${command[@]}"
+libtool --mode=execute "${dlopens[@]}" $wrap $moonunit "${command[@]}"

@@ -34,6 +34,7 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/select.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
@@ -52,6 +53,11 @@ static MoonUnitTest* current_test;
 void unixharness_result(MoonUnitTest* test, const MoonUnitTestSummary* _summary)
 {	
 	urpc_handle* rpc_handle = test->data;
+
+    if (!rpc_handle)
+    {
+        exit(0);
+    }
 
 	urpc_message* message = urpc_msg_new(rpc_handle, 2048);
 	
@@ -167,6 +173,50 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		close(sockets[0]);
 	}
 }
+
+pid_t unixharness_debug(MoonUnitTest* test)
+{
+	int sockets[2];
+	pid_t pid;
+	
+	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
+	
+	if (!(pid = fork()))
+	{
+		MoonUnitTestThunk thunk;
+
+		close(sockets[0]);
+
+		current_test = test;
+
+		test->harness = &mu_unixharness;
+		test->data = NULL;
+
+        select(0, NULL, NULL, NULL, NULL);
+		
+		current_stage = MOON_STAGE_SETUP;
+		
+		if ((thunk = test->loader->fixture_setup(test->suite, test->library)))
+			thunk(test);
+			
+		current_stage = MOON_STAGE_TEST;
+		
+		test->function(test);
+		
+		current_stage = MOON_STAGE_TEARDOWN;
+		
+		if ((thunk = test->loader->fixture_teardown(test->suite, test->library)))
+			thunk(test);
+		
+		test->methods->success(test);
+	
+		exit(0);
+	}
+	else
+	{
+        return pid;
+	}
+}
   
 void unixharness_cleanup (MoonUnitTestSummary* summary)
 {
@@ -177,5 +227,6 @@ MoonUnitHarness mu_unixharness =
 {
 	unixharness_result,
 	unixharness_dispatch,
+    unixharness_debug,
 	unixharness_cleanup
 };

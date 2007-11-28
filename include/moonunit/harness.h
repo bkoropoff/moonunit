@@ -26,6 +26,7 @@
  */
 
 #include <moonunit/test.h>
+#include <sys/types.h>
 
 typedef enum MoonUnitTestResult
 {
@@ -69,6 +70,12 @@ typedef struct MoonUnitHarness
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.
     void (*dispatch)(MoonUnitTest*, MoonUnitTestSummary*);
+
+    // Called to run and immediately suspend a unit test in
+    // a separate process.  The test can then be traced by
+    // a debugger.
+    pid_t (*debug)(MoonUnitTest*);
+
     // Clean up any memory in a MoonTestSummary filled in by
     // a call to dispatch
     void (*cleanup)(MoonUnitTestSummary*);

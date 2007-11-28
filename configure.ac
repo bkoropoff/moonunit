@@ -42,6 +42,18 @@ AC_ARG_WITH([libelf],
 	 	LIBELF_LDFLAGS=
 	])
 
+AC_ARG_WITH([popt],
+	[AS_HELP_STRING([--with-libelf=<dir>],
+		[use popt located in <dir> to parse command line arguments])],
+	[
+		POPT_INCLUDES="-I$withval/include"
+		POPT_LDFLAGS="-L$withval/lib",
+	],
+	[
+		POPT_INCLUDES=
+	 	POPT_LDFLAGS=
+	])
+
 saved_LDFLAGS=$LDFLAGS
 saved_CPPFLAGS=$CPPFLAGS
 
@@ -69,11 +81,33 @@ else
 	BACKEND=nm
 fi
 
+LDFLAGS="$saved_LDFLAGS $POPT_LDFLAGS"
+CPPFLAGS="$CPPFLAGS $POPT_INCLUDES"
+
+AC_CHECK_HEADER([popt.h],[FOUND_POPT_H=yes],[FOUND_POPT_H=no])
+AC_CHECK_LIB(popt, poptGetContext,[FOUND_POPT_LIB=yes],[FOUND_POPT_LIB=no])
+
+if test x"$FOUND_POPT_H" = x"yes" -a\
+   x"$FOUND_POPT_LIB" = x"yes"
+then
+	POPT_LIBADD="$POPT_LDFLAGS -lpopt"
+	FOUND_POPT=yes
+else
+	FOUND_POPT=no
+fi
+
+if test x"$FOUND_POPT" = x"no"
+then
+	AC_MSG_ERROR([Could not find popt])
+fi
+
 AM_CONDITIONAL([HAVE_LIBELF], [test x"$FOUND_LIBELF" = x"yes"])
 
 AC_SUBST(LIBELF_INCLUDES)
 AC_SUBST(LIBELF_LIBADD)
-	
+AC_SUBST(POPT_INCLUDES)
+AC_SUBST(POPT_LIBADD)	
+
 LDFLAGS=$saved_LDFLAGS
 CPPFLAGS=$saved_CPPFLAGS
 			 

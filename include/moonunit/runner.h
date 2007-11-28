@@ -28,14 +28,25 @@
 #ifndef __MU_RUNNER_H__
 #define __MU_RUNNER_H__
 
-struct MoonUnitRunner;
-struct MoonUnitHarness;
 struct MoonUnitLoader;
+struct MoonUnitHarness;
 struct MoonUnitLogger;
 
-typedef struct MoonUnitRunner MoonUnitRunner;
+typedef struct MoonUnitRunner
+{
+    void (*run_all) (struct MoonUnitRunner*, const char* library);
+    void (*run_set) (struct MoonUnitRunner*, const char* library, int setc, char** set);
+    void (*option) (struct MoonUnitRunner*, const char *name, void* value);
+    char (*option_type) (struct MoonUnitRunner*, const char*name);
+} MoonUnitRunner;
 
-MoonUnitRunner* Mu_Runner_New(struct MoonUnitLoader* loader, struct MoonUnitHarness* harness, struct MoonUnitLogger* logger);
-void Mu_Runner_RunTests(MoonUnitRunner* runner, const char* path);
+MoonUnitRunner* Mu_UnixRunner_Create(const char* self, 
+                                     struct MoonUnitLoader* loader, 
+                                     struct MoonUnitHarness* harness, 
+                                     struct MoonUnitLogger* logger);
+
+void Mu_Runner_RunAll(MoonUnitRunner*, const char* library);
+void Mu_Runner_RunSet(MoonUnitRunner*, const char* library, int setc, char** set);
+void Mu_Runner_Option(MoonUnitRunner*, const char *name, ...);
 
 #endif

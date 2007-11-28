@@ -45,11 +45,11 @@
 
 #define ALIGNMENT 60
 
-#define die(...)                                \
-    do {                                        \
-        fprintf(stderr, __VA_ARGS__);           \
-        exit(1);                                \
-    } while (0);                                \
+#define die(fmt, ...)                               \
+    do {                                            \
+        fprintf(stderr, fmt "\n", ## __VA_ARGS__);  \
+        exit(1);                                    \
+    } while (0);                                    \
 
 static void library_enter(const char* name)
 {
@@ -120,6 +120,8 @@ static int option_gdb = 0;
 static char* option_gdb_break  = NULL;
 static bool option_all = false;
 
+static char** test_set = NULL;
+
 #define OPTION_SUITE 1
 #define OPTION_TEST 2
 
@@ -180,23 +182,59 @@ int main (int argc, char** argv)
     poptContext context = poptGetContext("moonunit", argc, (const char**) argv, options, 0);
 	
     int processed = 0;
+    int rc;
+    int test_index = 0;
+    int test_capacity = 32;
 
-    int rc = poptGetNextOpt(context);
+    test_set = malloc(sizeof(*test_set) * test_capacity);
 
-    if (rc == -1)
+    do
     {
-        const char* file;
-
-        Mu_Runner_Option(runner, "gdb", option_gdb);
-        
-        while ((file = poptGetArg(context)))
+        switch ((rc = poptGetNextOpt(context)))
         {
-            Mu_Runner_RunAll(runner, file);
-            processed++;
+        case OPTION_SUITE:
+        case OPTION_TEST:
+        {
+            char* entry = poptGetOptArg(context);
+
+            if (rc == OPTION_SUITE && strchr(entry, '/'))
+                die("The --suite option requires an argument without a forward slash");
+            
+            if (rc == OPTION_TEST && !strchr(entry, '/'))
+                die("The --test option requires an argument with a forward slash");
+
+            test_set[test_index++] = entry;
+            if (test_index >= test_capacity - 1)
+            {
+                test_capacity *= 2;
+                test_set = realloc(test_set, sizeof(*test_set) * test_capacity);
+            }
+            break;
         }
-    }
-    
-    if (rc != -1 || !processed)
+        case -1:
+        {
+            const char* file;
+            
+            Mu_Runner_Option(runner, "gdb", option_gdb);
+            
+            test_set[test_index] = NULL;
+
+            while ((file = poptGetArg(context)))
+            {
+                if (option_all || test_index == 0)
+                    Mu_Runner_RunAll(runner, file);
+                else
+                    Mu_Runner_RunSet(runner, file, test_index, test_set);
+                processed++;
+            }
+            break;
+        }
+        case 0:
+            break;
+        }
+    } while (rc > 0);
+        
+    if (!processed)
     {
         poptPrintUsage(context, stderr, 0);
     }

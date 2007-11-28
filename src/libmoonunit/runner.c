@@ -97,11 +97,33 @@ static void UnixRunner_Option(MoonUnitRunner* _runner, const char* name, void* _
     }
 }
 
-static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path)
+static bool in_set(MoonUnitTest* test, int setc, char** set)
 {
-    UnixRunner* runner = (UnixRunner*) _runner;
+    unsigned int i;
 
-	MoonUnitLibrary* library = runner->loader->open(path);
+    for (i = 0; i < setc; i++)
+    {
+        char* suite_name = set[i];
+        char* slash = strchr(set[i], '/');
+        char* test_name = slash ? slash+1 : NULL;
+
+        if (test_name)
+        {
+            if (!strncmp(suite_name, test->suite, slash - suite_name) &&
+                !strcmp(test_name, test->name))
+                return true;
+        }
+        else
+        {
+            if (!strcmp(suite_name, test->suite))
+                return true;
+        }
+    }
+}
+
+static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char** set)
+{
+   	MoonUnitLibrary* library = runner->loader->open(path);
 	
 	runner->logger->library_enter(basename(path));
 	
@@ -120,6 +142,10 @@ static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path)
 	{
 		MoonUnitTestSummary summary;
 		MoonUnitTest* test = tests[index];
+        
+        if (set != NULL && !in_set(test, setc, set))
+            continue;
+
 		if (current_suite == NULL || strcmp(current_suite, test->suite))
 		{
 			if (current_suite)
@@ -161,6 +187,16 @@ static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path)
 	runner->loader->close(library);
 }
 
+static void UnixRunner_RunSet(MoonUnitRunner* _runner, const char* path, int setc, char** set)
+{
+    UnixRunner_Run((UnixRunner*) _runner, path, setc, set);
+}
+
+static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path)
+{
+    UnixRunner_Run((UnixRunner*) _runner, path, 0, NULL);
+}
+
 MoonUnitRunner*
 Mu_UnixRunner_Create(const char* self, MoonUnitLoader* loader, MoonUnitHarness* harness, MoonUnitLogger* logger)
 {
@@ -172,7 +208,7 @@ Mu_UnixRunner_Create(const char* self, MoonUnitLoader* loader, MoonUnitHarness* 
     runner->self = strdup(self);
 	
     runner->base.run_all = UnixRunner_RunAll;
-    runner->base.run_set = NULL;
+    runner->base.run_set = UnixRunner_RunSet;
     runner->base.option = UnixRunner_Option;
     runner->base.option_type = UnixRunner_OptionType;
 

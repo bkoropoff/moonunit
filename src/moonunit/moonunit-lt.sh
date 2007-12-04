@@ -34,6 +34,7 @@ else
 fi
 
 objdir=`libtool --config | grep ^objdir= | cut -d= -f2`
+tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX`
 
 for arg in "$@"
 do
@@ -48,21 +49,22 @@ do
 	
 	if [ -x "$dylib" ]
 	then
-	    :
+	    command=("${command[@]}" `dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`)
 	else
 	    # Now we have to get creative
-	    tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX`
-	    destdir=`pwd`
+	    srcdir=`pwd`
 	    cd ${tempdir}
-	    ar x ${destdir}/${stlib}
-	    libtool --mode=link cc -shared -o ${destdir}/${dylib} `ar t ${destdir}/${stlib}`
-	    cd $destdir
-	    rm -rf ${tempdir}
+	    mkdir -p `dirname ${dylib}`
+	    ar x ${srcdir}/${stlib}
+	    libtool --mode=link cc -shared -o ${dylib} `ar t ${srcdir}/${stlib}`
+	    cd $srcdir
+	    rm -f ${tempdir}/*.o
+	    command=("${command[@]}" ${tempdir}/${dylib})
 	fi
-	command=("${command[@]}" `dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`)
     else
 	command=("${command[@]}" $arg)
     fi
 done
 
 libtool --mode=execute "${dlopens[@]}" $wrap $moonunit "${command[@]}"
+rm -rf ${tempdir}

@@ -11,6 +11,8 @@ libmoonunit_la_LIBADD = -ldl $(top_builddir)/src/liburpc/liburpc.la
 
 AM_CPPFLAGS = -I@top_srcdir@/include
 
+EXTRA_DIST = gdb.h elfscan.h
+
 if HAVE_LIBELF
 libmoonunit_la_SOURCES += elfscan.c
 libmoonunit_la_LIBADD += @LIBELF_LIBADD@

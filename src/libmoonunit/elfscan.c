@@ -37,6 +37,19 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <config.h>
+
+#if SIZEOF_VOIDP == 4
+#define ELF_SYM_T Elf32_Sym
+#define ELF_SHDR_T Elf32_Shdr
+#define ELF_GETSHDR_F elf32_getshdr
+#elif SIZEOF_VOIDP == 8
+#define ELF_SYM_T Elf64_Sym
+#define ELF_SHDR_T Elf64_Shdr
+#define ELF_GETSHDR_F elf64_getshdr
+#else
+#error Unhandled pointer width
+#endif
 
 static void*
 library_base_address(void *handle)
@@ -76,11 +89,11 @@ library_path(void *handle)
 
 static inline void
 libelf_scan_symtab(void* handle, SymbolFilter filter, SymbolCallback callback, void* data,
-				   Elf* elf, Elf_Scn* section, Elf32_Shdr *shdr, bool dynamic)
+				   Elf* elf, Elf_Scn* section, ELF_SHDR_T *shdr, bool dynamic)
 {
 	Elf_Data *edata = NULL;
-	Elf32_Sym* sym = NULL;
-	Elf32_Sym* last_sym = NULL;
+	ELF_SYM_T* sym = NULL;
+	ELF_SYM_T* last_sym = NULL;
 	void* base_address = dynamic ? NULL : library_base_address(handle);
 	
 	if (!dynamic && !base_address)
@@ -89,8 +102,8 @@ libelf_scan_symtab(void* handle, SymbolFilter filter, SymbolCallback callback, v
 	if (!(edata = elf_getdata(section, edata)) || (edata->d_size == 0))
 		return;
 		
-	sym = (Elf32_Sym*) edata->d_buf;
-	last_sym = (Elf32_Sym*) ((char*) edata->d_buf + edata->d_size);
+	sym = (ELF_SYM_T*) edata->d_buf;
+	last_sym = (ELF_SYM_T*) ((char*) edata->d_buf + edata->d_size);
 	
 	for (; sym < last_sym; sym++)
 	{
@@ -135,9 +148,9 @@ libelf_symbol_scanner(void* handle, SymbolFilter filter, SymbolCallback callback
 	
 	while ((section = elf_nextscn(elf, section)))
 	{
-		Elf32_Shdr *shdr;
+		ELF_SHDR_T *shdr;
 		
-		if ((shdr = elf32_getshdr(section)))
+		if ((shdr = ELF_GETSHDR_F(section)))
 		{
 			switch (shdr->sh_type)
 			{

@@ -74,8 +74,9 @@ void unixharness_result(MoonUnitTest* test, const MoonUnitTestSummary* _summary)
 	urpc_msg_payload_set(message, summary, &testsummary_info);
 	urpc_msg_send(message);
 	urpc_msg_free(message);
-	urpc_process(rpc_handle);
-	urpc_process(rpc_handle);
+
+    urpc_waitdone(rpc_handle);
+    urpc_disconnect(rpc_handle);
 	
 	exit(0);
 }
@@ -134,6 +135,12 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		
 		test->methods->success(test);
 	
+        urpc_waitdone(rpc_test);
+
+        urpc_disconnect(rpc_test);
+
+        close(sockets[1]);
+
 		exit(0);
 	}
 	else
@@ -146,7 +153,6 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		
 		close(sockets[1]);
 		
-		waitpid(pid, &status, 0);
 		urpc_result = urpc_waitread(rpc_harness, &message);
 
 		if (urpc_result == URPC_SUCCESS)
@@ -157,7 +163,14 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 				summary->reason = strdup(_summary->reason);
 			urpc_msg_free(message);
 		}
-		else
+
+        urpc_result = urpc_waitdone(rpc_harness);
+        urpc_disconnect(rpc_harness);	
+		close(sockets[0]);
+
+		waitpid(pid, &status, 0);
+
+        if (!message)
 		{
 			// Couldn't get message or an error occurred, try to figure out what happend
 			if (WIFSIGNALED(status))
@@ -170,8 +183,6 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 					summary->reason = strdup(strsignal(WTERMSIG(status)));
 			}
 		}
-		
-		close(sockets[0]);
 	}
 }
 

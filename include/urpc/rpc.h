@@ -43,6 +43,8 @@ urpc_handle* urpc_connect(int socket);
 UrpcStatus urpc_process(urpc_handle* handle);
 UrpcStatus urpc_read(urpc_handle* handle, urpc_message** message);
 UrpcStatus urpc_waitread(urpc_handle* handle, urpc_message** message);
+UrpcStatus urpc_waitdone(urpc_handle* handle);
+void urpc_disconnect(urpc_handle* handle);
 urpc_message* urpc_msg_new(urpc_handle* handle, size_t max_size);
 void* urpc_msg_alloc(urpc_message* message, size_t size);
 UrpcStatus urpc_msg_send(urpc_message* message);

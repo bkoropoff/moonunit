@@ -48,6 +48,7 @@ struct __urpc_message
 	int shmem_fd;
 	void* payload;
 	unsigned int id;
+    bool acked;
 };
 
 struct __urpc_handle
@@ -143,6 +144,7 @@ ack_message(urpc_message* message)
     
 		free(packet);
 
+        message->acked = true;
         return result;
 	}
 }
@@ -160,6 +162,8 @@ message_from_packet(urpc_packet* packet)
 	message->payload = packet->message.payload;
 	message->max_size = packet->message.length;
 	message->shmem_path = strdup(packet->message.path);
+    message->acked = false;
+    message->next = NULL;
 
     if (!message->shmem_path)
     {
@@ -260,7 +264,7 @@ urpc_process(urpc_handle* handle)
             {
                 urpc_message** cur;
 				
-                for (cur = &handle->ack_queue; *cur; cur = &(*cur)->next)
+                for (cur = &handle->ack_queue; *cur; cur = *cur ? &(*cur)->next : cur)
                 {
                     if ((*cur)->id == packet->ack.message_id)
                     {
@@ -358,6 +362,78 @@ urpc_waitread(urpc_handle* handle, urpc_message** message)
 	return urpc_read(handle, message);
 }
 
+UrpcStatus
+urpc_waitdone(urpc_handle* handle)
+{
+    UrpcStatus result = URPC_SUCCESS;
+
+    while (handle->send_queue || handle->ack_queue)
+    {
+    
+        if (handle->send_queue)
+        {
+            do
+            {
+                result = urpc_packet_sendable(handle->socket, -1);
+            } while (result == URPC_RETRY);
+            
+            if (result == URPC_EOF)
+                break;
+            
+            if (result != URPC_SUCCESS)
+                return result;
+            
+            result = urpc_process(handle);
+            
+            if (result != URPC_SUCCESS)
+                return result;
+        }
+        
+        if (handle->ack_queue)
+        {
+            do
+            {
+                result = urpc_packet_available(handle->socket, -1);
+            } while (result == URPC_RETRY);
+            
+            result = urpc_process(handle);
+            
+            if (result == URPC_EOF)
+                break;
+            
+            if (result != URPC_SUCCESS)
+                return result;
+        }
+    }
+
+    return URPC_SUCCESS;
+}
+
+void
+urpc_disconnect(urpc_handle* handle)
+{
+    urpc_message* cur, *next;
+
+    for (cur = handle->send_queue; cur; cur = next)
+    {
+        next = cur->next;
+        urpc_msg_free(cur);
+    }
+
+    for (cur = handle->recv_queue; cur; cur = next)
+    {
+        next = cur->next;
+        urpc_msg_free(cur);
+    }
+
+    for (cur = handle->ack_queue; cur; cur = next)
+    {
+        next = cur->next;
+        urpc_msg_free(cur);
+    }
+
+    free(handle);
+}
 
 urpc_message* 
 urpc_msg_new(urpc_handle* handle, size_t max_size)
@@ -370,7 +446,7 @@ urpc_msg_new(urpc_handle* handle, size_t max_size)
 	message->handle = handle;
 	message->next = NULL;
 	message->refcount = 1;
-
+    message->acked = false;
 	message->max_size = max_size;
 	
     /* FIXME: don't use asprintf */
@@ -441,6 +517,10 @@ urpc_msg_free(urpc_message* message)
 	if (--message->refcount == 0)
 	{
 		munmap(message->shmem_memory, message->max_size);
+        if (!message->acked)
+        {
+            shm_unlink(message->shmem_path);
+        }
 		free((void*) message->shmem_path);
 		close(message->shmem_fd);
 		free(message);

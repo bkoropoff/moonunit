@@ -3,6 +3,7 @@
 #include <moonunit/util.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoint)
 {

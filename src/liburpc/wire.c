@@ -34,30 +34,123 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 
-void urpc_packet_send(int socket, urpc_packet* packet)
+UrpcStatus
+urpc_packet_send(int socket, urpc_packet* packet)
 {
-	send(socket, packet, sizeof(urpc_packet_header) + packet->header.length, MSG_NOSIGNAL);
+    char* buffer = (char*) packet;
+    ssize_t total = sizeof(urpc_packet_header) + packet->header.length;
+    ssize_t remaining = total;
+
+    while (remaining)
+    {
+        ssize_t sent = send(socket, buffer + (total - remaining), remaining, MSG_NOSIGNAL);
+        
+        if (sent < 0)
+        {
+            if (errno == EAGAIN || errno == EINTR)
+            {
+                // If we haven't sent anything yet...
+                if (remaining == total)
+                    // It's safe to return
+                    return URPC_RETRY;
+                else
+                    // Otherwise we better push through the rest
+                    continue;
+            }
+            else if (errno == EPIPE)
+            {
+                return URPC_EOF;
+            }
+            else
+            {
+                return URPC_ERROR;
+            }
+        } 
+        else if (sent == 0)
+        {
+            // This shouldn't happen
+            return URPC_ERROR;
+        }
+        else
+        {
+            remaining -= sent;
+        }
+    }
+
+    return URPC_SUCCESS;
 }
 
-void urpc_packet_recv(int socket, urpc_packet** packet)
+UrpcStatus
+urpc_packet_recv(int socket, urpc_packet** packet)
 {
 	urpc_packet_header header;
-	
-	if (read(socket, &header, sizeof(urpc_packet_header)) <= 0)
-	{
-		*packet = NULL;
-		return;
+    ssize_t amount_read;
+    ssize_t remaining;
+    char* buffer;
+
+    amount_read = read(socket, &header, sizeof(urpc_packet_header));
+    
+    if (amount_read < 0)
+    {
+        if (errno == EAGAIN || errno == EINTR)
+        {
+            return URPC_RETRY;
+        }
+        else
+        {
+            *packet = NULL;
+            return URPC_ERROR;
+        }
 	}
+    else if (amount_read == 0)
+    {
+        return URPC_EOF;
+    }
 	
 	*packet = malloc(sizeof(urpc_packet) + header.length);
+
+    if (!*packet)
+        return URPC_NOMEM;
 	
 	**packet = *(urpc_packet*)&header;
 	
-	read(socket, ((void*) (*packet)) + sizeof(urpc_packet_header), header.length);
+    amount_read = 0;
+    remaining = header.length;
+    buffer = ((char*) (*packet)) + sizeof(urpc_packet_header);
+
+    while (remaining)
+    {
+        amount_read = read(socket, buffer + (header.length - remaining), remaining);
+
+        if (amount_read < 0)
+        {
+            if (errno == EAGAIN || errno == EINTR)
+                // Must finish since we've already read something
+                continue;
+            else
+            {
+                free(*packet);
+                return URPC_ERROR;
+            }
+        }
+        else if (amount_read == 0)
+        {
+            free(*packet);
+            return URPC_ERROR;
+        }
+        else
+        {
+            remaining -= amount_read;
+        }
+    }
+
+    return URPC_SUCCESS;
 }
 
-int urpc_packet_available(int socket, long _timeout)
+UrpcStatus
+urpc_packet_available(int socket, long _timeout)
 {
 	fd_set readset;
 	fd_set exset;
@@ -75,14 +168,15 @@ int urpc_packet_available(int socket, long _timeout)
 	select(socket+1, &readset, NULL, &exset, _timeout >=0 ? &timeout : NULL);
 	
 	if (FD_ISSET(socket, &exset))
-		return 0;
+		return URPC_ERROR;
 	else if (FD_ISSET(socket, &readset))
-		return 1;
+		return URPC_SUCCESS;
 	else
-		return 0;
+		return URPC_RETRY;
 }
 
-int urpc_packet_sendable(int socket, long _timeout)
+UrpcStatus
+urpc_packet_sendable(int socket, long _timeout)
 {
 	fd_set writeset;
 	fd_set exset;
@@ -100,9 +194,9 @@ int urpc_packet_sendable(int socket, long _timeout)
 	select(socket+1, NULL, &writeset, &exset, _timeout >=0 ? &timeout : NULL);
 	
 	if (FD_ISSET(socket, &exset))
-		return 0;
+		return URPC_ERROR;
 	else if (FD_ISSET(socket, &writeset))
-		return 1;
+		return URPC_SUCCESS;
 	else
-		return 0;
+		return URPC_RETRY;
 }

@@ -92,6 +92,8 @@ static bool in_set(MoonUnitTest* test, int setc, char** set)
                 return true;
         }
     }
+
+    return false;
 }
 
 static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char** set)

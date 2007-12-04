@@ -142,13 +142,14 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		MoonUnitTestSummary *_summary;
 		urpc_message* message;
 		int status;
+        UrpcStatus urpc_result;
 		
 		close(sockets[1]);
 		
 		waitpid(pid, &status, 0);
-		message = urpc_waitread(rpc_harness);
-		
-		if (message)
+		urpc_result = urpc_waitread(rpc_harness, &message);
+
+		if (urpc_result == URPC_SUCCESS)
 		{
 			_summary = urpc_msg_payload_get(message, &testsummary_info);
 			*summary = *_summary;
@@ -158,7 +159,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		}
 		else
 		{
-			// Couldn't get message, try to figure out what happend
+			// Couldn't get message or an error occurred, try to figure out what happend
 			if (WIFSIGNALED(status))
 			{
 				summary->result = MOON_RESULT_CRASH;

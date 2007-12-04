@@ -46,9 +46,10 @@ char* formatv(const char* format, va_list ap)
 
     result = malloc(length+1);
     
-    vsnprintf(result, length+1, format, mine);
-
-    return result;
+    if (vsnprintf(result, length+1, format, mine) < length)
+        return NULL;
+    else
+        return result;
 }
 
 char* format(const char* format, ...)

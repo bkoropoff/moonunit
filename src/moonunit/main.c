@@ -117,10 +117,10 @@ static MoonUnitLogger logger =
 
 
 static int option_gdb = 0;
-static char* option_gdb_break  = NULL;
+//static char* option_gdb_break  = NULL;
 static bool option_all = false;
 
-static char** test_set = NULL;
+static char const ** test_set = NULL;
 
 #define OPTION_SUITE 1
 #define OPTION_TEST 2
@@ -163,6 +163,8 @@ static const struct poptOption options[] =
         .descrip = "Rerun failed tests in an interactive gdb session",
         .argDescrip = NULL
     },
+/*
+Not presently implemented
     {
         .longName = "break",
         .shortName = '\0',
@@ -172,6 +174,7 @@ static const struct poptOption options[] =
         .descrip = "Specify breakpoint to use for interactive gdb sessions",
         .argDescrip = "< function | line >"
     },
+*/
     POPT_AUTOHELP
     POPT_TABLEEND
 };
@@ -195,7 +198,7 @@ int main (int argc, char** argv)
         case OPTION_SUITE:
         case OPTION_TEST:
         {
-            char* entry = poptGetOptArg(context);
+            const char* entry = poptGetOptArg(context);
 
             if (rc == OPTION_SUITE && strchr(entry, '/'))
                 die("The --suite option requires an argument without a forward slash");
@@ -224,7 +227,7 @@ int main (int argc, char** argv)
                 if (option_all || test_index == 0)
                     Mu_Runner_RunAll(runner, file);
                 else
-                    Mu_Runner_RunSet(runner, file, test_index, test_set);
+                    Mu_Runner_RunSet(runner, file, test_index, (char**) test_set);
                 processed++;
             }
             break;

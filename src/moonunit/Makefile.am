@@ -1,7 +1,7 @@
 bin_PROGRAMS = moonunit
 bin_SCRIPTS = moonunit-lt moonunit-strip
 
-lib_LTLIBRARIES = libexample.la
+check_LTLIBRARIES = libexample.la
 
 moonunit_SOURCES = main.c
 moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @POPT_LIBADD@

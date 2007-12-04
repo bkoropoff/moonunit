@@ -43,6 +43,22 @@ do
     elif echo $arg | grep '\.la$' >/dev/null 2>&1
     then
 	dlopens=("${dlopens[@]}" -dlopen $arg)
+	dylib=`dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`
+	stlib=`dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.a/'`
+	
+	if [ -x "$dylib" ]
+	then
+	    :
+	else
+	    # Now we have to get creative
+	    tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX`
+	    destdir=`pwd`
+	    cd ${tempdir}
+	    ar x ${destdir}/${stlib}
+	    libtool --mode=link cc -shared -o ${destdir}/${dylib} `ar t ${destdir}/${stlib}`
+	    cd $destdir
+	    rm -rf ${tempdir}
+	fi
 	command=("${command[@]}" `dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`)
     else
 	command=("${command[@]}" $arg)

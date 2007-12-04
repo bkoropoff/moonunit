@@ -160,8 +160,31 @@ message_from_packet(urpc_packet* packet)
 	message->payload = packet->message.payload;
 	message->max_size = packet->message.length;
 	message->shmem_path = strdup(packet->message.path);
-	message->shmem_fd = shm_open(message->shmem_path, O_RDWR, 0644);
+
+    if (!message->shmem_path)
+    {
+        free(message);
+        return NULL;
+    }
+
+    message->shmem_fd = shm_open(message->shmem_path, O_RDWR, 0644);
+
+    if (message->shmem_fd < 0)
+    {
+        free((void*) message->shmem_path);
+        free(message);
+        return NULL;
+    }
+
 	message->shmem_memory = mmap(NULL, message->max_size, PROT_READ | PROT_WRITE, MAP_SHARED, message->shmem_fd, 0);
+
+    if (message->shmem_memory == (void*) -1)
+    {
+        free((void*) message->shmem_path);
+        free(message);
+        return NULL;
+    }
+
 	message->shmem_next = message->shmem_memory + message->max_size;
 	
 	message->payload = urpc_msg_pointer(message, message->payload);
@@ -209,7 +232,8 @@ urpc_process(urpc_handle* handle)
 		handle->ack_queue = message;
 	}
 	
-	while ((result = urpc_packet_available(handle->socket, 0)) == URPC_SUCCESS)
+	while (handle->readable && 
+           (result = urpc_packet_available(handle->socket, 0)) == URPC_SUCCESS)
 	{
 		urpc_packet* packet = NULL;
 		
@@ -290,7 +314,14 @@ urpc_read(urpc_handle* handle, urpc_message** message)
 {
 	if (!handle->recv_queue)
 	{
-		return URPC_RETRY;
+        if (!handle->readable)
+        {
+            return URPC_EOF;
+        }
+        else
+        {
+            return URPC_RETRY;
+        }
 	}
 	else
 	{
@@ -308,6 +339,11 @@ urpc_waitread(urpc_handle* handle, urpc_message** message)
 
 	while (!handle->recv_queue)
 	{
+        if (!handle->readable)
+        {
+            return URPC_EOF;
+        }
+        
         do
         {
             result = urpc_packet_available(handle->socket, -1);

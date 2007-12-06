@@ -41,6 +41,9 @@ do
     if echo $arg | grep "^--wrap=" >/dev/null 2>&1
     then
 	wrap=`echo $arg | cut -d= -f2`	   
+    elif echo $arg | grep "^--plugin=" >/dev/null 2>&1
+    then
+	dlopens=("${dlopens[@]}" -dlopen `echo $arg | cut -d= -f2`)
     elif echo $arg | grep '\.la$' >/dev/null 2>&1
     then
 	dlopens=("${dlopens[@]}" -dlopen $arg)

@@ -42,6 +42,7 @@
 #include <moonunit/loader.h>
 #include <moonunit/runner.h>
 #include <moonunit/util.h>
+#include <moonunit/plugin.h>
 
 #define ALIGNMENT 60
 
@@ -119,6 +120,7 @@ static MoonUnitLogger logger =
 static int option_gdb = 0;
 //static char* option_gdb_break  = NULL;
 static bool option_all = false;
+static char* option_logger = NULL;
 
 static char const ** test_set = NULL;
 
@@ -163,6 +165,15 @@ static const struct poptOption options[] =
         .descrip = "Rerun failed tests in an interactive gdb session",
         .argDescrip = NULL
     },
+    {
+        .longName = "logger",
+        .shortName = 'l',
+        .argInfo = POPT_ARG_STRING,
+        .arg = &option_logger,
+        .val = OPTION_SUITE,
+        .descrip = "Run a specific test suite",
+        .argDescrip = "<suite>"
+    },
 /*
 Not presently implemented
     {
@@ -181,7 +192,7 @@ Not presently implemented
 
 int main (int argc, char** argv)
 {
-	MoonUnitRunner* runner = Mu_UnixRunner_Create(argv[0], &mu_unixloader, &mu_unixharness, &logger);
+	MoonUnitRunner* runner;
     poptContext context = poptGetContext("moonunit", argc, (const char**) argv, options, 0);
 	
     int processed = 0;
@@ -217,7 +228,24 @@ int main (int argc, char** argv)
         case -1:
         {
             const char* file;
+            MoonUnitLogger* chosen_logger;
+
+            chosen_logger = option_logger ?
+                Mu_Plugin_CreateLogger(option_logger) :
+                &logger;
+
+            if (!chosen_logger)
+            {
+                die("Could not create logger '%s'", option_logger);
+            }
             
+            runner = Mu_CreateRunner("unix", argv[0], chosen_logger);
+
+            if (!runner)
+            {
+                die("Could not create runner '%s'", "unix");
+            }
+
             Mu_Runner_Option(runner, "gdb", option_gdb);
             
             test_set[test_index] = NULL;

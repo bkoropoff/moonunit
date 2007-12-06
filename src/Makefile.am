@@ -1,1 +1,1 @@
-SUBDIRS = liburpc libmoonunit moonunit
+SUBDIRS = liburpc libmoonunit moonunit moonunit-unix

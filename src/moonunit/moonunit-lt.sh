@@ -59,7 +59,7 @@ do
 	    cd ${tempdir}
 	    mkdir -p `dirname ${dylib}`
 	    ar x ${srcdir}/${stlib}
-	    libtool --mode=link cc -shared -o ${dylib} `ar t ${srcdir}/${stlib}`
+	    libtool --mode=link cc -shared -o ${dylib} `ar t ${srcdir}/${stlib}` >/dev/null 2>&1
 	    cd $srcdir
 	    rm -f ${tempdir}/*.o
 	    command=("${command[@]}" ${tempdir}/${dylib})

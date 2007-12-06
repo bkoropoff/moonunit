@@ -102,6 +102,12 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 	
 	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
 	
+    // We must force a flush of all open output streams or the child
+    // will end up flushing non-empty buffers on exit, resulting in
+    // bizarre duplicate output
+    
+    fflush(NULL);
+
 	if (!(pid = fork()))
 	{
 		MoonUnitTestThunk thunk;

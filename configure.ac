@@ -127,7 +127,7 @@ AM_CONDITIONAL([HAVE_DOXYGEN], [test x"$DOXYGEN" != x"false"])
 
 AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile
 		include/Makefile include/moonunit/Makefile src/liburpc/Makefile
-	  	src/moonunit-unix/Makefile include/urpc/Makefile])
+	  	src/moonunit-unix/Makefile src/moonunit-misc/Makefile include/urpc/Makefile])
 
 if test x"$DOXYGEN" != x"false"
 then

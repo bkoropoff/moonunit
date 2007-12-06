@@ -170,9 +170,9 @@ static const struct poptOption options[] =
         .shortName = 'l',
         .argInfo = POPT_ARG_STRING,
         .arg = &option_logger,
-        .val = OPTION_SUITE,
-        .descrip = "Run a specific test suite",
-        .argDescrip = "<suite>"
+        .val = 0,
+        .descrip = "Use a specific result logger (default: internal console output logger)",
+        .argDescrip = "<name>"
     },
 /*
 Not presently implemented

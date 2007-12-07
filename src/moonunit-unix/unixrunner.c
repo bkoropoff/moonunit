@@ -1,7 +1,10 @@
 #include <moonunit/runner.h>
 #include <moonunit/loader.h>
+#include <moonunit/logger.h>
 #include <moonunit/harness.h>
+#include <moonunit/test.h>
 #include <moonunit/util.h>
+
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -46,19 +49,19 @@ static unsigned int test_count(MoonUnitTest** tests)
 	return result;
 }
 
-static char UnixRunner_OptionType(MoonUnitRunner* _runner, const char* name)
+static char UnixRunner_OptionType(void* _runner, const char* name)
 {
     if (!strcmp(name, "gdb"))
     {
-        return 'b';
+        return MU_BOOLEAN;
     }
     else
     {
-        return '\0';
+        return MU_UNKNOWN_TYPE;
     }
 }
 
-static void UnixRunner_Option(MoonUnitRunner* _runner, const char* name, void* _value)
+static void UnixRunner_OptionSet(void* _runner, const char* name, void* _value)
 {
     UnixRunner* runner = (UnixRunner*) _runner;
 
@@ -69,6 +72,27 @@ static void UnixRunner_Option(MoonUnitRunner* _runner, const char* name, void* _
         runner->option.gdb = value;
     }
 }
+
+static const void *UnixRunner_OptionGet(void* _runner, const char* name)
+{
+    UnixRunner* runner = (UnixRunner*) _runner;
+
+    if (!strcmp(name, "gdb"))
+    {
+        return &runner->option.gdb;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+static MoonUnitOption unixrunner_option =
+{
+    .set = UnixRunner_OptionSet,
+    .get = UnixRunner_OptionGet,
+    .type = UnixRunner_OptionType
+};
 
 static bool in_set(MoonUnitTest* test, int setc, char** set)
 {
@@ -99,8 +123,9 @@ static bool in_set(MoonUnitTest* test, int setc, char** set)
 static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char** set)
 {
    	MoonUnitLibrary* library = runner->loader->open(path);
-	
-	runner->logger->library_enter(basename(path));
+    MoonUnitLogger* logger = runner->logger;
+
+	logger->library_enter(logger, basename(path));
 	
 	MoonUnitTest** tests = runner->loader->tests(library);
 	
@@ -127,13 +152,13 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char*
 		if (current_suite == NULL || strcmp(current_suite, test->suite))
 		{
 			if (current_suite)
-				runner->logger->suite_leave();
+				logger->suite_leave(logger);
 			current_suite = test->suite;
-			runner->logger->suite_enter(test->suite);
+			logger->suite_enter(logger, test->suite);
 		}
 		
 		runner->harness->dispatch(test, &summary);
-		runner->logger->result(test, &summary);
+		logger->result(logger, test, &summary);
 
         if (summary.result != MOON_RESULT_SUCCESS && runner->option.gdb)
         {
@@ -156,8 +181,8 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char*
 	}
 	
 	if (current_suite)
-		runner->logger->suite_leave();
-	runner->logger->library_leave();
+		logger->suite_leave(logger);
+	logger->library_leave(logger);
 	
 	if ((thunk = runner->loader->library_teardown(library)))
 		thunk();
@@ -187,8 +212,7 @@ Mu_UnixRunner_Create(const char* self, MoonUnitLoader* loader, MoonUnitHarness* 
 	
     runner->base.run_all = UnixRunner_RunAll;
     runner->base.run_set = UnixRunner_RunSet;
-    runner->base.option = UnixRunner_Option;
-    runner->base.option_type = UnixRunner_OptionType;
+    runner->base.option = unixrunner_option;
 
     runner->option.gdb = false;
 

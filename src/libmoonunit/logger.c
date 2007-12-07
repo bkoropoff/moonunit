@@ -29,29 +29,28 @@
 #include <moonunit/loader.h>
 #include <moonunit/harness.h>
 #include <moonunit/util.h>
+#include <moonunit/logger.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 
-void Mu_Runner_RunAll(MoonUnitRunner* runner, const char* library)
-{
-    runner->run_all(runner, library);
-}
 
-void Mu_Runner_RunSet(MoonUnitRunner* runner, const char* library, int setc, char** set)
-{
-    runner->run_set(runner, library, setc, set);
-}
-
-void Mu_Runner_SetOption(MoonUnitRunner* runner, const char *name, ...)
+void Mu_Logger_SetOption(MoonUnitLogger* logger, const char *name, ...)
 {
     va_list ap;
 
     va_start(ap, name);
 
-    Mu_Option_Setv(runner, &runner->option, name, ap);
+    Mu_Option_Setv(logger, &logger->option, name, ap);
 
     va_end(ap);
+}
+
+
+MoonUnitType
+Mu_Logger_OptionType(MoonUnitLogger* logger, const char *name)
+{
+    return Mu_Option_Type(logger, &logger->option, name);
 }

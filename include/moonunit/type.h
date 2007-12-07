@@ -25,33 +25,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/runner.h>
-#include <moonunit/loader.h>
-#include <moonunit/harness.h>
-#include <moonunit/util.h>
+#ifndef __MU_TYPE_H__
+#define __MU_TYPE_H__
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+typedef char MoonUnitType;
 
-void Mu_Runner_RunAll(MoonUnitRunner* runner, const char* library)
-{
-    runner->run_all(runner, library);
-}
+/**
+ * @brief Integer type token
+ *
+ * Specifies that the arguments of an equality assertion are integers
+ */
+#define MU_INTEGER 'i'
+/**
+ * @brief String type token
+ *
+ * Specifies that the arguments of an equality assertion are strings
+ */
+#define MU_STRING  's'
+/**
+ * @brief Float type token
+ *
+ * Specifies that the arguments of an equality assertion are floats
+ */
+#define MU_FLOAT   'f'
 
-void Mu_Runner_RunSet(MoonUnitRunner* runner, const char* library, int setc, char** set)
-{
-    runner->run_set(runner, library, setc, set);
-}
+#define MU_POINTER 'p'
 
-void Mu_Runner_SetOption(MoonUnitRunner* runner, const char *name, ...)
-{
-    va_list ap;
+#define MU_BOOLEAN 'b'
 
-    va_start(ap, name);
+#define MU_UNKNOWN_TYPE '\0'
 
-    Mu_Option_Setv(runner, &runner->option, name, ap);
-
-    va_end(ap);
-}
+#endif

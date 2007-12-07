@@ -25,8 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/test.h>
 #include <sys/types.h>
+
+struct MoonUnitTest;
 
 typedef enum MoonUnitTestResult
 {
@@ -65,32 +66,21 @@ typedef struct MoonUnitHarness
     // early (through a failed assertion, etc.).  The structure
     // passed in will be stack-allocated and should be copied if
     // preservation is required
-    void (*result)(MoonUnitTest*, const MoonUnitTestSummary*);
+    void (*result)(struct MoonUnitTest*, const MoonUnitTestSummary*);
 
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.
-    void (*dispatch)(MoonUnitTest*, MoonUnitTestSummary*);
+    void (*dispatch)(struct MoonUnitTest*, MoonUnitTestSummary*);
 
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by
     // a debugger.
-    pid_t (*debug)(MoonUnitTest*);
+    pid_t (*debug)(struct MoonUnitTest*);
 
     // Clean up any memory in a MoonTestSummary filled in by
     // a call to dispatch
     void (*cleanup)(MoonUnitTestSummary*);
 } MoonUnitHarness;
-
-typedef struct MoonUnitLogger
-{
-    void (*library_enter) (const char*);
-    void (*library_leave) ();
-    void (*suite_enter) (const char*);
-    void (*suite_leave) ();
-    void (*result) (MoonUnitTest*, MoonUnitTestSummary*);
-} MoonUnitLogger;
-
-extern MoonUnitHarness mu_unixharness;
 
 const char* Mu_TestResultToString(MoonUnitTestResult result);
 const char* Mu_TestStageToString(MoonUnitTestStage stage);

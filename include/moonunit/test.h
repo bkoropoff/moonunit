@@ -43,6 +43,8 @@
 #ifndef __MU_TEST_H__
 #define __MU_TEST_H__
 
+#include <moonunit/type.h>
+
 #ifndef DOXYGEN
 
 #ifdef __GNUC__
@@ -342,25 +344,6 @@
 #endif
 
 /**
- * @brief Integer type token
- *
- * Specifies that the arguments of an equality assertion are integers
- */
-#define MU_INTEGER 0
-/**
- * @brief String type token
- *
- * Specifies that the arguments of an equality assertion are strings
- */
-#define MU_STRING  1
-/**
- * @brief Float type token
- *
- * Specifies that the arguments of an equality assertion are floats
- */
-#define MU_FLOAT   2
-
-/**
  * @brief Causes immediate success
  *
  * Use of this macro will cause the current test to
@@ -505,7 +488,7 @@ typedef struct MoonUnitTestMethods
 				   int result, const char* expr, const char* file, unsigned int line);
 	void (*assert_equal)(MoonUnitTest* test, 
 				   		 const char* expr, const char* expected, 
-				 		 const char* file, unsigned int line, unsigned int type, ...);
+				 		 const char* file, unsigned int line, MoonUnitType type, ...);
 	void (*success)(MoonUnitTest* test);
 	void (*failure)(MoonUnitTest* test, 
 				    const char* file, unsigned int line, const char* message, ...);

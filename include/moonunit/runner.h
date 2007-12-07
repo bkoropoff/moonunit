@@ -32,12 +32,13 @@ struct MoonUnitLoader;
 struct MoonUnitHarness;
 struct MoonUnitLogger;
 
+#include <moonunit/option.h>
+
 typedef struct MoonUnitRunner
 {
     void (*run_all) (struct MoonUnitRunner*, const char* library);
     void (*run_set) (struct MoonUnitRunner*, const char* library, int setc, char** set);
-    void (*option) (struct MoonUnitRunner*, const char *name, void* value);
-    char (*option_type) (struct MoonUnitRunner*, const char*name);
+    MoonUnitOption option;
 } MoonUnitRunner;
 
 MoonUnitRunner* Mu_UnixRunner_Create(const char* self, 
@@ -47,6 +48,6 @@ MoonUnitRunner* Mu_UnixRunner_Create(const char* self,
 
 void Mu_Runner_RunAll(MoonUnitRunner*, const char* library);
 void Mu_Runner_RunSet(MoonUnitRunner*, const char* library, int setc, char** set);
-void Mu_Runner_Option(MoonUnitRunner*, const char *name, ...);
+void Mu_Runner_SetOption(MoonUnitRunner*, const char *name, ...);
 
 #endif

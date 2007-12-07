@@ -38,6 +38,7 @@
 #include <stdbool.h>
 
 #include <moonunit/harness.h>
+#include <moonunit/logger.h>
 #include <moonunit/test.h>
 #include <moonunit/loader.h>
 #include <moonunit/runner.h>
@@ -51,71 +52,6 @@
         fprintf(stderr, fmt "\n", ## __VA_ARGS__);  \
         exit(1);                                    \
     } while (0);                                    \
-
-static void library_enter(const char* name)
-{
-	printf("Library: %s\n", name);
-}
-
-static void library_leave()
-{
-	printf("\n");
-}
-
-static void suite_enter(const char* name)
-{
-	printf("  Suite: %s\n", name);
-}
-
-static void suite_leave()
-{
-	printf("\n");
-}
-
-static void result(MoonUnitTest* test, MoonUnitTestSummary* summary)
-{
-	int i;
-	const char* reason, * stage;
-	char* failure_message;
-	printf("    %s:", test->name);
-	
-	switch (summary->result)
-	{
-		case MOON_RESULT_SUCCESS:
-			for (i = ALIGNMENT - strlen(test->name) - 5 - 4; i > 0; i--)
-				printf(" ");
-			printf("\e[32mPASS\e[0m\n");
-			break;
-		case MOON_RESULT_FAILURE:
-		case MOON_RESULT_ASSERTION:
-		case MOON_RESULT_CRASH:
-			stage = Mu_TestStageToString(summary->stage);
-			
-			for (i = ALIGNMENT - strlen(test->name) - strlen(stage) - 3 - 5 - 4; i > 0; i--)
-				printf(" ");
-			
-			reason = summary->reason ? summary->reason : "unknown";
-			printf("(%s) \e[31mFAIL\e[0m\n", stage);
-			
-			failure_message = summary->line != 0 
-				? format("%s:%i: %s", basename(test->file), summary->line, reason)
-				: format("%s", reason);
-			
-			for (i = ALIGNMENT - strlen(failure_message); i > 0; i--)
-				printf(" ");
-			printf("%s\n", failure_message);
-	}
-}
-
-static MoonUnitLogger logger =
-{
-	library_enter,
-	library_leave,
-	suite_enter,
-	suite_leave,
-	result
-};
-
 
 static int option_gdb = 0;
 //static char* option_gdb_break  = NULL;
@@ -228,25 +164,40 @@ int main (int argc, char** argv)
         case -1:
         {
             const char* file;
-            MoonUnitLogger* chosen_logger;
+            MoonUnitLogger* logger;
 
-            chosen_logger = option_logger ?
+            logger = option_logger ?
                 Mu_Plugin_CreateLogger(option_logger) :
-                &logger;
+                Mu_Plugin_CreateLogger("console");
 
-            if (!chosen_logger)
+            if (!logger)
             {
                 die("Could not create logger '%s'", option_logger);
             }
             
-            runner = Mu_CreateRunner("unix", argv[0], chosen_logger);
+            if (Mu_Logger_OptionType(logger, "fd") == MU_INTEGER)
+            {
+                Mu_Logger_SetOption(logger, "fd", fileno(stdout));
+            }
+
+            if (Mu_Logger_OptionType(logger, "align") == MU_INTEGER)
+            {
+                Mu_Logger_SetOption(logger, "align", ALIGNMENT);
+            }
+
+            if (Mu_Logger_OptionType(logger, "ansi") == MU_BOOLEAN)
+            {
+                Mu_Logger_SetOption(logger, "ansi", true);
+            }
+
+            runner = Mu_CreateRunner("unix", argv[0], logger);
 
             if (!runner)
             {
                 die("Could not create runner '%s'", "unix");
             }
 
-            Mu_Runner_Option(runner, "gdb", option_gdb);
+            Mu_Runner_SetOption(runner, "gdb", option_gdb);
             
             test_set[test_index] = NULL;
 

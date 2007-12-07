@@ -25,33 +25,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/runner.h>
-#include <moonunit/loader.h>
-#include <moonunit/harness.h>
-#include <moonunit/util.h>
+#ifndef __MU_LOGGER_H__
+#define __MU_LOGGER_H__
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+struct MoonUnitTestSummary;
+struct MoonUnitTest;
 
-void Mu_Runner_RunAll(MoonUnitRunner* runner, const char* library)
+#include <moonunit/option.h>
+
+typedef struct MoonUnitLogger
 {
-    runner->run_all(runner, library);
-}
+    void (*library_enter) (struct MoonUnitLogger*, const char*);
+    void (*library_leave) (struct MoonUnitLogger*);
+    void (*suite_enter) (struct MoonUnitLogger*, const char*);
+    void (*suite_leave) (struct MoonUnitLogger*);
+    void (*result) (struct MoonUnitLogger*, 
+                    struct MoonUnitTest*, struct MoonUnitTestSummary*);
+    MoonUnitOption option;
+} MoonUnitLogger;
 
-void Mu_Runner_RunSet(MoonUnitRunner* runner, const char* library, int setc, char** set)
-{
-    runner->run_set(runner, library, setc, set);
-}
+void Mu_Logger_SetOption(MoonUnitLogger* logger, const char *name, ...);
+MoonUnitType Mu_Logger_OptionType(MoonUnitLogger* logger, const char *name);
 
-void Mu_Runner_SetOption(MoonUnitRunner* runner, const char *name, ...)
-{
-    va_list ap;
-
-    va_start(ap, name);
-
-    Mu_Option_Setv(runner, &runner->option, name, ap);
-
-    va_end(ap);
-}
+#endif

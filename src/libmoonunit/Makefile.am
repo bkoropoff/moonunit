@@ -5,7 +5,7 @@ SUBDIRS=
 lib_LTLIBRARIES=libmoonunit.la
 
 libmoonunit_la_SOURCES = \
-	util.c test.c harness.c runner.c plugin.c
+	util.c test.c harness.c runner.c logger.c plugin.c option.c
 
 libmoonunit_la_LIBADD = -ldl $(top_builddir)/src/liburpc/liburpc.la
 

@@ -39,6 +39,8 @@
 #include <string.h>
 #include <stdio.h>
 
+MoonUnitHarness mu_unixharness;
+
 static urpc_typeinfo testsummary_info =
 {
 	1,

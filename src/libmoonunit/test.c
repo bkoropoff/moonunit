@@ -90,7 +90,8 @@ assert_equal_float(const char* expr, const char* expected, va_list ap, int* resu
 }
 
 void
-__mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected, const char* file, unsigned int line, unsigned int type, ...)
+__mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected, 
+                  const char* file, unsigned int line, MoonUnitType type, ...)
 {
 	int result;
 	char* reason;

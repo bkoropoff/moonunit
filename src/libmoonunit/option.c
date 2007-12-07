@@ -25,33 +25,72 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/runner.h>
-#include <moonunit/loader.h>
-#include <moonunit/harness.h>
-#include <moonunit/util.h>
-
+#include <moonunit/option.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
 
-void Mu_Runner_RunAll(MoonUnitRunner* runner, const char* library)
+void
+Mu_Option_Setv(void* obj, MoonUnitOption* option, const char *name, va_list ap)
 {
-    runner->run_all(runner, library);
+    void* data;
+    bool boolean;
+    int integer;
+    char* string;
+    double fpoint;
+    void* pointer;
+
+    switch (option->type(obj, name))
+    {
+    case 'b':
+        boolean = va_arg(ap, int);
+        data = &boolean;
+        break;
+    case 'i':
+        integer = va_arg(ap, int);
+        data = &integer;
+        break;
+    case 's':
+        string = va_arg(ap, char*);
+        data = string;
+        break;
+    case 'f':
+        fpoint = va_arg(ap, double);
+        data = &fpoint;
+        break;
+    case 'p':
+        pointer = va_arg(ap, void*);
+        data = pointer;
+        break;
+    default:
+        data = NULL;
+        break;
+    }
+
+    if (data)
+        option->set(obj, name, data);
 }
 
-void Mu_Runner_RunSet(MoonUnitRunner* runner, const char* library, int setc, char** set)
-{
-    runner->run_set(runner, library, setc, set);
-}
-
-void Mu_Runner_SetOption(MoonUnitRunner* runner, const char *name, ...)
+void
+Mu_Option_Set(void* obj, MoonUnitOption* option, const char *name, ...)
 {
     va_list ap;
 
     va_start(ap, name);
 
-    Mu_Option_Setv(runner, &runner->option, name, ap);
+    Mu_Option_Setv(obj, option, name, ap);
 
     va_end(ap);
+}
+
+
+const void*
+Mu_Option_Get(void* obj, MoonUnitOption* option, const char* name)
+{
+    return option->get(obj, name);
+}
+
+MoonUnitType
+Mu_Option_Type(void* obj, MoonUnitOption* option, const char* name)
+{
+    return option->type(obj, name);
 }

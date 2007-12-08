@@ -45,6 +45,7 @@ typedef struct MoonUnitLogger
 } MoonUnitLogger;
 
 void Mu_Logger_SetOption(MoonUnitLogger* logger, const char *name, ...);
+void Mu_Logger_SetOptionString(MoonUnitLogger* logger, const char *name, const char *value);
 MoonUnitType Mu_Logger_OptionType(MoonUnitLogger* logger, const char *name);
 
 #endif

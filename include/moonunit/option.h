@@ -39,6 +39,7 @@ typedef struct MoonUnitOption
     MoonUnitType (*type) (void*, const char*name);
 } MoonUnitOption;
 
+void Mu_Option_SetString(void*, MoonUnitOption*, const char *name, const char* value);
 void Mu_Option_Setv(void*, MoonUnitOption*, const char *name, va_list ap);
 void Mu_Option_Set(void*, MoonUnitOption*, const char *name, ...);
 const void* Mu_Option_Get(void*, MoonUnitOption*, const char *name);

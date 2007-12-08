@@ -37,7 +37,8 @@
 #include <stdarg.h>
 
 
-void Mu_Logger_SetOption(MoonUnitLogger* logger, const char *name, ...)
+void
+Mu_Logger_SetOption(MoonUnitLogger* logger, const char *name, ...)
 {
     va_list ap;
 
@@ -48,6 +49,11 @@ void Mu_Logger_SetOption(MoonUnitLogger* logger, const char *name, ...)
     va_end(ap);
 }
 
+void 
+Mu_Logger_SetOptionString(MoonUnitLogger* logger, const char *name, const char *value)
+{
+    Mu_Option_SetString(logger, &logger->option, name, value);
+}
 
 MoonUnitType
 Mu_Logger_OptionType(MoonUnitLogger* logger, const char *name)

@@ -28,6 +28,48 @@
 #include <moonunit/option.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+
+void
+Mu_Option_SetString(void* obj, MoonUnitOption* option, const char *name, const char* value)
+{
+    void* data;
+    bool boolean;
+    int integer;
+    char* string;
+    double fpoint;
+    void* pointer;
+
+    switch (option->type(obj, name))
+    {
+    case 'b':
+        boolean = !strcmp(value, "true");
+        data = &boolean;
+        break;
+    case 'i':
+        integer = atoi(value);
+        data = &integer;
+        break;
+    case 's':
+        string = (char*) value;
+        data = string;
+        break;
+    case 'f':
+        fpoint = atof(value);
+        data = &fpoint;
+        break;
+    case 'p':
+        pointer = (void*) value;
+        data = pointer;
+        break;
+    default:
+        data = NULL;
+        break;
+    }
+
+    if (data)
+        option->set(obj, name, data);
+}
 
 void
 Mu_Option_Setv(void* obj, MoonUnitOption* option, const char *name, va_list ap)

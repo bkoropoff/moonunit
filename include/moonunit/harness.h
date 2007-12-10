@@ -28,6 +28,7 @@
 #include <sys/types.h>
 
 struct MoonUnitTest;
+struct MoonUnitPlugin;
 
 typedef enum MoonUnitTestResult
 {
@@ -62,24 +63,25 @@ typedef struct MoonUnitTestSummary
 
 typedef struct MoonUnitHarness
 {
+    struct MoonUnitPlugin* plugin;
     // Called by a unit test when it determines its result
     // early (through a failed assertion, etc.).  The structure
     // passed in will be stack-allocated and should be copied if
     // preservation is required
-    void (*result)(struct MoonUnitTest*, const MoonUnitTestSummary*);
+    void (*result)(struct MoonUnitHarness*, struct MoonUnitTest*, const MoonUnitTestSummary*);
 
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.
-    void (*dispatch)(struct MoonUnitTest*, MoonUnitTestSummary*);
+    void (*dispatch)(struct MoonUnitHarness*, struct MoonUnitTest*, MoonUnitTestSummary*);
 
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by
     // a debugger.
-    pid_t (*debug)(struct MoonUnitTest*);
+    pid_t (*debug)(struct MoonUnitHarness*, struct MoonUnitTest*);
 
     // Clean up any memory in a MoonTestSummary filled in by
     // a call to dispatch
-    void (*cleanup)(MoonUnitTestSummary*);
+    void (*cleanup)(struct MoonUnitHarness*, MoonUnitTestSummary*);
 } MoonUnitHarness;
 
 const char* Mu_TestResultToString(MoonUnitTestResult result);

@@ -39,8 +39,6 @@
 #include <string.h>
 #include <stdio.h>
 
-MoonUnitHarness mu_unixharness;
-
 static urpc_typeinfo testsummary_info =
 {
 	1,
@@ -52,7 +50,7 @@ static urpc_typeinfo testsummary_info =
 static MoonUnitTestStage current_stage;
 static MoonUnitTest* current_test;
 
-void unixharness_result(MoonUnitTest* test, const MoonUnitTestSummary* _summary)
+void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUnitTestSummary* _summary)
 {	
 	urpc_handle* rpc_handle = test->data;
 
@@ -93,11 +91,11 @@ signal_handler(int sig)
 	summary.reason = strdup(strsignal(sig));
 	summary.line = 0;
 	
-	unixharness_result(current_test, &summary);
+	current_test->harness->result(current_test->harness, current_test, &summary);
 }
 
 
-void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
+void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
 {
 	int sockets[2];
 	pid_t pid;
@@ -118,8 +116,8 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		close(sockets[0]);
 
 		current_test = test;
-
-		test->harness = &mu_unixharness;
+        
+        test->harness = _self;
 		test->data = rpc_test;
 		
 		signal(SIGSEGV, signal_handler);
@@ -129,7 +127,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 				
 		current_stage = MOON_STAGE_SETUP;
 		
-		if ((thunk = test->loader->fixture_setup(test->suite, test->library)))
+		if ((thunk = test->loader->fixture_setup(test->loader, test->suite, test->library)))
 			thunk(test);
 			
 		current_stage = MOON_STAGE_TEST;
@@ -138,7 +136,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 		
 		current_stage = MOON_STAGE_TEARDOWN;
 		
-		if ((thunk = test->loader->fixture_teardown(test->suite, test->library)))
+		if ((thunk = test->loader->fixture_teardown(test->loader, test->suite, test->library)))
 			thunk(test);
 		
 		test->methods->success(test);
@@ -194,7 +192,7 @@ void unixharness_dispatch(MoonUnitTest* test, MoonUnitTestSummary* summary)
 	}
 }
 
-pid_t unixharness_debug(MoonUnitTest* test)
+pid_t unixharness_debug(MoonUnitHarness* _self, MoonUnitTest* test)
 {
 	int sockets[2];
 	pid_t pid;
@@ -209,14 +207,14 @@ pid_t unixharness_debug(MoonUnitTest* test)
 
 		current_test = test;
 
-		test->harness = &mu_unixharness;
+		test->harness = _self;
 		test->data = NULL;
 
         select(0, NULL, NULL, NULL, NULL);
 		
 		current_stage = MOON_STAGE_SETUP;
 		
-		if ((thunk = test->loader->fixture_setup(test->suite, test->library)))
+		if ((thunk = test->loader->fixture_setup(test->loader, test->suite, test->library)))
 			thunk(test);
 			
 		current_stage = MOON_STAGE_TEST;
@@ -225,7 +223,7 @@ pid_t unixharness_debug(MoonUnitTest* test)
 		
 		current_stage = MOON_STAGE_TEARDOWN;
 		
-		if ((thunk = test->loader->fixture_teardown(test->suite, test->library)))
+		if ((thunk = test->loader->fixture_teardown(test->loader, test->suite, test->library)))
 			thunk(test);
 		
 		test->methods->success(test);
@@ -238,15 +236,16 @@ pid_t unixharness_debug(MoonUnitTest* test)
 	}
 }
   
-void unixharness_cleanup (MoonUnitTestSummary* summary)
+void unixharness_cleanup (MoonUnitHarness* _self, MoonUnitTestSummary* summary)
 {
 	free((void*) summary->reason);
 }
 
 MoonUnitHarness mu_unixharness =
 {
-	unixharness_result,
-	unixharness_dispatch,
-    unixharness_debug,
-	unixharness_cleanup
+    .plugin = NULL,
+	.result = unixharness_result,
+	.dispatch = unixharness_dispatch,
+    .debug = unixharness_debug,
+	.cleanup = unixharness_cleanup
 };

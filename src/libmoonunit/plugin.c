@@ -27,6 +27,11 @@
 
 #include <moonunit/plugin.h>
 #include <moonunit/util.h>
+#include <moonunit/loader.h>
+#include <moonunit/runner.h>
+#include <moonunit/logger.h>
+#include <moonunit/harness.h>
+
 #include <config.h>
 #include <string.h>
 
@@ -137,6 +142,7 @@ struct MoonUnitLoader*
 Mu_Plugin_CreateLoader(const char *name)
 {
     MoonUnitPlugin* plugin = get_plugin(name);
+    MoonUnitLoader* loader;
 
     if (!plugin)
         return NULL;
@@ -144,13 +150,27 @@ Mu_Plugin_CreateLoader(const char *name)
     if (!plugin->create_loader)
         return NULL;
 
-    return plugin->create_loader();
+    loader = plugin->create_loader();
+
+    if (!loader)
+        return NULL;
+
+    loader->plugin = plugin;
+
+    return loader;
+}
+
+void Mu_Plugin_DestroyLoader(MoonUnitLoader* loader)
+{
+    if (loader->plugin && loader->plugin->destroy_loader)
+        loader->plugin->destroy_loader(loader);
 }
 
 struct MoonUnitHarness*
 Mu_Plugin_CreateHarness(const char *name)
 {
     MoonUnitPlugin* plugin = get_plugin(name);
+    MoonUnitHarness* harness;
 
     if (!plugin)
         return NULL;
@@ -158,13 +178,22 @@ Mu_Plugin_CreateHarness(const char *name)
     if (!plugin->create_harness)
         return NULL;
 
-    return plugin->create_harness();
+    harness = plugin->create_harness();
+
+    if (!harness)
+        return NULL;
+
+    harness->plugin = plugin;
+
+    return harness;
 }
 
 struct MoonUnitLogger*
 Mu_Plugin_CreateLogger(const char* name)
 {
     MoonUnitPlugin* plugin = get_plugin(name);
+    MoonUnitLogger* logger;
+
 
     if (!plugin)
         return NULL;
@@ -172,7 +201,14 @@ Mu_Plugin_CreateLogger(const char* name)
     if (!plugin->create_logger)
         return NULL;
 
-    return plugin->create_logger();
+    logger = plugin->create_logger();
+
+    if (!logger)
+        return NULL;
+
+    logger->plugin = plugin;
+
+    return logger;
 }
 
 struct MoonUnitRunner* 
@@ -180,14 +216,22 @@ Mu_Plugin_CreateRunner(const char* name, const char* self, struct MoonUnitLoader
                        struct MoonUnitHarness* harness, struct MoonUnitLogger* logger)
 {
     MoonUnitPlugin* plugin = get_plugin(name);
+    MoonUnitRunner* runner;
 
     if (!plugin)
         return NULL;
 
     if (!plugin->create_runner)
         return NULL;
+    
+    runner = plugin->create_runner(self, loader, harness, logger);
 
-    return plugin->create_runner(self, loader, harness, logger);
+    if (!runner)
+        return NULL;
+
+    runner->plugin = plugin;
+
+    return runner;
 }
 
 struct MoonUnitRunner* 

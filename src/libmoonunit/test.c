@@ -50,7 +50,7 @@ __mu_assert(MoonUnitTest* test, int result, const char* expr,
         summary.reason = format("Assertion '%s' failed", expr);
         summary.line = line;
         
-        test->harness->result(test, &summary);
+        test->harness->result(test->harness, test, &summary);
 
         free((void*) summary.reason);
     }
@@ -123,7 +123,7 @@ __mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected,
         summary.reason = reason;
         summary.line = line;
         
-        test->harness->result(test, &summary);
+        test->harness->result(test->harness, test, &summary);
 
         free(reason);
     }
@@ -139,7 +139,7 @@ __mu_success(MoonUnitTest* test)
     summary.reason = NULL;
     summary.line = 0;
 
-    test->harness->result(test, &summary);
+    test->harness->result(test->harness, test, &summary);
 }
  
 void   
@@ -154,7 +154,7 @@ __mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char
     summary.reason = formatv(message, ap);
     summary.line = line;
 
-    test->harness->result(test, &summary);
+    test->harness->result(test->harness, test, &summary);
 
     free((void*) summary.reason);
 }

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2007, Brian Koropoff
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Moonunit project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY BRIAN KOROPOFF ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL BRIAN KOROPOFF BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include <moonunit/runner.h>
 #include <moonunit/loader.h>
 #include <moonunit/logger.h>
@@ -122,12 +149,12 @@ static bool in_set(MoonUnitTest* test, int setc, char** set)
 
 static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char** set)
 {
-   	MoonUnitLibrary* library = runner->loader->open(path);
+   	MoonUnitLibrary* library = runner->loader->open(runner->loader, path);
     MoonUnitLogger* logger = runner->logger;
 
 	logger->library_enter(logger, basename(path));
 	
-	MoonUnitTest** tests = runner->loader->tests(library);
+	MoonUnitTest** tests = runner->loader->tests(runner->loader, library);
 	
     /* FIXME: it's probably not ok to sort this array in place since
      * it's owned by the loader
@@ -138,7 +165,7 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char*
 	const char* current_suite = NULL;
 	MoonUnitThunk thunk;
 	
-	if ((thunk = runner->loader->library_setup(library)))
+	if ((thunk = runner->loader->library_setup(runner->loader, library)))
 		thunk();
 	
 	for (index = 0; tests[index]; index++)
@@ -157,37 +184,41 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char*
 			logger->suite_enter(logger, test->suite);
 		}
 		
-		runner->harness->dispatch(test, &summary);
+		runner->harness->dispatch(runner->harness, test, &summary);
 		logger->result(logger, test, &summary);
 
         if (summary.result != MOON_RESULT_SUCCESS && runner->option.gdb)
         {
-            pid_t pid = runner->harness->debug(test);
+            pid_t pid = runner->harness->debug(runner->harness, test);
             char* breakpoint;
 
             if (summary.line)
                 breakpoint = format("%s:%u", test->file, summary.line);
             else if (summary.stage == MOON_STAGE_SETUP)
-                breakpoint = format("*%p", runner->loader->fixture_setup(test->suite, library));
+                breakpoint = format("*%p", 
+                                    runner->loader->
+                                    fixture_setup(runner->loader, test->suite, library));
             else if (summary.stage == MOON_STAGE_TEARDOWN)
-                breakpoint = format("*%p", runner->loader->fixture_teardown(test->suite, library));
+                breakpoint = format("*%p", 
+                                    runner->loader->
+                                    fixture_teardown(runner->loader, test->suite, library));
             else
                 breakpoint = format("*%p", test->function);
 
             gdb_attach_interactive(runner->self, pid, breakpoint);
         }
 
-		runner->harness->cleanup(&summary);
+		runner->harness->cleanup(runner->harness, &summary);
 	}
 	
 	if (current_suite)
 		logger->suite_leave(logger);
 	logger->library_leave(logger);
 	
-	if ((thunk = runner->loader->library_teardown(library)))
+	if ((thunk = runner->loader->library_teardown(runner->loader, library)))
 		thunk();
 	
-	runner->loader->close(library);
+	runner->loader->close(runner->loader, library);
 }
 
 static void UnixRunner_RunSet(MoonUnitRunner* _runner, const char* path, int setc, char** set)

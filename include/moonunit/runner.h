@@ -31,11 +31,13 @@
 struct MoonUnitLoader;
 struct MoonUnitHarness;
 struct MoonUnitLogger;
+struct MoonUnitPlugin;
 
 #include <moonunit/option.h>
 
 typedef struct MoonUnitRunner
 {
+    struct MoonUnitPlugin* plugin;
     void (*run_all) (struct MoonUnitRunner*, const char* library);
     void (*run_set) (struct MoonUnitRunner*, const char* library, int setc, char** set);
     MoonUnitOption option;

@@ -37,20 +37,28 @@ typedef struct MoonUnitPlugin
 {
     const char* name;
     struct MoonUnitLoader*  (*create_loader) ();
+    void (*destroy_loader) (struct MoonUnitLoader*);
     struct MoonUnitHarness* (*create_harness) ();
+    void (*destroy_harness) (struct MoonUnitHarness*);
     struct MoonUnitLogger*  (*create_logger) ();
+    void (*destroy_logger) (struct MoonUnitLogger*);
     struct MoonUnitRunner*  (*create_runner) 
         (const char* self, struct MoonUnitLoader*, struct MoonUnitHarness*, struct MoonUnitLogger*);
+    void (*destroy_runner) (struct MoonUnitRunner*);
 } MoonUnitPlugin;
 
 #define MU_PLUGIN_INIT \
     MoonUnitPlugin* __mu_p_init ()
 
 struct MoonUnitLoader* Mu_Plugin_CreateLoader(const char *name);
+void Mu_Plugin_DestroyLoader(struct MoonUnitLoader*);
 struct MoonUnitHarness* Mu_Plugin_CreateHarness(const char *name);
+void Mu_Plugin_DestroyHarness(struct MoonUnitHarness*);
 struct MoonUnitLogger* Mu_Plugin_CreateLogger(const char* name);
+void Mu_Plugin_DestroyLogger(struct MoonUnitLogger*);
 struct MoonUnitRunner* Mu_Plugin_CreateRunner(const char* name, const char* self,
                                               struct MoonUnitLoader*, struct MoonUnitHarness*, struct MoonUnitLogger*);
+void Mu_Plugin_DestroyRunner(struct MoonUnitRunner*);
 struct MoonUnitRunner* Mu_CreateRunner(const char* name, const char* self, struct MoonUnitLogger* logger);
 
 

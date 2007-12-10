@@ -30,11 +30,13 @@
 
 struct MoonUnitTestSummary;
 struct MoonUnitTest;
+struct MoonUnitPlugin;
 
 #include <moonunit/option.h>
 
 typedef struct MoonUnitLogger
 {
+    struct MoonUnitPlugin* plugin;
     void (*library_enter) (struct MoonUnitLogger*, const char*);
     void (*library_leave) (struct MoonUnitLogger*);
     void (*suite_enter) (struct MoonUnitLogger*, const char*);

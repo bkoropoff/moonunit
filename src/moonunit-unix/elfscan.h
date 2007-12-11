@@ -30,15 +30,17 @@
 
 #include <stdbool.h>
 
+#include <moonunit/error.h>
+
 typedef struct
 {
 	const char* name;
 	void* addr;
 } symbol;
 
-typedef void (*SymbolCallback)(symbol*, void* data);
+typedef bool (*SymbolCallback)(symbol*, void* data, MuError**);
 typedef bool (*SymbolFilter)(const char*, void* data);
-typedef void (*SymbolScanner)(void *, SymbolFilter, SymbolCallback, void *);
+typedef bool (*SymbolScanner)(void *, SymbolFilter, SymbolCallback, void *, MuError**);
 
 SymbolScanner ElfScan_GetScanner(void);
 

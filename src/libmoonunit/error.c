@@ -25,42 +25,95 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_LOADER_H__
-#define __MU_LOADER_H__
-
 #include <moonunit/error.h>
+#include <moonunit/util.h>
 
-struct MuError;
-struct MoonUnitTest;
-struct MoonUnitLibrary;
-struct MoonUnitPlugin;
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
 
-typedef struct MoonUnitLibrary MoonUnitLibrary;
+const char const Mu_ErrorDomain_General[] = "general";
 
-typedef void (*MoonUnitThunk) (void);
-typedef void (*MoonUnitTestThunk) (struct MoonUnitTest*);
-
-typedef struct MoonUnitLoader
+static MuError error_mem =
 {
-    struct MoonUnitPlugin* plugin;
-    // Opens a library and returns a handle
-    MoonUnitLibrary* (*open) (struct MoonUnitLoader*, const char* path, MuError** err);
-    // Returns a null-terminated list of unit tests
-    struct MoonUnitTest** (*tests) (struct MoonUnitLoader*, MoonUnitLibrary* handle);
-    // Returns the library setup routine for handle
-    MoonUnitThunk (*library_setup)(struct MoonUnitLoader*, MoonUnitLibrary* handle);
-    // Returns the library teardown routine for handle
-    MoonUnitThunk (*library_teardown)(struct MoonUnitLoader*, MoonUnitLibrary* handle);
-    // Returns the fixture setup routine for suite name in handle
-    MoonUnitTestThunk (*fixture_setup)(struct MoonUnitLoader*, 
-                                       const char* name, MoonUnitLibrary* handle);
-    // Returns the fixture teardown routine for suite name in handle
-    MoonUnitTestThunk (*fixture_teardown)(struct MoonUnitLoader*,
-                                          const char* name, MoonUnitLibrary* handle);
-    // Closes a library
-    void (*close) (struct MoonUnitLoader*, MoonUnitLibrary* handle);
-    // Get name of a library
-    const char * (*name) (struct MoonUnitLoader*, MoonUnitLibrary* handle);
-} MoonUnitLoader;
+    .domain = Mu_ErrorDomain_General,
+    .code = MU_ERROR_NOMEM,
+    .message = "Out of memory"
+};
 
-#endif
+void
+Mu_Error_Raise(MuError** err, const char* domain, int code, const char* format, ...)
+{
+    va_list ap;
+
+    if (!err)
+        return;
+
+    if (*err)
+    {
+        fprintf(stderr, "Error overwritten by raise!  Aborting...\n");
+        abort();
+    }
+
+    *err = malloc(sizeof(MuError));
+
+    if (!err)
+    {
+        *err = &error_mem;
+        return;
+    }
+
+    (*err)->domain = domain;
+    (*err)->code = code;
+
+    va_start(ap, format);
+
+    (*err)->message = formatv(format, ap);
+
+    va_end(ap);
+
+    if (!(*err)->message)
+    {
+        free(*err);
+        *err = &error_mem;
+        return;
+    }
+
+    fprintf(stderr, "-- (%s) -- %s\n", domain, (*err)->message);
+ 
+    return;
+}
+
+void
+Mu_Error_Handle(MuError** err)
+{
+    if (!err)
+        return;
+
+    if (*err != &error_mem)
+    {
+        free((*err)->message);
+        free(*err);
+    }
+
+    *err = NULL;
+}
+
+void
+Mu_Error_Reraise(MuError** err, MuError* src)
+{
+    if (err)
+    {
+        *err = src;
+    }
+    else
+    {
+        Mu_Error_Handle(&src);
+    }
+}
+
+bool
+Mu_Error_Equal(MuError* err, const char* domain, int code)
+{
+    return err && err->domain == domain && err->code == code;
+}

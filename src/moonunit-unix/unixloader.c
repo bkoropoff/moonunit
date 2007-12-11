@@ -28,6 +28,7 @@
 #include <moonunit/loader.h>
 #include <moonunit/util.h>
 #include <moonunit/test.h>
+#include <moonunit/error.h>
 
 #include <string.h>
 #include <dlfcn.h>
@@ -82,8 +83,8 @@ test_filter(const char* sym, void *unused)
 	return !strncmp("__mu_", sym, strlen("__mu_"));
 }
 
-static void
-test_add(symbol* sym, void* _buffer)
+static bool
+test_add(symbol* sym, void* _buffer, MuError **_err)
 {
 	testbuffer* buffer = (testbuffer*) _buffer;
 
@@ -92,12 +93,15 @@ test_add(symbol* sym, void* _buffer)
 		MoonUnitTest* test = (MoonUnitTest*) sym->addr;
 		
 		if (test->library)
-			return; // Test was already added
+			return true; // Test was already added
 		
 		if (buffer->test.index >= buffer->test.capacity-1)
 		{
 			buffer->test.capacity *= 2;
 			buffer->test.tests = realloc(buffer->test.tests, sizeof(test) * buffer->test.capacity);
+
+            if (!buffer->test.tests)
+                MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
 		}
 		
 		buffer->test.tests[buffer->test.index++] = test;
@@ -117,6 +121,9 @@ test_add(symbol* sym, void* _buffer)
 		{
 			buffer->fixture.capacity *= 2;
 			buffer->fixture.thunks = realloc(buffer->fixture.thunks, sizeof(thunk) * buffer->fixture.capacity);
+
+            if (!buffer->fixture.thunks)
+                MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
 		}
 		
 		buffer->fixture.thunks[buffer->fixture.index++] = thunk;
@@ -129,27 +136,55 @@ test_add(symbol* sym, void* _buffer)
 	{
 		buffer->library->teardown = (MoonUnitThunk) sym->addr;
 	}
+
+    return true;
 }
 
 #ifdef HAVE_LIBELF
-static void
-unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle)
+static bool
+unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle, MuError ** _err)
 {
+    MuError* err = NULL;
 	testbuffer buffer = {{NULL, 0, 512}, {NULL, 0, 512}, _self, handle};
 
 	buffer.test.tests = malloc(sizeof(MoonUnitTest*) * buffer.test.capacity);
+
+    if (!buffer.test.tests)
+    {
+        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+    }
+
 	buffer.fixture.thunks = malloc(sizeof(NamedTestThunk*) * buffer.fixture.capacity);
 	
-	ElfScan_GetScanner()(handle->dlhandle, test_filter, test_add, &buffer);
+    if (!buffer.fixture.thunks)
+    {
+        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+    }
+
+	if (!ElfScan_GetScanner()(handle->dlhandle, test_filter, test_add, &buffer, &err))
+    {
+        MU_RERAISE_GOTO(error, _err, err);
+    }
 	
 	buffer.test.tests[buffer.test.index] = NULL;
 	buffer.fixture.thunks[buffer.fixture.index] = NULL;
 	
 	handle->tests = buffer.test.tests;
 	handle->fixture_thunks = buffer.fixture.thunks;
+
+    return true;
+
+error:
+    
+    if (buffer.test.tests)
+        free(buffer.test.tests);
+    if (buffer.fixture.thunks)
+        free(buffer.fixture.thunks);
+
+    return false;
 }
 #else
-static void
+static bool
 unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 {
 	const char* command;
@@ -164,10 +199,16 @@ unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 #endif
 
 static MoonUnitLibrary*
-unixloader_open(MoonUnitLoader* _self, const char* path)
+unixloader_open(MoonUnitLoader* _self, const char* path, MuError** _err)
 {
 	MoonUnitLibrary* library = malloc(sizeof (MoonUnitLibrary));
-	
+    MuError* err = NULL;
+
+    if (!library)
+    {
+        MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+    }
+
 	library->tests = NULL;
 	library->fixture_thunks = NULL;
 	library->setup = NULL;
@@ -175,7 +216,19 @@ unixloader_open(MoonUnitLoader* _self, const char* path)
 	library->path = strdup(path);
 	library->dlhandle = dlopen(library->path, RTLD_LAZY);
 	
-	unixloader_scan(_self, library);
+    if (!library->dlhandle)
+    {
+        free(library);
+        MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, "%s", dlerror());
+    }
+
+    if (!unixloader_scan(_self, library, &err))
+    {
+        dlclose(library->dlhandle);
+        free(library);
+        
+        MU_RERAISE_RETURN(NULL, _err, err);
+    }
 	
 	return library;
 }

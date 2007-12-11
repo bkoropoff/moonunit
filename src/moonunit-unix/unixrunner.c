@@ -149,7 +149,11 @@ static bool in_set(MoonUnitTest* test, int setc, char** set)
 
 static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char** set)
 {
-   	MoonUnitLibrary* library = runner->loader->open(runner->loader, path);
+    MuError* err = NULL;
+   	MoonUnitLibrary* library = runner->loader->open(runner->loader, path, &err);
+
+    // FIXME: handle error
+
     MoonUnitLogger* logger = runner->logger;
 
 	logger->library_enter(logger, basename(path));

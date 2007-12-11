@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <config.h>
+#include <errno.h>
+#include <string.h>
 
 #if SIZEOF_VOIDP == 4
 #define ELF_SYM_T Elf32_Sym
@@ -50,6 +52,15 @@
 #else
 #error Unhandled pointer width
 #endif
+
+static const char domain_elf[] = "elf";
+
+typedef enum ElfError
+{
+    ELF_ERROR_SYMMETH,
+    ELF_ERROR_VERSION,
+    ELF_ERROR_LIBELF
+} ElfError;
 
 static void*
 library_base_address(void *handle)
@@ -87,21 +98,32 @@ library_path(void *handle)
 	return info.dli_fname;
 }
 
-static inline void
+static inline bool
 libelf_scan_symtab(void* handle, SymbolFilter filter, SymbolCallback callback, void* data,
-				   Elf* elf, Elf_Scn* section, ELF_SHDR_T *shdr, bool dynamic)
+				   Elf* elf, Elf_Scn* section, ELF_SHDR_T *shdr, bool dynamic, MuError **_err)
 {
+    MuError* err = NULL;
 	Elf_Data *edata = NULL;
 	ELF_SYM_T* sym = NULL;
 	ELF_SYM_T* last_sym = NULL;
 	void* base_address = dynamic ? NULL : library_base_address(handle);
 	
+    // Nothing we can do about this, but it's not fatal
 	if (!dynamic && !base_address)
-		return;
+        return true;
 	
-	if (!(edata = elf_getdata(section, edata)) || (edata->d_size == 0))
-		return;
-		
+	if (!(edata = elf_getdata(section, edata)))
+    {
+        if (elf_errno())
+            MU_RAISE_RETURN(false, _err, domain_elf, ELF_ERROR_LIBELF + elf_errno(), "%s", elf_errmsg(elf_errno()));
+        else
+            return true;
+    }
+    
+    if (edata->d_size == 0)
+        // Nothing in this section, but that's ok
+        return true;
+    
 	sym = (ELF_SYM_T*) edata->d_buf;
 	last_sym = (ELF_SYM_T*) ((char*) edata->d_buf + edata->d_size);
 	
@@ -121,52 +143,85 @@ libelf_scan_symtab(void* handle, SymbolFilter filter, SymbolCallback callback, v
 			{
 				info.addr = base_address + (unsigned long) sym->st_value;	
 			}
-			callback(&info, data);
+			if (!callback(&info, data, &err))
+            {
+                MU_RERAISE_RETURN(false, _err, err);
+            }
 		}
 	}
+
+    return true;
 }
 
-static void
-libelf_symbol_scanner(void* handle, SymbolFilter filter, SymbolCallback callback, void* data)
+static bool
+libelf_symbol_scanner(void* handle, SymbolFilter filter, SymbolCallback callback, void* data, MuError **_err)
 {
-	const char* filename = library_path(handle);
-	int fd = open(filename, O_RDONLY);
+    MuError* err = NULL;
+	const char* filename = NULL;
+	int fd = -1;
 	Elf* elf;
 	Elf_Scn* section = NULL;
 	
-	if (elf_version(EV_CURRENT) == EV_NONE ) 
-		return;
-		
-	if (!filename || fd < 0)
-		return;
-	
+	filename = library_path(handle);
+
+    if (!filename)
+    {
+        MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_SYMMETH, "Could not determine path of library file from handle");
+    }
+
+	fd = open(filename, O_RDONLY);
+
+    if (fd < 0)
+    {
+        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_ERRNO + errno, "%s", strerror(errno));
+    }
+
+	if (elf_version(EV_CURRENT) == EV_NONE )
+    {
+        MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_VERSION, "libelf is too old");
+    }
+    
 	if (!(elf = elf_begin(fd, ELF_C_READ, NULL)))
 	{
-		close(fd);
-		return;
+        MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_LIBELF + elf_errno(),
+                      "%s", elf_errmsg(elf_errno()));
 	}
 	
 	while ((section = elf_nextscn(elf, section)))
 	{
-		ELF_SHDR_T *shdr;
+		ELF_SHDR_T *shdr = ELF_GETSHDR_F(section);
 		
-		if ((shdr = ELF_GETSHDR_F(section)))
-		{
-			switch (shdr->sh_type)
-			{
-				case SHT_SYMTAB:
-					libelf_scan_symtab(handle, filter, callback, data, elf, section, shdr, false);
-					continue;
-				case SHT_DYNSYM:
-					libelf_scan_symtab(handle, filter, callback, data, elf, section, shdr, true);
-					continue;
-			}
-		}
-	}
+        if (!shdr)
+        {
+            MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_LIBELF + elf_errno(), 
+                          "%s", elf_errmsg(elf_errno()));
+        }
+
+        switch (shdr->sh_type)
+        {
+        case SHT_SYMTAB:
+            if (!libelf_scan_symtab(handle, filter, callback, data, elf, section, shdr, false, &err))
+            {
+                MU_RERAISE_GOTO(error, _err, err);
+            }
+            continue;
+        case SHT_DYNSYM:
+            if (!libelf_scan_symtab(handle, filter, callback, data, elf, section, shdr, true, &err))
+            {
+                MU_RERAISE_GOTO(error, _err, err);
+            }
+            continue;
+        }
+    }
+
+    return true;
 	
-	elf_end(elf);
-	close(fd);
-	return;
+error:
+    if (elf)
+        elf_end(elf);
+    if (fd >= 0)
+        close(fd);
+	return false;
 }
 
 SymbolScanner 

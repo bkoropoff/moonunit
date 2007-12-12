@@ -34,12 +34,13 @@ struct MoonUnitLogger;
 struct MoonUnitPlugin;
 
 #include <moonunit/option.h>
+#include <moonunit/error.h>
 
 typedef struct MoonUnitRunner
 {
     struct MoonUnitPlugin* plugin;
-    void (*run_all) (struct MoonUnitRunner*, const char* library);
-    void (*run_set) (struct MoonUnitRunner*, const char* library, int setc, char** set);
+    void (*run_all) (struct MoonUnitRunner*, const char* library, MuError** err);
+    void (*run_set) (struct MoonUnitRunner*, const char* library, int setc, char** set, MuError** err);
     MoonUnitOption option;
 } MoonUnitRunner;
 
@@ -48,8 +49,8 @@ MoonUnitRunner* Mu_UnixRunner_Create(const char* self,
                                      struct MoonUnitHarness* harness, 
                                      struct MoonUnitLogger* logger);
 
-void Mu_Runner_RunAll(MoonUnitRunner*, const char* library);
-void Mu_Runner_RunSet(MoonUnitRunner*, const char* library, int setc, char** set);
+void Mu_Runner_RunAll(MoonUnitRunner*, const char* library, MuError** err);
+void Mu_Runner_RunSet(MoonUnitRunner*, const char* library, int setc, char** set, MuError** err);
 void Mu_Runner_SetOption(MoonUnitRunner*, const char *name, ...);
 
 #endif

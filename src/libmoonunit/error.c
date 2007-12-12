@@ -79,8 +79,6 @@ Mu_Error_Raise(MuError** err, const char* domain, int code, const char* format, 
         return;
     }
 
-    fprintf(stderr, "-- (%s) -- %s\n", domain, (*err)->message);
- 
     return;
 }
 

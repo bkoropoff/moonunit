@@ -51,6 +51,7 @@
 
 int main (int argc, char** argv)
 {
+    MuError* err = NULL;
 	MoonUnitRunner* runner;
     unsigned int file_index;
     MoonUnitLogger* logger;
@@ -104,9 +105,18 @@ int main (int argc, char** argv)
         char* file = option.files.value[file_index];
         
         if (option.all || option.tests.size == 0)
-            Mu_Runner_RunAll(runner, file);
+        {
+            Mu_Runner_RunAll(runner, file, &err);
+        }
         else
-            Mu_Runner_RunSet(runner, file, option.tests.size, option.tests.value);
+        {
+            Mu_Runner_RunSet(runner, file, option.tests.size, option.tests.value, &err);
+        }
+
+        if (err)
+        {
+            die("Error: %s", err->message);
+        }
     }
 
 	return 0;

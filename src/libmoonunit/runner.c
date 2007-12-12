@@ -35,14 +35,14 @@
 #include <string.h>
 #include <stdarg.h>
 
-void Mu_Runner_RunAll(MoonUnitRunner* runner, const char* library)
+void Mu_Runner_RunAll(MoonUnitRunner* runner, const char* library, MuError** _err)
 {
-    runner->run_all(runner, library);
+    runner->run_all(runner, library, _err);
 }
 
-void Mu_Runner_RunSet(MoonUnitRunner* runner, const char* library, int setc, char** set)
+void Mu_Runner_RunSet(MoonUnitRunner* runner, const char* library, int setc, char** set, MuError** _err)
 {
-    runner->run_set(runner, library, setc, set);
+    runner->run_set(runner, library, setc, set, _err);
 }
 
 void Mu_Runner_SetOption(MoonUnitRunner* runner, const char *name, ...)

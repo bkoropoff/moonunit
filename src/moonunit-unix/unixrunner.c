@@ -147,12 +147,16 @@ static bool in_set(MoonUnitTest* test, int setc, char** set)
     return false;
 }
 
-static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char** set)
+static void UnixRunner_Run(UnixRunner* runner, const char* path, 
+                           int setc, char** set, MuError** _err)
 {
     MuError* err = NULL;
    	MoonUnitLibrary* library = runner->loader->open(runner->loader, path, &err);
 
-    // FIXME: handle error
+    if (err)
+    {
+        MU_RERAISE_GOTO(error, _err, err);
+    }
 
     MoonUnitLogger* logger = runner->logger;
 
@@ -161,7 +165,9 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char*
 	MoonUnitTest** tests = runner->loader->tests(runner->loader, library);
 	
     /* FIXME: it's probably not ok to sort this array in place since
-     * it's owned by the loader
+     * it's owned by the loader.  It might be worthwhile to change the
+     * semantics of the loader->tests method to return something that
+     * should be freed
      */
 	qsort(tests, test_count(tests), sizeof(*tests), test_compare);
 	
@@ -222,17 +228,22 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path, int setc, char*
 	if ((thunk = runner->loader->library_teardown(runner->loader, library)))
 		thunk();
 	
-	runner->loader->close(runner->loader, library);
+error:
+
+    if (library)
+        runner->loader->close(runner->loader, library);
+
 }
 
-static void UnixRunner_RunSet(MoonUnitRunner* _runner, const char* path, int setc, char** set)
+static void UnixRunner_RunSet(MoonUnitRunner* _runner, const char* path, 
+                              int setc, char** set, MuError** _err)
 {
-    UnixRunner_Run((UnixRunner*) _runner, path, setc, set);
+    UnixRunner_Run((UnixRunner*) _runner, path, setc, set, _err);
 }
 
-static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path)
+static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path, MuError** _err)
 {
-    UnixRunner_Run((UnixRunner*) _runner, path, 0, NULL);
+    UnixRunner_Run((UnixRunner*) _runner, path, 0, NULL, _err);
 }
 
 MoonUnitRunner*

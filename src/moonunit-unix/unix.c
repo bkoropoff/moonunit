@@ -84,11 +84,12 @@ create_unixrunner(const char* self, struct MoonUnitLoader* loader,
     return Mu_UnixRunner_Create(self, loader, harness, logger);
 }
 
+extern void Mu_UnixRunner_Destroy(MoonUnitRunner* _runner);
+
 static void
 destroy_unixrunner(MoonUnitRunner* runner)
 {
-    free(runner);
-    // FIXME: how do we handle modules owned by the runner?
+    Mu_UnixRunner_Destroy(runner);
 }
 
 static MoonUnitPlugin plugin =

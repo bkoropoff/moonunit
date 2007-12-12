@@ -188,6 +188,12 @@ Mu_Plugin_CreateHarness(const char *name)
     return harness;
 }
 
+void Mu_Plugin_DestroyHarness(MoonUnitHarness* harness)
+{
+    if (harness->plugin && harness->plugin->destroy_harness)
+        harness->plugin->destroy_harness(harness);
+}
+
 struct MoonUnitLogger*
 Mu_Plugin_CreateLogger(const char* name)
 {
@@ -211,6 +217,12 @@ Mu_Plugin_CreateLogger(const char* name)
     return logger;
 }
 
+void Mu_Plugin_DestroyLogger(MoonUnitLogger* logger)
+{
+    if (logger->plugin && logger->plugin->destroy_logger)
+        logger->plugin->destroy_logger(logger);
+}
+
 struct MoonUnitRunner* 
 Mu_Plugin_CreateRunner(const char* name, const char* self, struct MoonUnitLoader* loader, 
                        struct MoonUnitHarness* harness, struct MoonUnitLogger* logger)
@@ -232,6 +244,13 @@ Mu_Plugin_CreateRunner(const char* name, const char* self, struct MoonUnitLoader
     runner->plugin = plugin;
 
     return runner;
+}
+
+
+void Mu_Plugin_DestroyRunner(MoonUnitRunner* runner)
+{
+    if (runner->plugin && runner->plugin->destroy_runner)
+        runner->plugin->destroy_runner(runner);
 }
 
 struct MoonUnitRunner* 

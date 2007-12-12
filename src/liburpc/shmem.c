@@ -98,6 +98,8 @@ send_message(urpc_message* message)
         unsigned int length = sizeof(urpc_packet_message) + strlen(message->shmem_path) + 1;
         urpc_packet* packet = malloc(sizeof (urpc_packet_header) + length);
         
+        memset(packet, 0, sizeof(urpc_packet_header) + length);
+
         packet->header.type = PACKET_MESSAGE;
         packet->header.length = length;
         packet->message.id = message->id;
@@ -273,11 +275,17 @@ urpc_process(urpc_handle* handle)
                         urpc_msg_free(message);
                     }
                 }
+
+                free(packet);
+
+                break;
             }
             case PACKET_MESSAGE:
             {
                 urpc_message* message = message_from_packet(packet);
                 
+                free(packet);
+
                 if (!message)
                 {
                     handle->readable = false;
@@ -285,8 +293,6 @@ urpc_process(urpc_handle* handle)
                 }
 
                 message->handle = handle;
-				
-                free(packet);
 				
                 if (!handle->recv_queue)
                     handle->recv_queue = message;
@@ -305,6 +311,8 @@ urpc_process(urpc_handle* handle)
                 {
                     return result;
                 }
+
+                break;
             }
 			}
 		}

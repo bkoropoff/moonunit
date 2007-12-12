@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <moonunit/plugin.h>
 #include <moonunit/runner.h>
 #include <moonunit/loader.h>
 #include <moonunit/logger.h>
@@ -263,4 +264,17 @@ Mu_UnixRunner_Create(const char* self, MoonUnitLoader* loader, MoonUnitHarness* 
     runner->option.gdb = false;
 
 	return (MoonUnitRunner*) runner;
+}
+
+void
+Mu_UnixRunner_Destroy(MoonUnitRunner* _runner)
+{
+    UnixRunner* runner = (UnixRunner*) _runner;
+
+    Mu_Plugin_DestroyLoader(runner->loader);
+    Mu_Plugin_DestroyHarness(runner->harness);
+    Mu_Plugin_DestroyLogger(runner->logger);
+
+    free((void*) runner->self);
+    free(runner);
 }

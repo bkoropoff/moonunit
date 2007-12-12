@@ -119,5 +119,8 @@ int main (int argc, char** argv)
         }
     }
 
+    Option_Release(&option);
+    Mu_Plugin_DestroyRunner(runner);
+
 	return 0;
 }

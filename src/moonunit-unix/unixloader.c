@@ -261,9 +261,13 @@ unixloader_fixture_setup (MoonUnitLoader* _self, const char* name, MoonUnitLibra
 	for (i = 0; handle->fixture_thunks[i]; i++)
 	{
 		if (!strcmp(symbol_name, handle->fixture_thunks[i]->name))
+        {
+            free(symbol_name);
 			return handle->fixture_thunks[i]->thunk;
+        }
 	}
-	
+    
+    free(symbol_name);	
 	return NULL;
 }
 
@@ -276,9 +280,13 @@ unixloader_fixture_teardown (MoonUnitLoader* _self, const char* name, MoonUnitLi
 	for (i = 0; handle->fixture_thunks[i]; i++)
 	{
 		if (!strcmp(symbol_name, handle->fixture_thunks[i]->name))
+        {
+            free(symbol_name);
 			return handle->fixture_thunks[i]->thunk;
+        }
 	}
 	
+    free(symbol_name);
 	return NULL;
 }
    

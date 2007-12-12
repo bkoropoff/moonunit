@@ -214,14 +214,13 @@ libelf_symbol_scanner(void* handle, SymbolFilter filter, SymbolCallback callback
         }
     }
 
-    return true;
-	
 error:
     if (elf)
         elf_end(elf);
     if (fd >= 0)
         close(fd);
-	return false;
+
+    return *_err == NULL;
 }
 
 SymbolScanner 

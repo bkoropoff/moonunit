@@ -36,6 +36,20 @@ StringSet_Append(StringSet* set, const char* _str)
     set->value[set->size++] = str;
 }
 
+static void
+StringSet_Free(StringSet* set)
+{
+    if (set->value)
+    {
+        int i;
+        for (i = 0; i < set->size; i++)
+        {
+            free(set->value[i]);
+        }
+        free(set->value);
+    }
+}
+
 static int
 error(OptionTable* table, const char* fmt, ...)
 {
@@ -59,7 +73,7 @@ static const struct poptOption options[] =
         .arg = NULL,
         .val = OPTION_SUITE,
         .descrip = "Run a specific test suite",
-        .argDescrip = "<suite>"
+        .argDescrip = "suite"
     },
     {
         .longName = "test",
@@ -68,7 +82,7 @@ static const struct poptOption options[] =
         .arg = NULL,
         .val = OPTION_TEST,
         .descrip = "Run a specific test",
-        .argDescrip = "<suite>/<name>"
+        .argDescrip = "suite/name"
     },
     {
         .longName = "all",
@@ -77,7 +91,7 @@ static const struct poptOption options[] =
         .arg = NULL,
         .val = OPTION_ALL,
         .descrip = "Run all tests in all suites (default)",
-        .argDescrip = "<suite>"
+        .argDescrip = NULL
     },
     {
         .longName = "gdb",
@@ -95,7 +109,7 @@ static const struct poptOption options[] =
         .arg = NULL,
         .val = OPTION_LOGGER,
         .descrip = "Use a specific result logger (default: console)",
-        .argDescrip = "<name>"
+        .argDescrip = "name"
     },
     {
         .longName = "option",
@@ -104,7 +118,7 @@ static const struct poptOption options[] =
         .arg = NULL,
         .val = OPTION_OPTION,
         .descrip = "Pass an option to a test component (logger or runner)",
-        .argDescrip = "<component>.<option name>=<value>"
+        .argDescrip = "comp.opt:value"
     },
 /*
 Not presently implemented
@@ -127,6 +141,10 @@ Option_Parse(int argc, char** argv, OptionTable* option)
 {
     poptContext context = poptGetContext("moonunit", argc, (const char**) argv, options, 0);
     int rc;
+
+    option->context = context;
+
+    poptSetOtherOptionHelp(context, "<libraries...>");
 
     if ((rc = poptReadDefaultConfig(context, 0)))
     {
@@ -218,8 +236,6 @@ Option_Parse(int argc, char** argv, OptionTable* option)
         rc = error(option, "Please specify one or more library files");
     }
 
-    poptFreeContext(context);
-
 	return rc != -1;
 }
 
@@ -231,10 +247,10 @@ Option_ApplyToLogger(OptionTable* option, struct MoonUnitLogger* logger)
     for (index = 0; index < option->logger_options.size; index++)
     {
         char* opt = option->logger_options.value[index];
-        char* eq = strchr(opt, '=');
+        char* eq = strchr(opt, ':');
 
         if (!eq)
-            return error(option, "Arguments to --option must be of the form component.key=value");
+            return error(option, "Arguments to --option must be of the form component.key:value");
 
         *eq = '\0';
 
@@ -242,4 +258,20 @@ Option_ApplyToLogger(OptionTable* option, struct MoonUnitLogger* logger)
     }
 
     return 0;
+}
+
+void
+Option_Release(OptionTable* option)
+{
+    StringSet_Free(&option->tests);
+    StringSet_Free(&option->files);
+    StringSet_Free(&option->logger_options);
+
+    if (option->logger)
+        free(option->logger);
+
+    if (option->errormsg)
+        free(option->errormsg);
+
+    poptFreeContext(option->context);
 }

@@ -168,13 +168,24 @@ create_xmllogger()
     return (MoonUnitLogger*) logger;
 }
 
+static void
+destroy_xmllogger(MoonUnitLogger* _logger)
+{
+    XmlLogger* logger = (XmlLogger*) _logger;
+
+    fclose(logger->out);
+    free(logger);
+}
+
+
 static MoonUnitPlugin plugin =
 {
     .name = "xml",
     .create_loader = NULL,
     .create_harness = NULL,
     .create_runner = NULL,
-    .create_logger = create_xmllogger
+    .create_logger = create_xmllogger,
+    .destroy_logger = destroy_xmllogger
 };
 
 MU_PLUGIN_INIT

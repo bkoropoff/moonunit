@@ -8,7 +8,7 @@ moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @POPT_LIBADD@
 
 libexample_la_SOURCES = example.c
 
-EXTRA_DIST = moonunit-lt.sh moonunit-strip.sh
+EXTRA_DIST = moonunit-lt.sh moonunit-strip.sh option.h
 
 moonunit-lt: moonunit-lt.sh moonunit
 	cp $< $@

@@ -1,4 +1,4 @@
-AC_INIT([moonunit],[0.1],[bkoropoff __at__ gmail_com])
+AC_INIT([moonunit],[0.2],[bkoropoff __at__ gmail_com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_CONFIG_HEADERS(include/config.h)

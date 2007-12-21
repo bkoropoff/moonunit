@@ -153,7 +153,7 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 	{
 		urpc_handle* rpc_harness = urpc_connect(sockets[0]);
 		MoonUnitTestSummary *_summary;
-		urpc_message* message;
+		urpc_message* message = NULL;
 		int status;
         UrpcStatus urpc_result;
 		
@@ -185,9 +185,16 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 				summary->stage = MOON_STAGE_UNKNOWN;
 				summary->line = 0;
 				
-				if (WTERMSIG(status) == 11)
+				if (WTERMSIG(status))
 					summary->reason = strdup(strsignal(WTERMSIG(status)));
 			}
+            else
+            {
+                summary->result = MOON_RESULT_FAILURE;
+				summary->stage = MOON_STAGE_UNKNOWN;
+				summary->line = 0;
+                summary->reason = strdup("Unexpected termination");
+            }
 		}
 	}
 }

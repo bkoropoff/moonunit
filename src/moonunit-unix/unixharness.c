@@ -75,7 +75,7 @@ void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUn
 	urpc_msg_send(message);
 	urpc_msg_free(message);
 
-    urpc_waitdone(rpc_handle);
+    urpc_waitdone(rpc_handle, NULL);
     urpc_disconnect(rpc_handle);
 	
 	exit(0);
@@ -141,7 +141,7 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 		
 		test->methods->success(test);
 	
-        urpc_waitdone(rpc_test);
+        urpc_waitdone(rpc_test, NULL);
 
         urpc_disconnect(rpc_test);
 
@@ -155,11 +155,14 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 		MoonUnitTestSummary *_summary;
 		urpc_message* message = NULL;
 		int status;
-        UrpcStatus urpc_result;
-		
+        UrpcStatus urpc_result, urpc_result2;
+        // FIXME: make configurable
+        long timeout = 2000;
+        long timeleft = timeout;
+	
 		close(sockets[1]);
 		
-		urpc_result = urpc_waitread(rpc_harness, &message);
+		urpc_result = urpc_waitread(rpc_harness, &message, &timeleft);
 
 		if (urpc_result == URPC_SUCCESS)
 		{
@@ -170,16 +173,32 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 			urpc_msg_free(message);
 		}
 
-        urpc_result = urpc_waitdone(rpc_harness);
+        urpc_result2 = urpc_waitdone(rpc_harness, &timeleft);
         urpc_disconnect(rpc_harness);	
 		close(sockets[0]);
+
+        if (urpc_result == URPC_TIMEOUT || urpc_result2 == URPC_TIMEOUT)
+        {
+             kill(pid, SIGKILL);
+        }
 
 		waitpid(pid, &status, 0);
 
         if (!message)
 		{
+            // Timed out waiting for response
+            if (urpc_result == URPC_TIMEOUT || urpc_result2 == URPC_TIMEOUT)
+            {
+                char* reason;
+                asprintf(&reason, "Test timed out after %li milliseconds", timeout);
+
+                summary->result = MOON_RESULT_TIMEOUT;
+                summary->reason = reason;
+                summary->stage = MOON_STAGE_UNKNOWN;
+                summary->line = 0;
+            }
 			// Couldn't get message or an error occurred, try to figure out what happend
-			if (WIFSIGNALED(status))
+            else if (WIFSIGNALED(status))
 			{
 				summary->result = MOON_RESULT_CRASH;
 				summary->stage = MOON_STAGE_UNKNOWN;

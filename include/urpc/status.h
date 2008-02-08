@@ -39,7 +39,9 @@ typedef enum
     // End of file reached
     URPC_EOF,
     // Out of memory
-    URPC_NOMEM
+    URPC_NOMEM,
+    // Timed out
+    URPC_TIMEOUT
 } UrpcStatus;
 
 #endif

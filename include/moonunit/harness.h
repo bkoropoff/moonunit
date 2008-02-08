@@ -40,6 +40,8 @@ typedef enum MoonUnitTestResult
     MOON_RESULT_ASSERTION = 2,
     // Failure due to crash (segfault, usually)
     MOON_RESULT_CRASH = 3,
+    // Failure due to timeout (infinite loop)
+    MOON_RESULT_TIMEOUT = 4
 } MoonUnitTestResult;
 
 typedef enum MoonUnitTestStage

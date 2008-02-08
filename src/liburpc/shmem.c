@@ -86,7 +86,7 @@ send_message(urpc_message* message)
 
     do
     {
-        result = urpc_packet_sendable(message->handle->socket, -1);
+        result = urpc_packet_sendable(message->handle->socket, NULL);
     } while (result == URPC_RETRY);
 
     if (result != URPC_SUCCESS)
@@ -124,7 +124,7 @@ ack_message(urpc_message* message)
 
     do
     {
-        result = urpc_packet_sendable(message->handle->socket, -1);
+        result = urpc_packet_sendable(message->handle->socket, NULL);
     } while (result == URPC_RETRY);
 
     if (result != URPC_SUCCESS)
@@ -221,6 +221,7 @@ UrpcStatus
 urpc_process(urpc_handle* handle)
 {
     UrpcStatus result = URPC_SUCCESS;
+    long zero = 0;
 
 	while (handle->send_queue)
 	{
@@ -239,7 +240,7 @@ urpc_process(urpc_handle* handle)
 	}
 	
 	while (handle->readable && 
-           (result = urpc_packet_available(handle->socket, 0)) == URPC_SUCCESS)
+           (result = urpc_packet_available(handle->socket, &zero)) == URPC_SUCCESS)
 	{
 		urpc_packet* packet = NULL;
 		
@@ -345,7 +346,7 @@ urpc_read(urpc_handle* handle, urpc_message** message)
 }
 
 UrpcStatus
-urpc_waitread(urpc_handle* handle, urpc_message** message)
+urpc_waitread(urpc_handle* handle, urpc_message** message, long* timeout)
 {
     UrpcStatus result = URPC_SUCCESS;
 
@@ -358,8 +359,11 @@ urpc_waitread(urpc_handle* handle, urpc_message** message)
         
         do
         {
-            result = urpc_packet_available(handle->socket, -1);
+            result = urpc_packet_available(handle->socket, timeout);
         } while (result == URPC_RETRY);
+
+        if (result != URPC_SUCCESS)
+            return result;
 
         result = urpc_process(handle);      
 
@@ -371,7 +375,7 @@ urpc_waitread(urpc_handle* handle, urpc_message** message)
 }
 
 UrpcStatus
-urpc_waitdone(urpc_handle* handle)
+urpc_waitdone(urpc_handle* handle, long* timeout)
 {
     UrpcStatus result = URPC_SUCCESS;
 
@@ -382,7 +386,7 @@ urpc_waitdone(urpc_handle* handle)
         {
             do
             {
-                result = urpc_packet_sendable(handle->socket, -1);
+                result = urpc_packet_sendable(handle->socket, timeout);
             } while (result == URPC_RETRY);
             
             if (result == URPC_EOF)
@@ -401,7 +405,7 @@ urpc_waitdone(urpc_handle* handle)
         {
             do
             {
-                result = urpc_packet_available(handle->socket, -1);
+                result = urpc_packet_available(handle->socket, timeout);
             } while (result == URPC_RETRY);
             
             result = urpc_process(handle);

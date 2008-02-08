@@ -64,7 +64,7 @@ typedef struct urpc_packet
 
 UrpcStatus urpc_packet_send(int socket, urpc_packet* packet);
 UrpcStatus urpc_packet_recv(int socket, urpc_packet** packet);
-UrpcStatus urpc_packet_available(int socket, long timeout);
-UrpcStatus urpc_packet_sendable(int socket, long timeout);
+UrpcStatus urpc_packet_available(int socket, long* timeout);
+UrpcStatus urpc_packet_sendable(int socket, long* timeout);
 
 #endif

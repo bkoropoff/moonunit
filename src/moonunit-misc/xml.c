@@ -85,6 +85,7 @@ static void result(MoonUnitLogger* _self,
 		case MOON_RESULT_FAILURE:
 		case MOON_RESULT_ASSERTION:
 		case MOON_RESULT_CRASH:
+        case MOON_RESULT_TIMEOUT:
 			stage = Mu_TestStageToString(summary->stage);
 
             if (summary->reason)

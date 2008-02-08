@@ -104,6 +104,7 @@ result(MoonUnitLogger* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
 		case MOON_RESULT_FAILURE:
 		case MOON_RESULT_ASSERTION:
 		case MOON_RESULT_CRASH:
+        case MOON_RESULT_TIMEOUT:
 			stage = Mu_TestStageToString(summary->stage);
 			
 			for (i = self->align - strlen(test->name) - strlen(stage) - 3 - 5 - 4; i > 0; i--)

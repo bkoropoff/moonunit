@@ -32,6 +32,7 @@
 #include <unistd.h>
 #include <sys/select.h>
 #include <sys/time.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
@@ -150,53 +151,91 @@ urpc_packet_recv(int socket, urpc_packet** packet)
 }
 
 UrpcStatus
-urpc_packet_available(int socket, long _timeout)
+urpc_packet_available(int socket, long* _timeout)
 {
 	fd_set readset;
 	fd_set exset;
 	
+    long elapsed;
+    struct timeval before, after;
 	struct timeval timeout;
-	timeout.tv_sec = _timeout;
-	timeout.tv_usec = 0;
-	
+
+    if (_timeout)
+    {
+        timeout.tv_sec = *_timeout / 1000;
+        timeout.tv_usec = (*_timeout % 1000) * 1000;
+    }	
+
 	FD_ZERO(&readset);
 	FD_SET(socket, &readset);
 	
 	FD_ZERO(&exset);
 	FD_SET(socket, &exset);
 		
-	select(socket+1, &readset, NULL, &exset, _timeout >=0 ? &timeout : NULL);
-	
+    gettimeofday(&before, NULL);
+	select(socket+1, &readset, NULL, &exset, _timeout ? &timeout : NULL);
+    gettimeofday(&after, NULL);
+
+
 	if (FD_ISSET(socket, &exset))
 		return URPC_ERROR;
 	else if (FD_ISSET(socket, &readset))
 		return URPC_SUCCESS;
-	else
-		return URPC_RETRY;
+	else if (_timeout)
+    {
+        elapsed = (after.tv_sec - before.tv_sec) * 1000 - (after.tv_usec - before.tv_usec) / 1000;
+        *_timeout -= elapsed;
+        if (*_timeout <= 0)
+        {
+            *_timeout = 0;
+            return URPC_TIMEOUT;
+        }
+    }
+
+	return URPC_RETRY;
 }
 
 UrpcStatus
-urpc_packet_sendable(int socket, long _timeout)
+urpc_packet_sendable(int socket, long* _timeout)
 {
 	fd_set writeset;
 	fd_set exset;
 	
+    long elapsed;
+    struct timeval before, after;
 	struct timeval timeout;
-	timeout.tv_sec = _timeout;
-	timeout.tv_usec = 0;
-	
+
+    if (_timeout)
+    {
+        timeout.tv_sec = *_timeout / 1000;
+        timeout.tv_usec = (*_timeout % 1000) * 1000;
+    }	
+
 	FD_ZERO(&writeset);
 	FD_SET(socket, &writeset);
 	
 	FD_ZERO(&exset);
 	FD_SET(socket, &exset);
 		
-	select(socket+1, NULL, &writeset, &exset, _timeout >=0 ? &timeout : NULL);
-	
+    gettimeofday(&before, NULL);
+	select(socket+1, NULL, &writeset, &exset, _timeout ? &timeout : NULL);
+    gettimeofday(&after, NULL);
+
+
 	if (FD_ISSET(socket, &exset))
 		return URPC_ERROR;
 	else if (FD_ISSET(socket, &writeset))
 		return URPC_SUCCESS;
-	else
-		return URPC_RETRY;
+	else if (_timeout)
+    {   
+        elapsed = (after.tv_sec - before.tv_sec) * 1000 - (after.tv_usec - before.tv_usec) / 1000;
+        *_timeout -= elapsed;
+        if (*_timeout < 0)
+        {
+            *_timeout = 0;
+            return URPC_TIMEOUT;
+        }
+    }
+
+	return URPC_RETRY;
 }

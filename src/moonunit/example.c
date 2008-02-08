@@ -109,3 +109,8 @@ MU_TEST(Crash, abort)
 {
 	abort();
 }
+
+MU_TEST(Crash, timeout)
+{
+    pause();
+}

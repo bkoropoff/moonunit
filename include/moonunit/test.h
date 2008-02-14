@@ -393,6 +393,12 @@
     __mu_self__->methods->failure(__mu_self__, __FILE__, __LINE__, __VA_ARGS__)
 #endif
 
+#define MU_LOG(level, ...) (__mu_self__->methods->event(__mu_self__, (level), __FILE__, __LINE__, __VA_ARGS__))
+#define MU_WARNING(...) (MU_LOG(MU_LOG_WARNING, __VA_ARGS__))
+#define MU_INFO(...) (MU_LOG(MU_LOG_INFO, __VA_ARGS__))
+#define MU_VERBOSE(...) (MU_LOG(MU_LOG_VERBOSE, __VA_ARGS__))
+#define MU_TRACE(...) (MU_LOG(MU_LOG_TRACE, __VA_ARGS__))
+
 /*@}*/
 
 /**
@@ -477,6 +483,14 @@ typedef struct MoonUnitTest
 #define MU_FS_PREFIX "__mu_fs_"
 #define MU_FT_PREFIX "__mu_ft_"
 
+typedef enum
+{
+    MU_LOG_WARNING,
+    MU_LOG_INFO,
+    MU_LOG_VERBOSE,
+    MU_LOG_TRACE
+} MuLogLevel;
+
 struct MoonUnitHarness;
 struct MoonUnitLoader;
 struct MoonUnitLibrary;
@@ -484,6 +498,7 @@ struct MoonUnitTestMethods;
 
 typedef struct MoonUnitTestMethods
 {
+    void (*event)(MoonUnitTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
 	void (*assert)(MoonUnitTest* test, 
 				   int result, const char* expr, const char* file, unsigned int line);
 	void (*assert_equal)(MoonUnitTest* test, 

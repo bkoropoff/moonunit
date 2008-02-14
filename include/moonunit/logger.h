@@ -31,6 +31,7 @@
 struct MoonUnitTestSummary;
 struct MoonUnitTest;
 struct MoonUnitPlugin;
+struct MuLogEvent;
 
 #include <moonunit/option.h>
 
@@ -41,7 +42,9 @@ typedef struct MoonUnitLogger
     void (*library_leave) (struct MoonUnitLogger*);
     void (*suite_enter) (struct MoonUnitLogger*, const char*);
     void (*suite_leave) (struct MoonUnitLogger*);
-    void (*result) (struct MoonUnitLogger*, 
+    void (*test_enter) (struct MoonUnitLogger*, struct MoonUnitTest* test);
+    void (*test_log) (struct MoonUnitLogger*, struct MuLogEvent* event);
+    void (*test_leave) (struct MoonUnitLogger*, 
                     struct MoonUnitTest*, struct MoonUnitTestSummary*);
     MoonUnitOption option;
 } MoonUnitLogger;

@@ -148,6 +148,13 @@ static bool in_set(MoonUnitTest* test, int setc, char** set)
     return false;
 }
 
+static void event_proxy_cb(MuLogEvent* event, void* data)
+{
+    MoonUnitLogger* logger = (MoonUnitLogger*) data;
+
+    logger->test_log(logger, event);
+}
+
 static void UnixRunner_Run(UnixRunner* runner, const char* path, 
                            int setc, char** set, MuError** _err)
 {
@@ -195,8 +202,9 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path,
 			logger->suite_enter(logger, test->suite);
 		}
 		
-		runner->harness->dispatch(runner->harness, test, &summary);
-		logger->result(logger, test, &summary);
+        logger->test_enter(logger, test);
+		runner->harness->dispatch(runner->harness, test, &summary, event_proxy_cb, logger);
+		logger->test_leave(logger, test, &summary);
 
         if (summary.result != MOON_RESULT_SUCCESS && runner->option.gdb)
         {

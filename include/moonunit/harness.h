@@ -26,6 +26,7 @@
  */
 
 #include <sys/types.h>
+#include <moonunit/test.h>
 
 struct MoonUnitTest;
 struct MoonUnitPlugin;
@@ -63,9 +64,28 @@ typedef struct MoonUnitTestSummary
     unsigned int line;
 } MoonUnitTestSummary;
 
+typedef struct MuLogEvent
+{
+    /* Stage at which event occurred */
+    MoonUnitTestStage stage;
+    /* File in which event occured */
+    const char* file;
+    /* Line on which event occured */
+    unsigned int line;
+    MuLogLevel level;
+    const char* message;
+} MuLogEvent;
+
+typedef (*MuLogCallback)(MuLogEvent* event, void* data);
+
 typedef struct MoonUnitHarness
 {
     struct MoonUnitPlugin* plugin;
+    // Called by a unit test to log a non-failing event.  The passed
+    // structure is owned by the caller and must be copied if preservation
+    // is required.
+    void (*event)(struct MoonUnitHarness*, struct MoonUnitTest*, const MuLogEvent*);
+
     // Called by a unit test when it determines its result
     // early (through a failed assertion, etc.).  The structure
     // passed in will be stack-allocated and should be copied if
@@ -74,7 +94,7 @@ typedef struct MoonUnitHarness
 
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.
-    void (*dispatch)(struct MoonUnitHarness*, struct MoonUnitTest*, MoonUnitTestSummary*);
+    void (*dispatch)(struct MoonUnitHarness*, struct MoonUnitTest*, MoonUnitTestSummary*, MuLogCallback*, void*);
 
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by

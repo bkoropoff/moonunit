@@ -46,6 +46,8 @@ typedef struct
 
     int align;
     bool ansi;
+
+    char* test_log;
 } ConsoleLogger;
 
 static void
@@ -81,7 +83,49 @@ suite_leave(MoonUnitLogger* _self)
 }
 
 static void
-result(MoonUnitLogger* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
+test_enter(MoonUnitLogger* _self, MoonUnitTest* test)
+{
+    ConsoleLogger* self = (ConsoleLogger*) _self;
+
+    self->test_log = format("");
+}
+
+static void
+test_log(MoonUnitLogger* _self, MuLogEvent* event)
+{
+    ConsoleLogger* self = (ConsoleLogger*) _self;
+    char* level_str = NULL;
+    char* old = NULL;
+    int level_code = 0;
+
+    switch (event->level)
+    {
+        case MU_LOG_WARNING:
+            level_str = "warning"; level_code = 31; break;
+        case MU_LOG_INFO:
+            level_str = "info"; level_code = 33; break;
+        case MU_LOG_VERBOSE:
+            level_str = "verbose"; level_code = 34; break;
+        case MU_LOG_TRACE:
+            level_str = "trace"; level_code = 35; break;
+    }
+
+    old = self->test_log;
+
+    if (self->ansi)
+        self->test_log = format("%s      %s:%u: (\e[%im\e[1m%s\e[22m\e[0m) %s\n", old,
+                            basename(event->file), event->line,
+                            level_code, level_str, event->message);
+    else
+        self->test_log = format("%s      %s:%u: (%s) %s\n", old,
+                            basename(event->file), event->line,
+                            level_str, event->message);
+
+    free(old);
+}
+
+static void
+test_leave(MoonUnitLogger* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
     FILE* out = self->out;
@@ -97,7 +141,7 @@ result(MoonUnitLogger* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
 			for (i = self->align - strlen(test->name) - 5 - 4; i > 0; i--)
 				fprintf(out, " ");
             if (self->ansi)
-                fprintf(out, "\e[32mPASS\e[0m\n");
+                fprintf(out, "\e[32m\e[1mPASS\e[22m\e[0m\n");
             else
                 fprintf(out, "PASS\n");
 			break;
@@ -112,7 +156,7 @@ result(MoonUnitLogger* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
 			
 			reason = summary->reason ? summary->reason : "unknown";
             if (self->ansi)
-                fprintf(out, "(%s) \e[31mFAIL\e[0m\n", stage);
+                fprintf(out, "(%s) \e[31m\e[1mFAIL\e[22m\e[0m\n", stage);
             else
                 fprintf(out, "(%s) FAIL\n", stage);
 			
@@ -126,6 +170,9 @@ result(MoonUnitLogger* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
 
             free(failure_message);
 	}
+
+    fprintf(out, "%s", self->test_log);
+    free(self->test_log);    
 }
 
 static void
@@ -201,7 +248,9 @@ static ConsoleLogger consolelogger =
         .library_leave = library_leave,
         .suite_enter = suite_enter,
         .suite_leave = suite_leave,
-        .result = result,
+        .test_enter = test_enter,
+        .test_log = test_log,
+        .test_leave = test_leave,
         .option = 
         {
             .get = option_get,

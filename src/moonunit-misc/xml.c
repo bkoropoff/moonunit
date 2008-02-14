@@ -40,6 +40,7 @@ typedef struct
     MoonUnitLogger base;
     int fd;
     FILE* out;
+    MoonUnitTest* current_test;
 } XmlLogger;
 
 static void library_enter(MoonUnitLogger* _self, const char* name)
@@ -70,8 +71,39 @@ static void suite_leave(MoonUnitLogger* _self)
 	fprintf(self->out, "  </suite>\n");
 }
 
-static void result(MoonUnitLogger* _self, 
-                   MoonUnitTest* test, MoonUnitTestSummary* summary)
+static void test_enter(MoonUnitLogger* _self, MoonUnitTest* test)
+{
+    XmlLogger* self = (XmlLogger*) _self;
+
+    self->current_test = test;
+
+    fprintf(self->out, "    <test name=\"%s\">\n", test->name);
+}
+
+static void test_log(MoonUnitLogger* _self, MuLogEvent* event)
+{
+    XmlLogger* self = (XmlLogger*) _self;
+    const char* level_str;
+
+    switch (event->level)
+    {
+        case MU_LOG_WARNING:
+            level_str = "warning"; break;
+        case MU_LOG_INFO:
+            level_str = "info"; break;
+        case MU_LOG_VERBOSE:
+            level_str = "verbose"; break;
+        case MU_LOG_TRACE:
+            level_str = "trace"; break;
+    }
+    fprintf(self->out, "      <event level=\"%s\" file=\"%s\" line=\"%u\">\n",
+            level_str, event->file, event->line);
+    fprintf(self->out, "        <![CDATA[%s]]>\n", event->message);
+    fprintf(self->out, "      </event>\n");
+}
+
+static void test_leave(MoonUnitLogger* _self, 
+                       MoonUnitTest* test, MoonUnitTestSummary* summary)
 {
     XmlLogger* self = (XmlLogger*) _self;
     const char* stage;
@@ -80,7 +112,7 @@ static void result(MoonUnitLogger* _self,
 	switch (summary->result)
 	{
 		case MOON_RESULT_SUCCESS:
-            fprintf(out, "    <test name=\"%s\" result=\"pass\"/>\n", test->name);
+            fprintf(out, "      <result status=\"pass\" />\n", test->name);
 			break;
 		case MOON_RESULT_FAILURE:
 		case MOON_RESULT_ASSERTION:
@@ -90,15 +122,13 @@ static void result(MoonUnitLogger* _self,
 
             if (summary->reason)
             {
-                fprintf(out, "    <test name=\"%s\" result=\"fail\" stage=\"%s\">\n",
-                       test->name, stage);
-                fprintf(out, "      <![CDATA[%s]]>\n", summary->reason);
-                fprintf(out, "    </test>\n");
+                fprintf(out, "      <result status=\"fail\" stage=\"%s\">\n", stage);
+                fprintf(out, "        <![CDATA[%s]]>\n", summary->reason);
+                fprintf(out, "      </result>\n");
             }
             else
             {
-                fprintf(out, "    <test name=\"%s\" result=\"fail\" stage=\"%s\"/>\n",
-                       test->name, stage);
+                fprintf(out, "      <result status=\"fail\" stage=\"%s\" />\n", stage);
             }
 	}
 }
@@ -148,7 +178,9 @@ static XmlLogger xmllogger =
         .library_leave = library_leave,
         .suite_enter = suite_enter,
         .suite_leave = suite_leave,
-        .result = result,
+        .test_enter = test_enter,
+        .test_log = test_log,
+        .test_leave = test_leave,
         .option =
         {
             .set = option_set,

@@ -49,6 +49,7 @@ struct __uipc_message
 	void* payload;
 	unsigned int id;
     bool acked;
+    UipcMessageType type;
 };
 
 struct __uipc_handle
@@ -102,6 +103,7 @@ send_message(uipc_message* message)
 
         packet->header.type = PACKET_MESSAGE;
         packet->header.length = length;
+        packet->message.type = message->type;
         packet->message.id = message->id;
         packet->message.payload = uipc_msg_offset(message, message->payload);
         packet->message.length = message->max_size;
@@ -160,6 +162,7 @@ message_from_packet(uipc_packet* packet)
         return NULL;
 
 	message->refcount = 1;
+    message->type = packet->message.type;
 	message->id = packet->message.id;
 	message->payload = packet->message.payload;
 	message->max_size = packet->message.length;
@@ -448,7 +451,7 @@ uipc_disconnect(uipc_handle* handle)
 }
 
 uipc_message* 
-uipc_msg_new(uipc_handle* handle, size_t max_size)
+uipc_msg_new(uipc_handle* handle, UipcMessageType type, size_t max_size)
 {
 	uipc_message* message = malloc(sizeof (uipc_message));
 	
@@ -460,7 +463,8 @@ uipc_msg_new(uipc_handle* handle, size_t max_size)
 	message->refcount = 1;
     message->acked = false;
 	message->max_size = max_size;
-	
+    message->type = type;	
+
     /* FIXME: don't use asprintf */
     if (asprintf(
             (char **) &message->shmem_path, 
@@ -549,6 +553,12 @@ void*
 uipc_msg_offset(uipc_message* message, void* pointer)
 {
 	return ((void*) (pointer - message->shmem_memory));
+}
+
+UipcMessageType
+uipc_msg_get_type(uipc_message* message)
+{
+    return message->type;
 }
 
 void*

@@ -29,6 +29,7 @@
 #define __UIPC_WIRE_H__
 
 #include "status.h"
+#include "ipc.h"
 
 typedef struct uipc_packet_header
 {
@@ -42,7 +43,8 @@ typedef struct uipc_packet_header
 typedef struct uipc_packet_message
 {
 	unsigned int id;
-	void* payload;
+	UipcMessageType type;
+    void* payload;
 	unsigned int length;
 	char path[];
 } uipc_packet_message;

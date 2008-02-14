@@ -35,6 +35,26 @@
 #include <stdio.h>
 
 void
+__mu_event(MoonUnitTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
+{
+    MuLogEvent event;
+    va_list ap;
+
+    va_start(ap, fmt);
+
+    event.level = level;
+    event.file = file;
+    event.line = line;
+    event.message = formatv(fmt, ap);
+
+    va_end(ap);
+
+    test->harness->event(test->harness, test, &event);
+
+    free((void*) event.message);
+}
+
+void
 __mu_assert(MoonUnitTest* test, int result, const char* expr,
             const char* file, unsigned int line)
 {
@@ -161,6 +181,7 @@ __mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char
 
 MoonUnitTestMethods Mu_TestMethods =
 {
+    __mu_event,
 	__mu_assert,
 	__mu_assert_equal,
 	__mu_success,

@@ -114,3 +114,23 @@ MU_TEST(Crash, timeout)
 {
     pause();
 }
+
+MU_TEST(Log, warning)
+{
+    MU_WARNING("This is a warning");
+}
+
+MU_TEST(Log, info)
+{
+    MU_INFO("This is informational");
+}
+
+MU_TEST(Log, verbose)
+{
+    MU_VERBOSE("This is verbose output");
+}
+
+MU_TEST(Log, trace)
+{
+    MU_TRACE("This is trace output");
+}

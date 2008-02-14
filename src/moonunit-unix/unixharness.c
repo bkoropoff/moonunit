@@ -47,8 +47,56 @@ static uipc_typeinfo testsummary_info =
 	}
 };
 
+static uipc_typeinfo logevent_info =
+{
+    2,
+    {
+        UIPC_POINTER(MuLogEvent, file, NULL),
+        UIPC_POINTER(MuLogEvent, message, NULL)
+    }
+};
+
+#define MSG_TYPE_RESULT 0
+#define MSG_TYPE_EVENT 1
+
 static MoonUnitTestStage current_stage;
 static MoonUnitTest* current_test;
+
+void unixharness_event(struct MoonUnitHarness* harness, struct MoonUnitTest* test, const MuLogEvent* _event)
+{
+    uipc_handle* ipc_handle = test->data;
+
+    if (!ipc_handle)
+    {
+        exit(0);
+    }
+
+    uipc_message* message = uipc_msg_new(ipc_handle, MSG_TYPE_EVENT, 2048);
+
+    MuLogEvent* event = uipc_msg_alloc(message, sizeof(MuLogEvent));
+
+    *event = *_event;
+
+    if (event->file)
+    {
+        event->file = uipc_msg_alloc(message, strlen(_event->file) + 1);
+		strcpy((char*) event->file, _event->file);
+    }
+
+    if (event->message)
+    {
+        event->message = uipc_msg_alloc(message, strlen(_event->message) + 1);
+		strcpy((char*) event->message, _event->message);
+    }
+
+    event->stage = current_stage;
+
+	uipc_msg_payload_set(message, event, &logevent_info);
+	uipc_msg_send(message);
+	uipc_msg_free(message);
+
+    uipc_waitdone(ipc_handle, NULL);
+}
 
 void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUnitTestSummary* _summary)
 {	
@@ -59,7 +107,7 @@ void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUn
         exit(0);
     }
 
-	uipc_message* message = uipc_msg_new(ipc_handle, 2048);
+	uipc_message* message = uipc_msg_new(ipc_handle, MSG_TYPE_RESULT, 2048);
 	
 	MoonUnitTestSummary* summary = uipc_msg_alloc(message, sizeof(MoonUnitTestSummary));
 	
@@ -95,7 +143,7 @@ signal_handler(int sig)
 }
 
 
-void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
+void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTestSummary* summary, MuLogCallback cb, void* data)
 {
 	int sockets[2];
 	pid_t pid;
@@ -159,19 +207,40 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
         // FIXME: make configurable
         long timeout = 2000;
         long timeleft = timeout;
-	
-		close(sockets[1]);
-		
-		uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
+        bool done = false;	
 
-		if (uipc_result == UIPC_SUCCESS)
-		{
-			_summary = uipc_msg_payload_get(message, &testsummary_info);
-			*summary = *_summary;
-			if (summary->reason)
-				summary->reason = strdup(_summary->reason);
-			uipc_msg_free(message);
-		}
+		close(sockets[1]);
+	
+        while (!done)
+        {	
+    		uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
+
+	    	if (uipc_result == UIPC_SUCCESS)
+		    {
+                switch (uipc_msg_get_type(message))
+                {
+                    case MSG_TYPE_RESULT:
+                        _summary = uipc_msg_payload_get(message, &testsummary_info);
+                        *summary = *_summary;
+                        if (summary->reason)
+                            summary->reason = strdup(_summary->reason);
+                        done = true;
+                        break;
+                    case MSG_TYPE_EVENT:
+                    {
+                        MuLogEvent* event = uipc_msg_payload_get(message, &logevent_info);
+                        cb(event, data);
+                        uipc_msg_free(message);
+                        message = NULL;
+                        break;
+                    } 
+                }
+            }
+            else
+            {
+                done = true;
+            }
+        }
 
         uipc_result2 = uipc_waitdone(ipc_harness, &timeleft);
         uipc_disconnect(ipc_harness);	
@@ -270,6 +339,7 @@ void unixharness_cleanup (MoonUnitHarness* _self, MoonUnitTestSummary* summary)
 MoonUnitHarness mu_unixharness =
 {
     .plugin = NULL,
+    .event = unixharness_event,
 	.result = unixharness_result,
 	.dispatch = unixharness_dispatch,
     .debug = unixharness_debug,

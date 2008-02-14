@@ -96,8 +96,9 @@ static void test_log(MoonUnitLogger* _self, MuLogEvent* event)
         case MU_LOG_TRACE:
             level_str = "trace"; break;
     }
-    fprintf(self->out, "      <event level=\"%s\" file=\"%s\" line=\"%u\">\n",
-            level_str, event->file, event->line);
+    fprintf(self->out, "      <event level=\"%s\" file=\"%s\" line=\"%u\" stage=\"%s\">\n",
+            level_str, basename(event->file), event->line,
+            Mu_TestStageToString(event->stage));
     fprintf(self->out, "        <![CDATA[%s]]>\n", event->message);
     fprintf(self->out, "      </event>\n");
 }
@@ -122,15 +123,22 @@ static void test_leave(MoonUnitLogger* _self,
 
             if (summary->reason)
             {
-                fprintf(out, "      <result status=\"fail\" stage=\"%s\">\n", stage);
+                fprintf(out, "      <result status=\"fail\" stage=\"%s\"", stage);
+                if (summary->line)
+                    fprintf(out, " file=\"%s\" line=\"%u\"", basename(test->file), summary->line);
+                fprintf(out, ">\n");
                 fprintf(out, "        <![CDATA[%s]]>\n", summary->reason);
                 fprintf(out, "      </result>\n");
             }
             else
             {
-                fprintf(out, "      <result status=\"fail\" stage=\"%s\" />\n", stage);
+                fprintf(out, "      <result status=\"fail\" stage=\"%s\"", stage);
+                if (summary->line)
+                    fprintf(out, " file=\"%s\" line=\"%u\"", basename(test->file), summary->line);
+                fprintf(out, "/>\n");
             }
 	}
+    fprintf(out, "      </test>\n");
 }
 
 static void option_set(void* _self, const char* name, void* data)

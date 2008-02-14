@@ -7,7 +7,7 @@ lib_LTLIBRARIES=libmoonunit.la
 libmoonunit_la_SOURCES = \
 	error.c util.c test.c harness.c runner.c logger.c plugin.c option.c
 
-libmoonunit_la_LIBADD = -ldl $(top_builddir)/src/liburpc/liburpc.la
+libmoonunit_la_LIBADD = -ldl $(top_builddir)/src/libuipc/libuipc.la
 
 AM_CPPFLAGS = \
 	-I@top_srcdir@/include \

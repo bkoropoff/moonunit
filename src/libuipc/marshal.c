@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 void
-urpc_marshal_payload(void* membase, unsigned int memsize, void* payload, urpc_typeinfo* payload_type)
+uipc_marshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type)
 {
 	int i;
 	
@@ -44,13 +44,13 @@ urpc_marshal_payload(void* membase, unsigned int memsize, void* payload, urpc_ty
 		if (pointer && pointer > membase && pointer < membase + memsize)
 		{
 			*ppointer -= (unsigned long) membase;
-			urpc_marshal_payload(membase, memsize, pointer, payload_type->pointers[i].info);
+			uipc_marshal_payload(membase, memsize, pointer, payload_type->pointers[i].info);
 		}
 	}
 }
 
 void 
-urpc_unmarshal_payload(void* membase, unsigned int memsize, void* payload, urpc_typeinfo* payload_type)
+uipc_unmarshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type)
 {
 	int i;
 	
@@ -66,7 +66,7 @@ urpc_unmarshal_payload(void* membase, unsigned int memsize, void* payload, urpc_
 		{
 			*ppointer += (unsigned long) membase;
 			pointer = *ppointer;
-			urpc_marshal_payload(membase, memsize, pointer, payload_type->pointers[i].info);
+			uipc_marshal_payload(membase, memsize, pointer, payload_type->pointers[i].info);
 		}
 	}
 }

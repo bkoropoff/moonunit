@@ -26,7 +26,7 @@
  */
 
 #define _GNU_SOURCE
-#include "rpc.h"
+#include "ipc.h"
 #include "wire.h"
 #include <stdio.h>
 #include <sys/types.h>
@@ -36,10 +36,10 @@
 #include <string.h>
 #include <stdbool.h>
 
-struct __urpc_message
+struct __uipc_message
 {
-	struct __urpc_handle* handle;
-	struct __urpc_message* next;
+	struct __uipc_handle* handle;
+	struct __uipc_message* next;
 	unsigned int refcount;
 	size_t max_size;
 	void* shmem_memory;
@@ -51,27 +51,27 @@ struct __urpc_message
     bool acked;
 };
 
-struct __urpc_handle
+struct __uipc_handle
 {
     bool readable;
 	int socket;
 	unsigned int shmem_count;
 	unsigned int id_count;
-	urpc_message* send_queue;
-	urpc_message* recv_queue;
-	urpc_message* ack_queue;
+	uipc_message* send_queue;
+	uipc_message* recv_queue;
+	uipc_message* ack_queue;
 };
 
 static void
-queue_message(urpc_message* message)
+queue_message(uipc_message* message)
 {
-	urpc_handle* handle = message->handle;
+	uipc_handle* handle = message->handle;
 	
 	if (!handle->send_queue)
 		handle->send_queue = message;
 	else
 	{
-		urpc_message* cur;
+		uipc_message* cur;
 		
 		for (cur = handle->send_queue; cur->next; cur = cur->next);
 		
@@ -79,37 +79,37 @@ queue_message(urpc_message* message)
 	}
 }
 
-static UrpcStatus
-send_message(urpc_message* message)
+static UipcStatus
+send_message(uipc_message* message)
 {
-    UrpcStatus result;
+    UipcStatus result;
 
     do
     {
-        result = urpc_packet_sendable(message->handle->socket, NULL);
-    } while (result == URPC_RETRY);
+        result = uipc_packet_sendable(message->handle->socket, NULL);
+    } while (result == UIPC_RETRY);
 
-    if (result != URPC_SUCCESS)
+    if (result != UIPC_SUCCESS)
     {
         return result;
     }
     else
     {
-        unsigned int length = sizeof(urpc_packet_message) + strlen(message->shmem_path) + 1;
-        urpc_packet* packet = malloc(sizeof (urpc_packet_header) + length);
+        unsigned int length = sizeof(uipc_packet_message) + strlen(message->shmem_path) + 1;
+        uipc_packet* packet = malloc(sizeof (uipc_packet_header) + length);
         
-        memset(packet, 0, sizeof(urpc_packet_header) + length);
+        memset(packet, 0, sizeof(uipc_packet_header) + length);
 
         packet->header.type = PACKET_MESSAGE;
         packet->header.length = length;
         packet->message.id = message->id;
-        packet->message.payload = urpc_msg_offset(message, message->payload);
+        packet->message.payload = uipc_msg_offset(message, message->payload);
         packet->message.length = message->max_size;
         strcpy(packet->message.path, message->shmem_path);
         do
         {
-            result = urpc_packet_send(message->handle->socket, packet);
-        } while (result == URPC_RETRY);
+            result = uipc_packet_send(message->handle->socket, packet);
+        } while (result == UIPC_RETRY);
         
         free(packet);
         
@@ -117,32 +117,32 @@ send_message(urpc_message* message)
     }
 }
 
-static UrpcStatus
-ack_message(urpc_message* message)
+static UipcStatus
+ack_message(uipc_message* message)
 {
-    UrpcStatus result;
+    UipcStatus result;
 
     do
     {
-        result = urpc_packet_sendable(message->handle->socket, NULL);
-    } while (result == URPC_RETRY);
+        result = uipc_packet_sendable(message->handle->socket, NULL);
+    } while (result == UIPC_RETRY);
 
-    if (result != URPC_SUCCESS)
+    if (result != UIPC_SUCCESS)
     {
         return result;
     }
     else
     {
-		urpc_packet* packet = malloc(sizeof(urpc_packet) + sizeof(urpc_packet_ack));
+		uipc_packet* packet = malloc(sizeof(uipc_packet) + sizeof(uipc_packet_ack));
 
 		packet->header.type = PACKET_ACK;
-		packet->header.length = sizeof(urpc_packet_ack);
+		packet->header.length = sizeof(uipc_packet_ack);
 		packet->ack.message_id = message->id;
 
         do
         {		
-            result = urpc_packet_send(message->handle->socket, packet);
-        } while (result == URPC_RETRY);
+            result = uipc_packet_send(message->handle->socket, packet);
+        } while (result == UIPC_RETRY);
     
 		free(packet);
 
@@ -151,10 +151,10 @@ ack_message(urpc_message* message)
 	}
 }
 
-static urpc_message* 
-message_from_packet(urpc_packet* packet)
+static uipc_message* 
+message_from_packet(uipc_packet* packet)
 {
-	urpc_message* message = malloc(sizeof(urpc_message));
+	uipc_message* message = malloc(sizeof(uipc_message));
 	
     if (!message)
         return NULL;
@@ -193,15 +193,15 @@ message_from_packet(urpc_packet* packet)
 
 	message->shmem_next = message->shmem_memory + message->max_size;
 	
-	message->payload = urpc_msg_pointer(message, message->payload);
+	message->payload = uipc_msg_pointer(message, message->payload);
 	
 	return message;
 }
 
-urpc_handle* 
-urpc_connect(int socket)
+uipc_handle* 
+uipc_connect(int socket)
 {
-	urpc_handle* handle = malloc(sizeof (urpc_handle));
+	uipc_handle* handle = malloc(sizeof (uipc_handle));
 
     if (!handle)
         return NULL;
@@ -217,20 +217,20 @@ urpc_connect(int socket)
 	return handle;
 }
 
-UrpcStatus
-urpc_process(urpc_handle* handle)
+UipcStatus
+uipc_process(uipc_handle* handle)
 {
-    UrpcStatus result = URPC_SUCCESS;
+    UipcStatus result = UIPC_SUCCESS;
     long zero = 0;
 
 	while (handle->send_queue)
 	{
-		urpc_message* message = handle->send_queue;
+		uipc_message* message = handle->send_queue;
 		handle->send_queue = message->next;
 		
 		result = send_message(message);
 
-        if (result != URPC_SUCCESS)
+        if (result != UIPC_SUCCESS)
         {			
             return result;
         }
@@ -240,21 +240,21 @@ urpc_process(urpc_handle* handle)
 	}
 	
 	while (handle->readable && 
-           (result = urpc_packet_available(handle->socket, &zero)) == URPC_SUCCESS)
+           (result = uipc_packet_available(handle->socket, &zero)) == UIPC_SUCCESS)
 	{
-		urpc_packet* packet = NULL;
+		uipc_packet* packet = NULL;
 		
         do
         {
-            result = urpc_packet_recv(handle->socket, &packet);
-        } while (result == URPC_RETRY);
+            result = uipc_packet_recv(handle->socket, &packet);
+        } while (result == UIPC_RETRY);
 
-        if (result == URPC_EOF)
+        if (result == UIPC_EOF)
         {
             handle->readable = false;
-            return URPC_SUCCESS;
+            return UIPC_SUCCESS;
         }
-        else if (result != URPC_SUCCESS)
+        else if (result != UIPC_SUCCESS)
         {
             handle->readable = false;
             return result;
@@ -265,15 +265,15 @@ urpc_process(urpc_handle* handle)
 			{
             case PACKET_ACK:
             {
-                urpc_message** cur;
+                uipc_message** cur;
 				
                 for (cur = &handle->ack_queue; *cur; cur = *cur ? &(*cur)->next : cur)
                 {
                     if ((*cur)->id == packet->ack.message_id)
                     {
-                        urpc_message* message = *cur;
+                        uipc_message* message = *cur;
                         *cur = message->next;
-                        urpc_msg_free(message);
+                        uipc_msg_free(message);
                     }
                 }
 
@@ -283,14 +283,14 @@ urpc_process(urpc_handle* handle)
             }
             case PACKET_MESSAGE:
             {
-                urpc_message* message = message_from_packet(packet);
+                uipc_message* message = message_from_packet(packet);
                 
                 free(packet);
 
                 if (!message)
                 {
                     handle->readable = false;
-                    return URPC_NOMEM;
+                    return UIPC_NOMEM;
                 }
 
                 message->handle = handle;
@@ -299,7 +299,7 @@ urpc_process(urpc_handle* handle)
                     handle->recv_queue = message;
                 else
                 {
-                    urpc_message* cur;
+                    uipc_message* cur;
 					
                     for (cur = handle->recv_queue; cur->next; cur = cur->next);
 					
@@ -308,7 +308,7 @@ urpc_process(urpc_handle* handle)
 				
                 result = ack_message(message);
 
-                if (result != URPC_SUCCESS && result != URPC_EOF)
+                if (result != UIPC_SUCCESS && result != UIPC_EOF)
                 {
                     return result;
                 }
@@ -319,21 +319,21 @@ urpc_process(urpc_handle* handle)
 		}
 	}
 
-    return URPC_SUCCESS;
+    return UIPC_SUCCESS;
 }
 
-UrpcStatus
-urpc_read(urpc_handle* handle, urpc_message** message)
+UipcStatus
+uipc_read(uipc_handle* handle, uipc_message** message)
 {
 	if (!handle->recv_queue)
 	{
         if (!handle->readable)
         {
-            return URPC_EOF;
+            return UIPC_EOF;
         }
         else
         {
-            return URPC_RETRY;
+            return UIPC_RETRY;
         }
 	}
 	else
@@ -341,43 +341,43 @@ urpc_read(urpc_handle* handle, urpc_message** message)
 		*message = handle->recv_queue;
 		handle->recv_queue = (*message)->next;
 		
-        return URPC_SUCCESS;
+        return UIPC_SUCCESS;
 	}
 }
 
-UrpcStatus
-urpc_waitread(urpc_handle* handle, urpc_message** message, long* timeout)
+UipcStatus
+uipc_waitread(uipc_handle* handle, uipc_message** message, long* timeout)
 {
-    UrpcStatus result = URPC_SUCCESS;
+    UipcStatus result = UIPC_SUCCESS;
 
 	while (!handle->recv_queue)
 	{
         if (!handle->readable)
         {
-            return URPC_EOF;
+            return UIPC_EOF;
         }
         
         do
         {
-            result = urpc_packet_available(handle->socket, timeout);
-        } while (result == URPC_RETRY);
+            result = uipc_packet_available(handle->socket, timeout);
+        } while (result == UIPC_RETRY);
 
-        if (result != URPC_SUCCESS)
+        if (result != UIPC_SUCCESS)
             return result;
 
-        result = urpc_process(handle);      
+        result = uipc_process(handle);      
 
-        if (result != URPC_SUCCESS)
+        if (result != UIPC_SUCCESS)
             return result;
 	}
 	
-	return urpc_read(handle, message);
+	return uipc_read(handle, message);
 }
 
-UrpcStatus
-urpc_waitdone(urpc_handle* handle, long* timeout)
+UipcStatus
+uipc_waitdone(uipc_handle* handle, long* timeout)
 {
-    UrpcStatus result = URPC_SUCCESS;
+    UipcStatus result = UIPC_SUCCESS;
 
     while (handle->send_queue || handle->ack_queue)
     {
@@ -386,18 +386,18 @@ urpc_waitdone(urpc_handle* handle, long* timeout)
         {
             do
             {
-                result = urpc_packet_sendable(handle->socket, timeout);
-            } while (result == URPC_RETRY);
+                result = uipc_packet_sendable(handle->socket, timeout);
+            } while (result == UIPC_RETRY);
             
-            if (result == URPC_EOF)
+            if (result == UIPC_EOF)
                 break;
             
-            if (result != URPC_SUCCESS)
+            if (result != UIPC_SUCCESS)
                 return result;
             
-            result = urpc_process(handle);
+            result = uipc_process(handle);
             
-            if (result != URPC_SUCCESS)
+            if (result != UIPC_SUCCESS)
                 return result;
         }
         
@@ -405,52 +405,52 @@ urpc_waitdone(urpc_handle* handle, long* timeout)
         {
             do
             {
-                result = urpc_packet_available(handle->socket, timeout);
-            } while (result == URPC_RETRY);
+                result = uipc_packet_available(handle->socket, timeout);
+            } while (result == UIPC_RETRY);
             
-            result = urpc_process(handle);
+            result = uipc_process(handle);
             
-            if (result == URPC_EOF)
+            if (result == UIPC_EOF)
                 break;
             
-            if (result != URPC_SUCCESS)
+            if (result != UIPC_SUCCESS)
                 return result;
         }
     }
 
-    return URPC_SUCCESS;
+    return UIPC_SUCCESS;
 }
 
 void
-urpc_disconnect(urpc_handle* handle)
+uipc_disconnect(uipc_handle* handle)
 {
-    urpc_message* cur, *next;
+    uipc_message* cur, *next;
 
     for (cur = handle->send_queue; cur; cur = next)
     {
         next = cur->next;
-        urpc_msg_free(cur);
+        uipc_msg_free(cur);
     }
 
     for (cur = handle->recv_queue; cur; cur = next)
     {
         next = cur->next;
-        urpc_msg_free(cur);
+        uipc_msg_free(cur);
     }
 
     for (cur = handle->ack_queue; cur; cur = next)
     {
         next = cur->next;
-        urpc_msg_free(cur);
+        uipc_msg_free(cur);
     }
 
     free(handle);
 }
 
-urpc_message* 
-urpc_msg_new(urpc_handle* handle, size_t max_size)
+uipc_message* 
+uipc_msg_new(uipc_handle* handle, size_t max_size)
 {
-	urpc_message* message = malloc(sizeof (urpc_message));
+	uipc_message* message = malloc(sizeof (uipc_message));
 	
     if (!message)
         return NULL;
@@ -464,7 +464,7 @@ urpc_msg_new(urpc_handle* handle, size_t max_size)
     /* FIXME: don't use asprintf */
     if (asprintf(
             (char **) &message->shmem_path, 
-            "/urpc_%i_%i_%i", getpid(), 
+            "/uipc_%i_%i_%i", getpid(), 
             handle->socket, 
             handle->shmem_count++) < 0)
     {
@@ -502,7 +502,7 @@ urpc_msg_new(urpc_handle* handle, size_t max_size)
 }
 
 void*
-urpc_msg_alloc(urpc_message* message, size_t size)
+uipc_msg_alloc(uipc_message* message, size_t size)
 {
 	if (message->shmem_next + size > message->shmem_memory + message->max_size)
 		return NULL;
@@ -514,17 +514,17 @@ urpc_msg_alloc(urpc_message* message, size_t size)
 	}
 }
 
-UrpcStatus
-urpc_msg_send(urpc_message* message)
+UipcStatus
+uipc_msg_send(uipc_message* message)
 {
 	message->refcount++;
 	queue_message(message);
 
-    return URPC_SUCCESS;
+    return UIPC_SUCCESS;
 }
 
 void
-urpc_msg_free(urpc_message* message)
+uipc_msg_free(uipc_message* message)
 {
 	if (--message->refcount == 0)
 	{
@@ -540,27 +540,27 @@ urpc_msg_free(urpc_message* message)
 }
 
 void*
-urpc_msg_pointer(urpc_message* message, void* offset)
+uipc_msg_pointer(uipc_message* message, void* offset)
 {
 	return ((long) offset + message->shmem_memory);
 }
 
 void*
-urpc_msg_offset(urpc_message* message, void* pointer)
+uipc_msg_offset(uipc_message* message, void* pointer)
 {
 	return ((void*) (pointer - message->shmem_memory));
 }
 
 void*
-urpc_msg_payload_get(urpc_message* message, urpc_typeinfo* info)
+uipc_msg_payload_get(uipc_message* message, uipc_typeinfo* info)
 {
-	urpc_unmarshal_payload(message->shmem_memory, message->max_size, message->payload, info); 
+	uipc_unmarshal_payload(message->shmem_memory, message->max_size, message->payload, info); 
 	return message->payload;
 }
 
 void
-urpc_msg_payload_set(urpc_message* message, void* payload, urpc_typeinfo* info)
+uipc_msg_payload_set(uipc_message* message, void* payload, uipc_typeinfo* info)
 {
 	message->payload = payload;
-	urpc_marshal_payload(message->shmem_memory, message->max_size, message->payload, info); 
+	uipc_marshal_payload(message->shmem_memory, message->max_size, message->payload, info); 
 }

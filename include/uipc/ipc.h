@@ -25,33 +25,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __URPC_RPC_H__
-#define __URPC_RPC_H__
+#ifndef __UIPC_IPC_H__
+#define __UIPC_IPC_H__
 
 #include "marshal.h"
 #include "status.h"
 
 #include <stdlib.h>
 
-struct __urpc_handle;
-typedef struct __urpc_handle urpc_handle;
+struct __uipc_handle;
+typedef struct __uipc_handle uipc_handle;
 
-struct __urpc_message;
-typedef struct __urpc_message urpc_message;
+struct __uipc_message;
+typedef struct __uipc_message uipc_message;
 
-urpc_handle* urpc_connect(int socket);
-UrpcStatus urpc_process(urpc_handle* handle);
-UrpcStatus urpc_read(urpc_handle* handle, urpc_message** message);
-UrpcStatus urpc_waitread(urpc_handle* handle, urpc_message** message, long* timeout);
-UrpcStatus urpc_waitdone(urpc_handle* handle, long* timeout);
-void urpc_disconnect(urpc_handle* handle);
-urpc_message* urpc_msg_new(urpc_handle* handle, size_t max_size);
-void* urpc_msg_alloc(urpc_message* message, size_t size);
-UrpcStatus urpc_msg_send(urpc_message* message);
-void urpc_msg_free(urpc_message* message);
-void* urpc_msg_pointer(urpc_message* message, void* offset);
-void* urpc_msg_offset(urpc_message* message, void* pointer);
-void* urpc_msg_payload_get(urpc_message* message, urpc_typeinfo* info);
-void urpc_msg_payload_set(urpc_message* message, void* payload, urpc_typeinfo* info);
+uipc_handle* uipc_connect(int socket);
+UipcStatus uipc_process(uipc_handle* handle);
+UipcStatus uipc_read(uipc_handle* handle, uipc_message** message);
+UipcStatus uipc_waitread(uipc_handle* handle, uipc_message** message, long* timeout);
+UipcStatus uipc_waitdone(uipc_handle* handle, long* timeout);
+void uipc_disconnect(uipc_handle* handle);
+uipc_message* uipc_msg_new(uipc_handle* handle, size_t max_size);
+void* uipc_msg_alloc(uipc_message* message, size_t size);
+UipcStatus uipc_msg_send(uipc_message* message);
+void uipc_msg_free(uipc_message* message);
+void* uipc_msg_pointer(uipc_message* message, void* offset);
+void* uipc_msg_offset(uipc_message* message, void* pointer);
+void* uipc_msg_payload_get(uipc_message* message, uipc_typeinfo* info);
+void uipc_msg_payload_set(uipc_message* message, void* payload, uipc_typeinfo* info);
 
 #endif

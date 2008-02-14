@@ -37,11 +37,11 @@
 #include <sys/socket.h>
 #include <errno.h>
 
-UrpcStatus
-urpc_packet_send(int socket, urpc_packet* packet)
+UipcStatus
+uipc_packet_send(int socket, uipc_packet* packet)
 {
     char* buffer = (char*) packet;
-    ssize_t total = sizeof(urpc_packet_header) + packet->header.length;
+    ssize_t total = sizeof(uipc_packet_header) + packet->header.length;
     ssize_t remaining = total;
 
     while (remaining)
@@ -55,24 +55,24 @@ urpc_packet_send(int socket, urpc_packet* packet)
                 // If we haven't sent anything yet...
                 if (remaining == total)
                     // It's safe to return
-                    return URPC_RETRY;
+                    return UIPC_RETRY;
                 else
                     // Otherwise we better push through the rest
                     continue;
             }
             else if (errno == EPIPE)
             {
-                return URPC_EOF;
+                return UIPC_EOF;
             }
             else
             {
-                return URPC_ERROR;
+                return UIPC_ERROR;
             }
         } 
         else if (sent == 0)
         {
             // This shouldn't happen
-            return URPC_ERROR;
+            return UIPC_ERROR;
         }
         else
         {
@@ -80,46 +80,46 @@ urpc_packet_send(int socket, urpc_packet* packet)
         }
     }
 
-    return URPC_SUCCESS;
+    return UIPC_SUCCESS;
 }
 
-UrpcStatus
-urpc_packet_recv(int socket, urpc_packet** packet)
+UipcStatus
+uipc_packet_recv(int socket, uipc_packet** packet)
 {
-	urpc_packet_header header;
+	uipc_packet_header header;
     ssize_t amount_read;
     ssize_t remaining;
     char* buffer;
 
-    amount_read = read(socket, &header, sizeof(urpc_packet_header));
+    amount_read = read(socket, &header, sizeof(uipc_packet_header));
     
     if (amount_read < 0)
     {
         if (errno == EAGAIN || errno == EINTR)
         {
-            return URPC_RETRY;
+            return UIPC_RETRY;
         }
         else
         {
             *packet = NULL;
-            return URPC_ERROR;
+            return UIPC_ERROR;
         }
 	}
     else if (amount_read == 0)
     {
-        return URPC_EOF;
+        return UIPC_EOF;
     }
 	
-	*packet = malloc(sizeof(urpc_packet) + header.length);
+	*packet = malloc(sizeof(uipc_packet) + header.length);
 
     if (!*packet)
-        return URPC_NOMEM;
+        return UIPC_NOMEM;
 	
-	**packet = *(urpc_packet*)&header;
+	**packet = *(uipc_packet*)&header;
 	
     amount_read = 0;
     remaining = header.length;
-    buffer = ((char*) (*packet)) + sizeof(urpc_packet_header);
+    buffer = ((char*) (*packet)) + sizeof(uipc_packet_header);
 
     while (remaining)
     {
@@ -133,13 +133,13 @@ urpc_packet_recv(int socket, urpc_packet** packet)
             else
             {
                 free(*packet);
-                return URPC_ERROR;
+                return UIPC_ERROR;
             }
         }
         else if (amount_read == 0)
         {
             free(*packet);
-            return URPC_ERROR;
+            return UIPC_ERROR;
         }
         else
         {
@@ -147,11 +147,11 @@ urpc_packet_recv(int socket, urpc_packet** packet)
         }
     }
 
-    return URPC_SUCCESS;
+    return UIPC_SUCCESS;
 }
 
-UrpcStatus
-urpc_packet_available(int socket, long* _timeout)
+UipcStatus
+uipc_packet_available(int socket, long* _timeout)
 {
 	fd_set readset;
 	fd_set exset;
@@ -178,9 +178,9 @@ urpc_packet_available(int socket, long* _timeout)
 
 
 	if (FD_ISSET(socket, &exset))
-		return URPC_ERROR;
+		return UIPC_ERROR;
 	else if (FD_ISSET(socket, &readset))
-		return URPC_SUCCESS;
+		return UIPC_SUCCESS;
 	else if (_timeout)
     {
         elapsed = (after.tv_sec - before.tv_sec) * 1000 - (after.tv_usec - before.tv_usec) / 1000;
@@ -188,15 +188,15 @@ urpc_packet_available(int socket, long* _timeout)
         if (*_timeout <= 0)
         {
             *_timeout = 0;
-            return URPC_TIMEOUT;
+            return UIPC_TIMEOUT;
         }
     }
 
-	return URPC_RETRY;
+	return UIPC_RETRY;
 }
 
-UrpcStatus
-urpc_packet_sendable(int socket, long* _timeout)
+UipcStatus
+uipc_packet_sendable(int socket, long* _timeout)
 {
 	fd_set writeset;
 	fd_set exset;
@@ -223,9 +223,9 @@ urpc_packet_sendable(int socket, long* _timeout)
 
 
 	if (FD_ISSET(socket, &exset))
-		return URPC_ERROR;
+		return UIPC_ERROR;
 	else if (FD_ISSET(socket, &writeset))
-		return URPC_SUCCESS;
+		return UIPC_SUCCESS;
 	else if (_timeout)
     {   
         elapsed = (after.tv_sec - before.tv_sec) * 1000 - (after.tv_usec - before.tv_usec) / 1000;
@@ -233,9 +233,9 @@ urpc_packet_sendable(int socket, long* _timeout)
         if (*_timeout < 0)
         {
             *_timeout = 0;
-            return URPC_TIMEOUT;
+            return UIPC_TIMEOUT;
         }
     }
 
-	return URPC_RETRY;
+	return UIPC_RETRY;
 }

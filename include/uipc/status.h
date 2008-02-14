@@ -25,23 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __URPC_STATUS_H__
-#define __URPC_STATUS_H__
+#ifndef __UIPC_STATUS_H__
+#define __UIPC_STATUS_H__
 
 typedef enum
 {
     // Success
-    URPC_SUCCESS,
+    UIPC_SUCCESS,
     // Generic error
-    URPC_ERROR,
+    UIPC_ERROR,
     // Operation should be retried
-    URPC_RETRY,
+    UIPC_RETRY,
     // End of file reached
-    URPC_EOF,
+    UIPC_EOF,
     // Out of memory
-    URPC_NOMEM,
+    UIPC_NOMEM,
     // Timed out
-    URPC_TIMEOUT
-} UrpcStatus;
+    UIPC_TIMEOUT
+} UipcStatus;
 
 #endif

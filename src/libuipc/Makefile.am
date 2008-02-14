@@ -1,12 +1,8 @@
-AUTOMAKE_OPTIONS= foreign
+noinst_LTLIBRARIES=libuipc.la
 
-SUBDIRS=
-
-noinst_LTLIBRARIES=liburpc.la
-
-liburpc_la_SOURCES= \
+libuipc_la_SOURCES= \
 	marshal.c shmem.c wire.c
 
-liburpc_la_LIBADD = -lrt
+libuipc_la_LIBADD = -lrt
 
-AM_CPPFLAGS = -I@top_srcdir@/include/urpc
+AM_CPPFLAGS = -I@top_srcdir@/include/uipc

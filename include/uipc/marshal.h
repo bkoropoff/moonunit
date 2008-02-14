@@ -25,22 +25,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __URPC_MARSHAL_H__
-#define __URPC_MARSHAL_H__
+#ifndef __UIPC_MARSHAL_H__
+#define __UIPC_MARSHAL_H__
 
-typedef struct __urpc_typeinfo
+typedef struct __uipc_typeinfo
 {
 	unsigned int num_pointers;
 	struct { 
 		unsigned long offset; 
-		struct __urpc_typeinfo* info;
+		struct __uipc_typeinfo* info;
 	} pointers[];
-} urpc_typeinfo;
+} uipc_typeinfo;
 
-#define URPC_OFFSET(type, field) ((unsigned long) &((type*)0)->field)
-#define URPC_POINTER(type, field, info) {URPC_OFFSET(type, field), info}
+#define UIPC_OFFSET(type, field) ((unsigned long) &((type*)0)->field)
+#define UIPC_POINTER(type, field, info) {UIPC_OFFSET(type, field), info}
 
-void urpc_marshal_payload(void* membase, unsigned int memsize, void* payload, urpc_typeinfo* payload_type);
-void urpc_unmarshal_payload(void* membase, unsigned int memsize, void* payload, urpc_typeinfo* payload_type);
+void uipc_marshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type);
+void uipc_unmarshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type);
 
 #endif

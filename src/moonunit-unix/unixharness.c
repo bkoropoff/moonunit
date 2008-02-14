@@ -30,7 +30,7 @@
 #include <moonunit/test.h>
 #include <moonunit/harness.h>
 #include <moonunit/loader.h>
-#include <urpc/rpc.h>
+#include <uipc/ipc.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -39,11 +39,11 @@
 #include <string.h>
 #include <stdio.h>
 
-static urpc_typeinfo testsummary_info =
+static uipc_typeinfo testsummary_info =
 {
 	1,
 	{
-		URPC_POINTER(MoonUnitTestSummary, reason, NULL)
+		UIPC_POINTER(MoonUnitTestSummary, reason, NULL)
 	}
 };
 
@@ -52,31 +52,31 @@ static MoonUnitTest* current_test;
 
 void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUnitTestSummary* _summary)
 {	
-	urpc_handle* rpc_handle = test->data;
+	uipc_handle* ipc_handle = test->data;
 
-    if (!rpc_handle)
+    if (!ipc_handle)
     {
         exit(0);
     }
 
-	urpc_message* message = urpc_msg_new(rpc_handle, 2048);
+	uipc_message* message = uipc_msg_new(ipc_handle, 2048);
 	
-	MoonUnitTestSummary* summary = urpc_msg_alloc(message, sizeof(MoonUnitTestSummary));
+	MoonUnitTestSummary* summary = uipc_msg_alloc(message, sizeof(MoonUnitTestSummary));
 	
 	*summary = *_summary;
 	
 	if (summary->reason)
 	{
-		summary->reason = urpc_msg_alloc(message, strlen(_summary->reason) + 1);
+		summary->reason = uipc_msg_alloc(message, strlen(_summary->reason) + 1);
 		strcpy((char*) summary->reason, _summary->reason);
 	}
 	
-	urpc_msg_payload_set(message, summary, &testsummary_info);
-	urpc_msg_send(message);
-	urpc_msg_free(message);
+	uipc_msg_payload_set(message, summary, &testsummary_info);
+	uipc_msg_send(message);
+	uipc_msg_free(message);
 
-    urpc_waitdone(rpc_handle, NULL);
-    urpc_disconnect(rpc_handle);
+    uipc_waitdone(ipc_handle, NULL);
+    uipc_disconnect(ipc_handle);
 	
 	exit(0);
 }
@@ -111,14 +111,14 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 	if (!(pid = fork()))
 	{
 		MoonUnitTestThunk thunk;
-		urpc_handle* rpc_test = urpc_connect(sockets[1]);
+		uipc_handle* ipc_test = uipc_connect(sockets[1]);
 
 		close(sockets[0]);
 
 		current_test = test;
         
         test->harness = _self;
-		test->data = rpc_test;
+		test->data = ipc_test;
 		
 		signal(SIGSEGV, signal_handler);
 		signal(SIGPIPE, signal_handler);
@@ -141,9 +141,9 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 		
 		test->methods->success(test);
 	
-        urpc_waitdone(rpc_test, NULL);
+        uipc_waitdone(ipc_test, NULL);
 
-        urpc_disconnect(rpc_test);
+        uipc_disconnect(ipc_test);
 
         close(sockets[1]);
 
@@ -151,33 +151,33 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 	}
 	else
 	{
-		urpc_handle* rpc_harness = urpc_connect(sockets[0]);
+		uipc_handle* ipc_harness = uipc_connect(sockets[0]);
 		MoonUnitTestSummary *_summary;
-		urpc_message* message = NULL;
+		uipc_message* message = NULL;
 		int status;
-        UrpcStatus urpc_result, urpc_result2;
+        UipcStatus uipc_result, uipc_result2;
         // FIXME: make configurable
         long timeout = 2000;
         long timeleft = timeout;
 	
 		close(sockets[1]);
 		
-		urpc_result = urpc_waitread(rpc_harness, &message, &timeleft);
+		uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
 
-		if (urpc_result == URPC_SUCCESS)
+		if (uipc_result == UIPC_SUCCESS)
 		{
-			_summary = urpc_msg_payload_get(message, &testsummary_info);
+			_summary = uipc_msg_payload_get(message, &testsummary_info);
 			*summary = *_summary;
 			if (summary->reason)
 				summary->reason = strdup(_summary->reason);
-			urpc_msg_free(message);
+			uipc_msg_free(message);
 		}
 
-        urpc_result2 = urpc_waitdone(rpc_harness, &timeleft);
-        urpc_disconnect(rpc_harness);	
+        uipc_result2 = uipc_waitdone(ipc_harness, &timeleft);
+        uipc_disconnect(ipc_harness);	
 		close(sockets[0]);
 
-        if (urpc_result == URPC_TIMEOUT || urpc_result2 == URPC_TIMEOUT)
+        if (uipc_result == UIPC_TIMEOUT || uipc_result2 == UIPC_TIMEOUT)
         {
              kill(pid, SIGKILL);
         }
@@ -187,7 +187,7 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
         if (!message)
 		{
             // Timed out waiting for response
-            if (urpc_result == URPC_TIMEOUT || urpc_result2 == URPC_TIMEOUT)
+            if (uipc_result == UIPC_TIMEOUT || uipc_result2 == UIPC_TIMEOUT)
             {
                 char* reason;
                 asprintf(&reason, "Test timed out after %li milliseconds", timeout);

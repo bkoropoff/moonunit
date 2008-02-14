@@ -25,46 +25,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __URPC_WIRE_H__
-#define __URPC_WIRE_H__
+#ifndef __UIPC_WIRE_H__
+#define __UIPC_WIRE_H__
 
 #include "status.h"
 
-typedef struct urpc_packet_header
+typedef struct uipc_packet_header
 {
 	enum
 	{
 		PACKET_MESSAGE, PACKET_ACK
 	} type;
 	unsigned int length;
-} urpc_packet_header;
+} uipc_packet_header;
 
-typedef struct urpc_packet_message
+typedef struct uipc_packet_message
 {
 	unsigned int id;
 	void* payload;
 	unsigned int length;
 	char path[];
-} urpc_packet_message;
+} uipc_packet_message;
 
-typedef struct urpc_packet_ack
+typedef struct uipc_packet_ack
 {
 	unsigned int message_id;
-} urpc_packet_ack;
+} uipc_packet_ack;
 
-typedef struct urpc_packet
+typedef struct uipc_packet
 {
-	urpc_packet_header header;
+	uipc_packet_header header;
 	union
 	{
-		urpc_packet_message message;
-		urpc_packet_ack ack;
+		uipc_packet_message message;
+		uipc_packet_ack ack;
 	};
-} urpc_packet;
+} uipc_packet;
 
-UrpcStatus urpc_packet_send(int socket, urpc_packet* packet);
-UrpcStatus urpc_packet_recv(int socket, urpc_packet** packet);
-UrpcStatus urpc_packet_available(int socket, long* timeout);
-UrpcStatus urpc_packet_sendable(int socket, long* timeout);
+UipcStatus uipc_packet_send(int socket, uipc_packet* packet);
+UipcStatus uipc_packet_recv(int socket, uipc_packet** packet);
+UipcStatus uipc_packet_available(int socket, long* timeout);
+UipcStatus uipc_packet_sendable(int socket, long* timeout);
 
 #endif

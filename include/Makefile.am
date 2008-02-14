@@ -1,1 +1,1 @@
-SUBDIRS = moonunit urpc
+SUBDIRS = moonunit uipc

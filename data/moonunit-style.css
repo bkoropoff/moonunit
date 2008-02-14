@@ -37,8 +37,15 @@ body
 .test-name
 {
     border-left: 1px solid black;
-    text-indent: 1.5em;
-    font-variant: small-caps;
+    text-indent: 0.5em;
+    font-weight: bold;
+}
+
+.test-source
+{
+    border-left: 1px solid black;
+    text-indent: 1.0em;
+    text-align: left;
 }
 
 .test-row-suite
@@ -54,6 +61,11 @@ body
 }
 
 .test-row-test
+{
+    background: #D0D0D0;
+}
+
+.test-row-event
 {
     background: #D0D0D0;
 }
@@ -132,3 +144,40 @@ body
     color: white;
     background: #cc0000;
 }
+
+.text-warning
+{
+    margin-left: 0.5em;
+    padding: 2px;
+    border: 1px solid white;
+    color: white;
+    background: #cc0000;
+}
+
+.text-info
+{
+    margin-left: 0.5em;
+    padding: 2px;
+    border: 1px solid white;
+    color: white;
+    background: #c4a000;
+}
+
+.text-verbose
+{
+    margin-left: 0.5em;
+    padding: 2px;
+    border: 1px solid white;
+    color: white;
+    background: #204a87;
+}
+
+.text-trace
+{
+    margin-left: 0.5em;
+    padding: 2px;
+    border: 1px solid white;
+    color: white;
+    background: #5c3566;
+}
+

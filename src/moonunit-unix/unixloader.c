@@ -43,39 +43,49 @@
 
 // Opens a library and returns a handle
 
-typedef struct
-{
-	const char* name;
-	MoonUnitTestThunk thunk;
-} NamedTestThunk;
-
 struct MoonUnitLibrary
 {
+    MoonUnitLoader* loader;
 	const char* path;
 	void* dlhandle;
 	MoonUnitTest** tests;
-	MoonUnitThunk setup, teardown;
-	NamedTestThunk** fixture_thunks;
+	MuLibrarySetup* library_setup;
+    MuLibraryTeardown* library_teardown;
+    MuFixtureSetup** fixture_setups;
+    MuFixtureTeardown** fixture_teardowns;
+    bool stub;
 };
 
-typedef struct
+/* Some stupid helper functions */
+
+static unsigned int
+PtrArray_Length(void** array)
 {
-	struct
-	{
-		MoonUnitTest** tests;
-		unsigned long index;
-		unsigned long capacity;
-	} test;
-	struct
-	{
-		NamedTestThunk** thunks;
-		unsigned long index;
-		unsigned long capacity;
-	} fixture;
-	
-	MoonUnitLoader* loader;
-	MoonUnitLibrary* library;
-} testbuffer;
+    unsigned int len;
+
+    if (!array)
+        return 0;
+
+    for (len = 0; *array; array++, len++);
+
+    return len;
+}
+
+#define PTRARRAY_LENGTH(array) (PtrArray_Length((void**) (array)))
+
+static void**
+PtrArray_Append(void** array, void* element)
+{
+    unsigned int len = PtrArray_Length(array);
+    void** expanded = realloc(array, sizeof(*array) * (len+2));
+    
+    expanded[len] = element;
+    expanded[len+1] = NULL;
+
+    return expanded;
+}
+
+#define PTRARRAY_APPEND(array, element, type) ((type*) PtrArray_Append((void **) (array), (type) element))
 
 static bool
 test_filter(const char* sym, void *unused)
@@ -83,58 +93,56 @@ test_filter(const char* sym, void *unused)
 	return !strncmp("__mu_", sym, strlen("__mu_"));
 }
 
-static bool
-test_add(symbol* sym, void* _buffer, MuError **_err)
+static void
+test_init(MoonUnitTest* test, MoonUnitLibrary* library)
 {
-	testbuffer* buffer = (testbuffer*) _buffer;
+    test->loader = library->loader;
+    test->library = library;
+    test->methods = &Mu_TestMethods;
+}
+
+static bool
+test_add(symbol* sym, void* _library, MuError **_err)
+{
+    MoonUnitLibrary* library = (MoonUnitLibrary*) _library;	
 
 	if (!strncmp (MU_TEST_PREFIX, sym->name, strlen(MU_TEST_PREFIX)))
 	{
 		MoonUnitTest* test = (MoonUnitTest*) sym->addr;
 		
 		if (test->library)
+        {
 			return true; // Test was already added
-		
-		if (buffer->test.index >= buffer->test.capacity-1)
-		{
-			buffer->test.capacity *= 2;
-			buffer->test.tests = realloc(buffer->test.tests, sizeof(test) * buffer->test.capacity);
+        }
+		else
+        {
+            library->tests = PTRARRAY_APPEND(library->tests, test, MoonUnitTest*);
 
-            if (!buffer->test.tests)
+            if (!library->tests)
                 MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
-		}
-		
-		buffer->test.tests[buffer->test.index++] = test;
 	
-		test->loader = buffer->loader;
-		test->library = buffer->library;
-		test->methods = &Mu_TestMethods;
+            test_init(test, library);
+        }
   	}
-   	else if (!strncmp(MU_FS_PREFIX, sym->name, strlen(MU_FS_PREFIX)) ||
-   			 !strncmp(MU_FT_PREFIX, sym->name, strlen(MU_FT_PREFIX)))
+   	else if (!strncmp(MU_FS_PREFIX, sym->name, strlen(MU_FS_PREFIX)))
    	{
-		NamedTestThunk* thunk = malloc(sizeof(*thunk));
-		thunk->name = strdup(sym->name);
-		thunk->thunk = (MoonUnitTestThunk) sym->addr;
+        MuFixtureSetup* setup = (MuFixtureSetup*) sym->addr;
 		
-		if (buffer->fixture.index >= buffer->fixture.capacity-1)
-		{
-			buffer->fixture.capacity *= 2;
-			buffer->fixture.thunks = realloc(buffer->fixture.thunks, sizeof(thunk) * buffer->fixture.capacity);
-
-            if (!buffer->fixture.thunks)
-                MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
-		}
+        library->fixture_setups = PTRARRAY_APPEND(library->fixture_setups, setup, MuFixtureSetup*);
+	}
+    else if (!strncmp(MU_FT_PREFIX, sym->name, strlen(MU_FT_PREFIX)))
+   	{
+        MuFixtureTeardown* teardown = (MuFixtureTeardown*) sym->addr;
 		
-		buffer->fixture.thunks[buffer->fixture.index++] = thunk;
+        library->fixture_teardowns = PTRARRAY_APPEND(library->fixture_teardowns, teardown, MuFixtureTeardown*);
 	}
 	else if (!strncmp("__mu_ls", sym->name, strlen("__mu_ls")))
 	{
-		buffer->library->setup = (MoonUnitThunk) sym->addr;	
+		library->library_setup = (MuLibrarySetup*) sym->addr;	
 	}
 	else if (!strncmp("__mu_lt", sym->name, strlen("__mu_lt")))
 	{
-		buffer->library->teardown = (MoonUnitThunk) sym->addr;
+		library->library_teardown = (MuLibraryTeardown*) sym->addr;
 	}
 
     return true;
@@ -145,42 +153,16 @@ static bool
 unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle, MuError ** _err)
 {
     MuError* err = NULL;
-	testbuffer buffer = {{NULL, 0, 512}, {NULL, 0, 512}, _self, handle};
 
-	buffer.test.tests = malloc(sizeof(MoonUnitTest*) * buffer.test.capacity);
-
-    if (!buffer.test.tests)
-    {
-        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
-    }
-
-	buffer.fixture.thunks = malloc(sizeof(NamedTestThunk*) * buffer.fixture.capacity);
-	
-    if (!buffer.fixture.thunks)
-    {
-        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
-    }
-
-	if (!ElfScan_GetScanner()(handle->dlhandle, test_filter, test_add, &buffer, &err))
+	if (!ElfScan_GetScanner()(handle->dlhandle, test_filter, test_add, handle, &err))
     {
         MU_RERAISE_GOTO(error, _err, err);
     }
 	
-	buffer.test.tests[buffer.test.index] = NULL;
-	buffer.fixture.thunks[buffer.fixture.index] = NULL;
-	
-	handle->tests = buffer.test.tests;
-	handle->fixture_thunks = buffer.fixture.thunks;
-
     return true;
 
 error:
     
-    if (buffer.test.tests)
-        free(buffer.test.tests);
-    if (buffer.fixture.thunks)
-        free(buffer.fixture.thunks);
-
     return false;
 }
 #else
@@ -203,26 +185,47 @@ unixloader_open(MoonUnitLoader* _self, const char* path, MuError** _err)
 {
 	MoonUnitLibrary* library = malloc(sizeof (MoonUnitLibrary));
     MuError* err = NULL;
+    void (*stub_hook)(MuLibrarySetup** ls, MuLibraryTeardown** lt,
+                      MuFixtureSetup*** fss, MuFixtureTeardown*** fts,
+                      MoonUnitTest*** ts);
+
 
     if (!library)
     {
         MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
     }
 
+    library->loader = _self;
 	library->tests = NULL;
-	library->fixture_thunks = NULL;
-	library->setup = NULL;
-	library->teardown = NULL;
+	library->fixture_setups = NULL;
+    library->fixture_teardowns = NULL;
+	library->library_setup = NULL;
+    library->library_teardown = NULL;
 	library->path = strdup(path);
 	library->dlhandle = dlopen(library->path, RTLD_LAZY);
-	
+    library->stub = false;
+
     if (!library->dlhandle)
     {
         free(library);
         MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, "%s", dlerror());
     }
 
-    if (!unixloader_scan(_self, library, &err))
+    if ((stub_hook = dlsym(library->dlhandle, "__mu_stub_hook")))
+    {
+        int i;
+        stub_hook(&library->library_setup, &library->library_teardown,
+                  &library->fixture_setups, &library->fixture_teardowns,
+                  &library->tests);
+
+        for (i = 0; library->tests[i]; i++)
+        {
+            test_init(library->tests[i], library);
+        }
+
+        library->stub = true;
+    }
+    else if (!unixloader_scan(_self, library, &err))
     {
         dlclose(library->dlhandle);
         free(library);
@@ -243,50 +246,50 @@ unixloader_tests (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 static MoonUnitThunk
 unixloader_library_setup (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 {
-	return handle->setup;
+    if (handle->library_setup)
+    	return handle->library_setup->function;
+    else
+        return NULL;
 }
 
 static MoonUnitThunk
 unixloader_library_teardown (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 {
-	return handle->teardown;
+    if (handle->library_teardown)
+    	return handle->library_teardown->function;
+    else
+        return NULL;
 }
 
 static MoonUnitTestThunk
 unixloader_fixture_setup (MoonUnitLoader* _self, const char* name, MoonUnitLibrary* handle)
 {
-	char* symbol_name = format(MU_FS_PREFIX "%s", name);
 	unsigned int i;
 	
-	for (i = 0; handle->fixture_thunks[i]; i++)
+	for (i = 0; handle->fixture_setups[i]; i++)
 	{
-		if (!strcmp(symbol_name, handle->fixture_thunks[i]->name))
+		if (!strcmp(name, handle->fixture_setups[i]->name))
         {
-            free(symbol_name);
-			return handle->fixture_thunks[i]->thunk;
+			return handle->fixture_setups[i]->function;
         }
 	}
     
-    free(symbol_name);	
 	return NULL;
 }
 
 static MoonUnitTestThunk
 unixloader_fixture_teardown (MoonUnitLoader* _self, const char* name, MoonUnitLibrary* handle)
 {
-	char* symbol_name = format(MU_FT_PREFIX "%s", name);
 	unsigned int i;
 	
-	for (i = 0; handle->fixture_thunks[i]; i++)
+	for (i = 0; handle->fixture_teardowns[i]; i++)
 	{
-		if (!strcmp(symbol_name, handle->fixture_thunks[i]->name))
+		if (!strcmp(name, handle->fixture_teardowns[i]->name))
         {
-            free(symbol_name);
-			return handle->fixture_thunks[i]->thunk;
+			return handle->fixture_teardowns[i]->function;
         }
 	}
 	
-    free(symbol_name);
 	return NULL;
 }
    
@@ -297,16 +300,14 @@ unixloader_close (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 	
 	dlclose(handle->dlhandle);
 	free((void*) handle->path);
-	free(handle->tests);
-	
-	for (i = 0; handle->fixture_thunks[i]; i++)
-	{
-		free((void*) handle->fixture_thunks[i]->name);
-		free(handle->fixture_thunks[i]);
-	}
-	
-	free(handle->fixture_thunks);
-	free(handle);
+
+    if (!handle->stub)
+    {
+    	free(handle->tests);
+        free(handle->fixture_setups);
+        free(handle->fixture_teardowns);
+    }
+   	free(handle);
 }
 
 static const char*

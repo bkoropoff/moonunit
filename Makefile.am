@@ -14,6 +14,6 @@ CHECK_PLUGINS= \
 check-local: $(top_builddir)/src/moonunit/moonunit-lt $(top_builddir)/src/moonunit/libexample.la
 	$(top_builddir)/src/moonunit/moonunit-lt \
 	$(CHECK_ARGS) $(CHECK_PLUGINS) \
-	$(top_builddir)/src/moonunit/libexample.la
+	$(top_builddir)/src/moonunit/libexample_mu.la
 
 .PHONY: run

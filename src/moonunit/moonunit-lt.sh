@@ -33,41 +33,69 @@ else
     moonunit="$dir/moonunit"
 fi
 
-objdir=`libtool --config | grep ^objdir= | cut -d= -f2`
-tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX`
+tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX` || exit 1
+libtool --config > "$tempdir/ltconfig"
+objdir=`(source "$tempdir/ltconfig" && echo $objdir)`
+module_ext="so"
 
-for arg in "$@"
+arg=$1
+while [ -n "$arg" ]
 do
-    if echo $arg | grep "^--wrap=" >/dev/null 2>&1
-    then
-	wrap=`echo $arg | cut -d= -f2-`	   
-    elif echo $arg | grep "^--plugin=" >/dev/null 2>&1
-    then
-	dlopens=("${dlopens[@]}" -dlopen `echo $arg | cut -d= -f2`)
-    elif echo $arg | grep '\.la$' >/dev/null 2>&1
-    then
-	dlopens=("${dlopens[@]}" -dlopen $arg)
-	dylib=`dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`
-	stlib=`dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.a/'`
-	
-	if [ -x "$dylib" ]
-	then
-	    command=("${command[@]}" `dirname $arg`/$objdir/`basename $arg | sed 's/\.la/.so/'`)
-	else
-	    # Now we have to get creative
-	    srcdir=`pwd`
-	    cd ${tempdir}
-	    mkdir -p `dirname ${dylib}`
-	    ar x ${srcdir}/${stlib}
-	    libtool --mode=link cc -shared -o ${dylib} `ar t ${srcdir}/${stlib}` >/dev/null 2>&1
-	    cd $srcdir
-	    rm -f ${tempdir}/*.o
-	    command=("${command[@]}" ${tempdir}/${dylib})
-	fi
-    else
-	command=("${command[@]}" $arg)
-    fi
-done
+    shift
+    case "$arg" in
+        --help|-?)
+            name=`basename $0`
+            cat << __EOF__
+$name -- libtool support wrapper for MoonUnit
+
+  This script allows uninstalled libtool archive (.la) files to be run directly
+  in MoonUnit (e.g. as part of 'make check' in a build tree).  Any referenced
+  .la files will be relinked/redirected as necessary before passing control to
+  moonunit.  Any sort of library -- static, shared, or loadable module -- should
+  work.
+
+Options ($name-specific):
+  --plugin module.la          Allow loading of module.la as a MoonUnit plugin
+  --wrap <prefix>             Prefixes the invocation of moonunit with <prefix>
+                              (e.g. "gdb --args")
+
+__EOF__
+            command=("${command[@]}" "$arg")
+            ;;
+        --wrap)
+            wrap="$1"
+            shift
+            ;;
+        --plugin)
+            dlopens=("${dlopens[@]}" -dlopen "$1")
+            shift
+            ;;
+        *.la)
+            # Check if a compiled dynamic module already exists
+            module_file="$(dirname "$arg")/$objdir/$(basename "$arg" | sed "s/\.la$/.${module_ext}/")" 
+            if [ -x "${module_file}" ]
+            then
+                # Just use the module directly, and add a -dlopen directive so libtool will
+                # set the library path correctly
+                dlopens=("${dlopens[@]}" -dlopen "$arg")
+                command=("${command[@]}" "${module_file}")
+            else
+                # We have to relink the library into a module
+                relink_name=`basename "$arg"`
+                so_name=`echo "$relink_name" | sed 's/\.la$/\.so/'`
+                # Relink into a module
+                libtool --mode=link ${CC:-cc} -shared -module -o "$tempdir/$relink_name" -rpath "$tempdir" "$arg" >/dev/null 2>&1
+                # Add it to the command
+                dlopens=("${dlopens[@]}" -dlopen "$tempdir/$relink_name")
+                command=("${command[@]}" "$tempdir/$objdir/$so_name")
+            fi
+            ;;
+         *)
+            command=("${command[@]}" "$arg")
+            ;;
+    esac
+    arg=$1
+done   
 
 libtool --mode=execute "${dlopens[@]}" $wrap $moonunit "${command[@]}"
 rm -rf ${tempdir}

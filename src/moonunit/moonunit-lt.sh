@@ -43,7 +43,7 @@ while [ -n "$arg" ]
 do
     shift
     case "$arg" in
-        --help|-?)
+        --help|'-?')
             name=`basename $0`
             cat << __EOF__
 $name -- libtool support wrapper for MoonUnit

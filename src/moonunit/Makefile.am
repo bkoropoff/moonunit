@@ -13,7 +13,7 @@ libexample_mu_la_LIBADD = libexample.la
 libexample_mu_la_LDFLAGS = -module -rpath $(libdir)
 
 EXTRA_DIST = moonunit-lt.sh moonunit-strip.sh moonunit-stub.sh option.h
-BUILT_SOURCES = example_stub.c
+BUILT_SOURCES = example_mu.c
 
 moonunit-lt: moonunit-lt.sh moonunit
 	cp $< $@

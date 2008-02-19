@@ -56,45 +56,36 @@ set of common options.
 \fIcomponent\fP may be one of "logger" or "runner", with
 \fIoption\fP and \fIvalue\fP being the option name and value
 to set on the plugin filling that particular role.
+.IP \fB-?\fP
+Lists brief usage and option information and exits.
+.IP \fB--help\fP
+Equivalent to \fB-?\fP
 .SH EXAMPLES
 .TP
 moonunit library1.so library2.so
+
 Run all unit tests in library1.so and library2.so, printing
 results to the console.
 .TP
 moonunit -t Foo/bar -g library.so
-Run test bar in the suite Foo in library.so and trace any
+
+Run test "bar" in the suite "Foo" in library.so and trace any
 failure in \fBGDB\fP.
 .TP
 moonunit -o logger.ansi:false library.so
+
 Run all tests in library.so, printing results to the console without
 ANSI color or fonts codes.
 .TP
 moonunit -l xml library.so
-Run all tests in library.so, printinf an XML-formatted test summary
+
+Run all tests in library.so, printing an XML-formatted test summary
 suitable for postprocessing to stdout.
 .SH COPYRIGHT
 Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Moonunit project nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
- 
-THIS SOFTWARE IS PROVIDED BY BRIAN KOROPOFF ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL BRIAN KOROPOFF BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Redistribution in source and binary form is permitted under
+the terms of the 3-clause BSD license.  See COPYING in the
+documentation or source distribution for details.
+.SH SEE\ ALSO
+\fBmoonunit-lt\fP(1), \fBmoonunit-stub\fP(1), \fBmoonunit-strip\fP(1)

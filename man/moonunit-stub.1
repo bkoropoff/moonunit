@@ -1,0 +1,77 @@
+.TH MOONUNIT-STUB "1" "February 2008"
+.SH NAME
+moonunit-stub \- Generates \fBMoonUnit\fP test loading stubs
+.SH SYNOPSIS
+moonunit [\fB-o\fP \fIfile\fP] [\fIname\fP\fB=\fP\fIvalue\fP ...] <sources...>
+.SH DESCRIPTION
+\fBmoonunit-stub\fR scans C and C++ source files for
+\fBMoonUnit\fR unit tests and generates a C stub file
+which assists the default test loader.  Scanned files
+are first processed by the C preprocessor as specified
+by the CPP and CPPFLAGS environment variables.
+
+.SH RATIONALE
+Ordinarily, the default \fBMoonUnit\fR test loader depends
+on the availability of symbol information read from
+a shared library to locate and access all unit tests.
+This symbol scanning process is highly platform-dependent
+and suffers from other limitations besides portability --
+unit tests must be located in a shared, dlopen-able library
+and have publically-visible symbols (barring clever hacks
+available on some platforms).  These limitations are not
+an issue if the unit tests in question are in a separate
+compilation unit and excercise a well-defined public
+interface in the code to be tested -- however, unit tests
+within the same compliation unit would not be feasible
+in this scenario.
+
+By scanning the source code for unit tests prior to compilation,
+\fBmoonunit-stub\fP skirts portability issues and also allows
+more flexibility in build organization.  For example, unit tests
+may be present as non-public symbols in a static library; the
+the generated stub code, however, can be compiled into a loadable
+module that links against it.
+.SH OPTIONS
+\fBmoonunit-stub\fR expects one or more C or C++ source files
+to be specified as arguments.
+.PP
+In addition, the following options are available:
+.PP
+.IP \fB-o\fP\ \fIfile\fP
+Write the generated stub to \fIfile\fP.  By default, the
+stub is written to stdout.
+.IP \fB-?\fP
+Lists brief usage and option information and exits.
+.IP \fB--help\fP
+Equivalent to \fB-?\fP
+.IP \fIname\fP\fB=\fP\fIvalue\fP
+Sets an environment variable for the duration of this
+script.  This provides a convenient shorthand for
+setting variables such as CPPFLAGS.  See the ENVIRONMENT
+section for more details.
+.SH ENVIRONMENT
+.IP CPP
+The C preprocessor which will be invoked to process source
+files before scanning for unit tests.  Defaults to \fBcpp\fP.
+.IP CPPFLAGS
+Additional arguments which will be passed to the C preprocessor.
+.SH EXAMPLES
+.TP
+moonunit-stub foo.c bar.c
+
+Scan foo.c and bar.c for unit tests and write the resulting
+stub to stdout.
+.TP
+moonunit-stub -o stub.c bob.c CPP="gcc -E"
+
+Scan bob.c for tests and write the resulting stub to stub.c;
+invokes \fBgcc -E\fP to preprocess source files.
+
+.SH COPYRIGHT
+Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.
+
+Redistribution in source and binary form is permitted under
+the terms of the 3-clause BSD license.  See COPYING in the
+documentation or source distribution for details.
+.SH SEE\ ALSO
+\fBmoonunit-lt\fP(1), \fBmoonunit\fP(1), \fBmoonunit-strip\fP(1)

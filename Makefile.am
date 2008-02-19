@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS= foreign
 
-SUBDIRS = src include
+SUBDIRS = src include man
 
 if HAVE_DOXYGEN
 SUBDIRS += doc

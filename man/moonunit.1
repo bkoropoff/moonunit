@@ -1,0 +1,100 @@
+.TH MOONUNIT "1" "February 2008"
+.SH NAME
+moonunit \- Runs \fBMoonUnit\fP unit tests in shared libraries
+.SH SYNOPSIS
+moonunit [\fIoptions\fP] <libraries...>
+.SH DESCRIPTION
+\fBmoonunit\fR detects, loads and invokes \fBMoonUnit\fR
+unit tests in dynamic shared libraries.  By default, test
+results are formatted and printed to the console in real
+time, but an alternate logging plugins may optionally be
+specified.
+
+.SH OPTIONS
+\fBmoonunit\fR expects one or more shared libraries
+containing unit tests to be specified as arguments. 
+.PP
+In addition, the following options are available:
+.PP
+.IP \fB-s\fP\ \fIsuite\fP
+Runs tests in suite \fIsuite\fP.  This option may be
+specified multiple times to run tests in multiple
+suites.
+.IP \fB--suite=\fP\fIsuite\fP
+Equivalent to \fB-s\fP
+.IP \fB-t\fP\ \fIsuite\fP/\fIname\fP
+Runs the test named \fIname\fP in suite \fIsuite\fP.  This
+option may be specified multiple times to run multiple
+different tests.
+.IP \fB--test=\fP\fIsuite\fP/\fIname\fP
+Equivalent to \fB-t\fP
+.IP \fB-a\fP
+Run all tests in all suites.  This is the default behavior
+if no instances of \fB-s\fP or \fB-t\fP are specified.
+.IP \fB--all\fP
+Equivalent to \fB-a\fP
+.IP \fB-g\fP
+Interactively trace failed tests in \fBGDB\fP, the GNU debugger.
+Each test that fails will immediately be rerun inside a GDB
+session with a breakpoint set at the line or function nearest
+to the failure.  After leaving the \fBGDB\fP session, \fBmoonunit\fR
+will resume at the next unit test.
+.IP \fB--gdb\fP
+Equivalent to \fB-g\fP
+.IP \fB-l\fP\ \fIname\fP
+Attempts to load and use the logger plugin \fIname\fP.
+The default logger plugin is "console", which neatly formats
+and prints test results to stdout.
+.IP \fB--logger=\fP\fIname\fP
+Equivalent to \fB-l\fP
+.IP \fB-o\fP\ \fIcomponent\fP.\fIoption\fP:\fIvalue\fP
+Sets an option for a particular test component, such as
+the logger or test runner.  These options are largely
+plugin-specific, although most plugins honor a standard
+set of common options.
+
+\fIcomponent\fP may be one of "logger" or "runner", with
+\fIoption\fP and \fIvalue\fP being the option name and value
+to set on the plugin filling that particular role.
+.SH EXAMPLES
+.TP
+moonunit library1.so library2.so
+Run all unit tests in library1.so and library2.so, printing
+results to the console.
+.TP
+moonunit -t Foo/bar -g library.so
+Run test bar in the suite Foo in library.so and trace any
+failure in \fBGDB\fP.
+.TP
+moonunit -o logger.ansi:false library.so
+Run all tests in library.so, printing results to the console without
+ANSI color or fonts codes.
+.TP
+moonunit -l xml library.so
+Run all tests in library.so, printinf an XML-formatted test summary
+suitable for postprocessing to stdout.
+.SH COPYRIGHT
+Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the Moonunit project nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+ 
+THIS SOFTWARE IS PROVIDED BY BRIAN KOROPOFF ``AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL BRIAN KOROPOFF BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

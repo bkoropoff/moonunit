@@ -1,5 +1,11 @@
 #!/bin/bash
 
+function die()
+{
+    echo "$@" >&2
+    exit 1
+}
+
 function tokenize()
 {
     sed 's/[^a-zA-Z0-9_][^a-zA-Z0-9_]*/ /g' | sed 's/[ \t]/\n/g'
@@ -168,7 +174,7 @@ function emit-stub()
 
     for input in "$@"
     do
-        preprocess "$input" >> $TMPFILE
+        preprocess "$input" >> $TMPFILE || die Error preprocessing $input
         echo >> $TMPFILE
     done
 
@@ -210,8 +216,11 @@ $name -- MoonUnit test loading stub generator
   at runtime (an operation which is highly platform-dependent
   and less portable).
 
-Usage: $name [-o <outfile>] source1.c source2.c ...
+Usage: $name [-o <outfile>] [<name>=<value> ...] source1.c source2.c ...
   -o <file>           Write output to <file> (defaults to stdout)
+  -?,-h,--help        Display this usage information
+  <name>=<value>      Set an environment variable for the duration of
+                      this script (e.g. CPPFLAGS)
 
 Environment variables:
   CPP                 The C preprocessor program to invoke (default: cpp)
@@ -234,6 +243,9 @@ do
         -o)
             outfile="$1"
             shift
+            ;;
+        *=*)
+            export "$arg"
             ;;
         *)
             sources=("${sources[@]}" "$arg")

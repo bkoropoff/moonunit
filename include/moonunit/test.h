@@ -99,10 +99,8 @@
  * @param suite the (unquoted) name of the test suite which
  * this test should be part of
  * @param name the (unquoted) name of this test
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_TEST(suite, name)
-#else
 #define MU_TEST(suite, name)                                           \
     __MU_SECTION_TEXT__                                                \
     __MU_HIDDEN__                                                      \
@@ -120,7 +118,6 @@
         0, 0, 0, 0                                                     \
     };                                                                 \
     void __mu_f_##suite##_##name(MoonUnitTest* __mu_self__)
-#endif
 
 /**
  * @brief Define library setup routine
@@ -140,10 +137,8 @@
  *     Library_Init();
  * }
  * @endcode
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_LIBRARY_SETUP
-#else
 #define MU_LIBRARY_SETUP                        \
     __MU_USED__                                 \
 	__MU_HIDDEN_TEST__                          \
@@ -157,7 +152,6 @@
         .function = __mu_f_ls; \
     }; \
    void __mu_f_ls()
-#endif
         
 /**
  * @brief Define library teardown routine
@@ -177,10 +171,8 @@
  *     Library_Free_Resources();
  * }
  * @endcode
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_LIBRARY_TEARDOWN
-#else
 #define MU_LIBRARY_TEARDOWN                     \
     __MU_USED__                                 \
 	__MU_HIDDEN_TEST__                          \
@@ -194,7 +186,6 @@
         .function = __mu_f_lt; \
     }; \
    void __mu_f_lt()
-#endif
 
 /**
  * @brief Define test fixture setup routine
@@ -226,10 +217,8 @@
  *
  * @param name the (unquoted) name of the test suite for
  * which the setup routine is being defined
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_FIXTURE_SETUP(name)
-#else
 #define MU_FIXTURE_SETUP(_name)                 \
     __MU_USED__                                 \
 	__MU_HIDDEN_TEST__                          \
@@ -244,7 +233,6 @@
         .function = __mu_f_fs_##_name \
     }; \
    void __mu_f_fs_##_name(MoonUnitTest* __mu_self__)
-#endif
 
 /**
  * @brief Define test fixture teardown routine
@@ -282,13 +270,11 @@
  *
  * @param name the (unquoted) name of the test suite for
  * which the setup routine is being defined
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_FIXTURE_TEARDOWN(name)
-#else
-#define MU_FIXTURE_TEARDOWN(_name)                  \
-    __MU_USED__                                 \
-	__MU_HIDDEN_TEST__                          \
+#define MU_FIXTURE_TEARDOWN(_name) \
+    __MU_USED__ \
+	__MU_HIDDEN_TEST__ \
     void __mu_f_ft_##_name(MoonUnitTest* __mu_self__); \
     __MU_USED__ \
     __MU_HIDDEN_TEST__ \
@@ -300,7 +286,6 @@
         .function = __mu_f_ft_##_name \
     }; \
    void __mu_f_ft_##_name(MoonUnitTest* __mu_self__)
-#endif
 
 /*@}*/
 
@@ -333,13 +318,10 @@
  * @endcode
  *
  * @param expr the expression to test
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_ASSERT(expr)
-#else
-#define MU_ASSERT(expr)                                                          \
+#define MU_ASSERT(expr) \
     __mu_self__->methods->assert(__mu_self__, expr, #expr, __FILE__, __LINE__)
-#endif
 
 /**
  * @brief Confirm equality of values or fail
@@ -373,13 +355,13 @@
  * @param type the type of the two expressions
  * @param expr the first expression
  * @param expected the second expression
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_ASSERT_EQUAL(type, expr, expected)
-#else
 #define MU_ASSERT_EQUAL(type, expr, expected) \
-	__mu_self__->methods->assert_equal(__mu_self__, #expr, #expected, __FILE__, __LINE__, type, (expr), (expected))
-#endif
+	__mu_self__->methods->assert_equal(__mu_self__, \
+        #expr, #expected, \
+        __FILE__, __LINE__, \
+        type, (expr), (expected))
 
 /**
  * @brief Causes immediate success
@@ -394,13 +376,10 @@
  * @code
  * MU_SUCCESS;
  * @endcode
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_SUCCESS
-#else
-#define MU_SUCCESS                              \
+#define MU_SUCCESS \
     __mu_self__->methods->success(__mu_self__)
-#endif
 
 /**
  * @brief Causes immediate failure
@@ -423,18 +402,69 @@
  *
  * @param format a printf format string for the failure
  * message
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_FAILURE(format, ...)
-#else
 #define MU_FAILURE(...) \
     __mu_self__->methods->failure(__mu_self__, __FILE__, __LINE__, __VA_ARGS__)
-#endif
 
+/**
+ * @brief Logs non-fatal messages
+ *
+ * It is sometimes desirable for a unit test to be able to
+ * report information which is orthoganol to the actual
+ * test result.  This macro will log a message in the test
+ * results without causing the current test to succeed or fail.
+ *
+ * MU_LOG supports 4 different logging levels of decreasing
+ * severity and increasing verbosity:
+ * <ul>
+ * <li>MU_LOG_WARNING - indicates a worrisome but non-fatal condition</li>
+ * <li>MU_LOG_INFO - indicates an important informational message</li>
+ * <li>MU_LOG_VERBOSE - indicates information that is usually extraneous but sometimes relevant</li>
+ * <li>MU_LOG_TRACE - indicates a message designed to help trace the execution of a test</li>
+ * </ul>
+ *
+ * This macro may only be used in the body of a test,
+ * fixture setup, or fixture teardown routine.
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_LOG(MU_LOG_TRACE, "About to call foo()");
+ * MU_ASSERT(foo() != NULL);
+ * @endcode
+ * @param level the logging level
+ * @param ... a printf-style format string and trailing arguments for the message to log
+ * @hideinitializer
+ */
 #define MU_LOG(level, ...) (__mu_self__->methods->event(__mu_self__, (level), __FILE__, __LINE__, __VA_ARGS__))
+
+/**
+ * @brief Log a warning
+ *
+ * Equivalent to MU_LOG(MU_LOG_WARNING, ...)
+ * @hideinitializer
+ */
 #define MU_WARNING(...) (MU_LOG(MU_LOG_WARNING, __VA_ARGS__))
+/**
+ * @brief Log an informational message
+ *
+ * Equivalent to MU_LOG(MU_LOG_INFO, ...)
+ * @hideinitializer
+ */
 #define MU_INFO(...) (MU_LOG(MU_LOG_INFO, __VA_ARGS__))
+/**
+ * @brief Log a verbose message
+ *
+ * Equivalent to MU_LOG(MU_LOG_VERBOSE, ...)
+ * @hideinitializer
+ */
 #define MU_VERBOSE(...) (MU_LOG(MU_LOG_VERBOSE, __VA_ARGS__))
+/**
+ * @brief Log a trace message
+ *
+ * Equivalent to MU_LOG(MU_LOG_TRACE, ...)
+ * @hideinitializer
+ */
 #define MU_TRACE(...) (MU_LOG(MU_LOG_TRACE, __VA_ARGS__))
 
 /*@}*/
@@ -484,6 +514,7 @@ typedef struct MoonUnitTest
     void* data;
 } MoonUnitTest;
 
+#ifndef DOXYGEN
 typedef struct MuFixtureSetup
 {
     const char* name;
@@ -513,6 +544,7 @@ typedef struct MuLibraryTeardown
     unsigned int line;
     void (*function) (void);
 } MuLibraryTeardown;
+#endif
 
 /**
  * @brief Access current unit test
@@ -533,13 +565,9 @@ typedef struct MuLibraryTeardown
  *     CustomLogMessage("Entering test '%s'\n", MU_CURRENT_TEST->name);
  * }
  * @endcode
- *
+ * @hideinitializer
  */
-#ifdef DOXYGEN
-#define MU_CURRENT_TEST
-#else
 #define MU_CURRENT_TEST (__mu_self__)
-#endif
 
 /*@}*/
 
@@ -550,6 +578,7 @@ typedef struct MuLibraryTeardown
 #define MU_FUNC_PREFIX "__mu_f_"
 #define MU_FS_PREFIX "__mu_fs_"
 #define MU_FT_PREFIX "__mu_ft_"
+#endif
 
 typedef enum
 {
@@ -559,6 +588,7 @@ typedef enum
     MU_LOG_TRACE
 } MuLogLevel;
 
+#ifndef DOXYGEN
 struct MoonUnitHarness;
 struct MoonUnitLoader;
 struct MoonUnitLibrary;

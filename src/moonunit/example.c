@@ -25,6 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file example.c
+ * @brief Moonunit test structures, constants, and macros
+ */
+
+/** \cond SKIP */
+
 #define MU_HIDE_TESTS
 
 #include <moonunit/test.h>
@@ -134,3 +141,5 @@ MU_TEST(Log, trace)
 {
     MU_TRACE("This is trace output");
 }
+
+/** \endcond */

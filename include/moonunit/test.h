@@ -69,13 +69,15 @@
 
 /**
  * @defgroup test_def Definition
- * @brief Macros to define unit tests
  * @ingroup test
+ * @brief Macros to define unit tests
  *
  * This module contains macros to define unit tests as well as
  * library and fixture setup and teardown routines.
  */
 /*@{*/
+
+/*@}*/
 
 /**
  * @brief Defines a unit test
@@ -290,12 +292,13 @@
 /*@}*/
 
 /**
- * @defgroup test_result Testing
+ * @defgroup test_result Testing and Logging
  * @ingroup test
- * @brief Macros to test assertions and flag failures
+ * @brief Macros to test assertions, flag failures, and log events.
  *
  * This module contains macros for use in the body of unit tests
- * to make assertions, raise errors, and report unexpected results.
+ * to make assertions, raise errors, report unexpected results,
+ * and log arbitrary messages.
  */
 /*@{*/
 
@@ -339,7 +342,7 @@
  * must have the same type. The following are legal
  * values of the type argument:
  * <ul>
- * <li>MU_INTEGER<li>
+ * <li>MU_INTEGER</li>
  * <li>MU_FLOAT</li>
  * <li>MU_STRING</li>
  * </ul>
@@ -487,7 +490,6 @@
  */
 typedef struct MoonUnitTest
 {
-    /*@{*/
     /** Test suite name */
     const char* suite;
     /** Test name */
@@ -498,7 +500,6 @@ typedef struct MoonUnitTest
     unsigned int line;
     /** Test function */
     void (*function) (struct MoonUnitTest*);
-    /*@}*/
 
 #ifndef DOXYGEN
 	/** Loader which loaded this test */
@@ -568,8 +569,6 @@ typedef struct MuLibraryTeardown
  * @hideinitializer
  */
 #define MU_CURRENT_TEST (__mu_self__)
-
-/*@}*/
 
 /*@}*/
 

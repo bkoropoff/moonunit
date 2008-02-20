@@ -1,0 +1,61 @@
+.TH MOONUNIT-STRIP "1" "February 2008"
+.SH NAME
+moonunit-strip \- Removes \fBMoonUnit\fP tests from libraries and object files
+.SH SYNOPSIS
+moonunit [\fIoptions\fP] \fIfile1\fP...
+.SH DESCRIPTION
+\fBmoonunit-strip\fR removes \fBMoonUnit\fR function and
+data sections from libraries, executables and object files
+and strips related symbols, effectively excising all unit tests
+from a binary.
+
+This permits unit tests to be compiled directly into
+libraries and executables, run, and subsequently stripped,
+yielding a binary suitable for distribution.
+
+.SH OPTIONS
+\fBmoonunit-strip\fR expects one or more shared library,
+static library, dynamic module, or object files to be
+specified as arguments. 
+.PP
+In addition, the following options are available:
+.PP
+.IP \fB-?\fP,\ \fB-h\fP
+Lists brief usage and option information and exits.
+.IP \fB--help\fP
+Equivalent to \fB-?\fP and \fB-h\fP
+.SH CAVEATS
+Relocations will typically prevent symbols from being
+stripped in intermediate files such as static libraries
+and object files; however, the data and functions
+themselves will be removed, and the vestigal symbols
+should be cleaned up by ordinary stripping of the final
+library or executable.
+
+If a shared library was compiled with publically-visible
+unit tests (that is, present in the dynamic symbol table),
+the symbols cannot be stripped.  To allow stripping, define
+\fBMU_HIDE_TESTS\fP before including \fBmoonunit/test.h\fP
+or as part of your compiler invocation.  Note that on ELF
+systems, \fBmoonunit\fP will still generally be able to
+locate unit tests in shared libraries even if they are
+hidden in this manner; other platforms may require the use
+of \fBmoonunit-stub\fP(1) to allow the loader access to
+hidden tests.
+
+\fBmoonunit-strip\fP requires GNU \fBobjcopy\fP.
+
+.SH EXAMPLES
+.TP
+moonunit-strip library.so
+
+Remove all unit test data and functions as well as strippable
+unit test symbols from library.so.
+.SH COPYRIGHT
+Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.
+
+Redistribution in source and binary form is permitted under
+the terms of the 3-clause BSD license.  See COPYING in the
+documentation or source distribution for details.
+.SH SEE\ ALSO
+\fBmoonunit\fP(1), \fBmoonunit-lt\fP(1), \fBmoonunit-stub\fP(1)

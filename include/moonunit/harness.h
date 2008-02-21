@@ -28,10 +28,10 @@
 #include <sys/types.h>
 #include <moonunit/test.h>
 
-struct MoonUnitTest;
-struct MoonUnitPlugin;
+struct MuTest;
+struct MuPlugin;
 
-typedef enum MoonUnitTestResult
+typedef enum MuTestResult
 {
     // Success
     MOON_RESULT_SUCCESS = 0,
@@ -43,31 +43,31 @@ typedef enum MoonUnitTestResult
     MOON_RESULT_CRASH = 3,
     // Failure due to timeout (infinite loop)
     MOON_RESULT_TIMEOUT = 4
-} MoonUnitTestResult;
+} MuTestResult;
 
-typedef enum MoonUnitTestStage
+typedef enum MuTestStage
 {
     MOON_STAGE_SETUP = 0,
     MOON_STAGE_TEST = 1,
     MOON_STAGE_TEARDOWN = 2,
     MOON_STAGE_UNKNOWN = 3
-} MoonUnitTestStage;
+} MuTestStage;
 
-typedef struct MoonUnitTestSummary
+typedef struct MuTestSummary
 {
-    MoonUnitTestResult result;
-    MoonUnitTestStage stage;
+    MuTestResult result;
+    MuTestStage stage;
     const char* reason;
     // Note that we do not store
     // the file since it should be the
     // same as the test.
     unsigned int line;
-} MoonUnitTestSummary;
+} MuTestSummary;
 
 typedef struct MuLogEvent
 {
     /* Stage at which event occurred */
-    MoonUnitTestStage stage;
+    MuTestStage stage;
     /* File in which event occured */
     const char* file;
     /* Line on which event occured */
@@ -78,33 +78,33 @@ typedef struct MuLogEvent
 
 typedef (*MuLogCallback)(MuLogEvent* event, void* data);
 
-typedef struct MoonUnitHarness
+typedef struct MuHarness
 {
-    struct MoonUnitPlugin* plugin;
+    struct MuPlugin* plugin;
     // Called by a unit test to log a non-failing event.  The passed
     // structure is owned by the caller and must be copied if preservation
     // is required.
-    void (*event)(struct MoonUnitHarness*, struct MoonUnitTest*, const MuLogEvent*);
+    void (*event)(struct MuHarness*, struct MuTest*, const MuLogEvent*);
 
     // Called by a unit test when it determines its result
     // early (through a failed assertion, etc.).  The structure
     // passed in will be stack-allocated and should be copied if
     // preservation is required
-    void (*result)(struct MoonUnitHarness*, struct MoonUnitTest*, const MoonUnitTestSummary*);
+    void (*result)(struct MuHarness*, struct MuTest*, const MuTestSummary*);
 
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.
-    void (*dispatch)(struct MoonUnitHarness*, struct MoonUnitTest*, MoonUnitTestSummary*, MuLogCallback*, void*);
+    void (*dispatch)(struct MuHarness*, struct MuTest*, MuTestSummary*, MuLogCallback*, void*);
 
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by
     // a debugger.
-    pid_t (*debug)(struct MoonUnitHarness*, struct MoonUnitTest*);
+    pid_t (*debug)(struct MuHarness*, struct MuTest*);
 
     // Clean up any memory in a MoonTestSummary filled in by
     // a call to dispatch
-    void (*cleanup)(struct MoonUnitHarness*, MoonUnitTestSummary*);
-} MoonUnitHarness;
+    void (*cleanup)(struct MuHarness*, MuTestSummary*);
+} MuHarness;
 
-const char* Mu_TestResultToString(MoonUnitTestResult result);
-const char* Mu_TestStageToString(MoonUnitTestStage stage);
+const char* Mu_TestResultToString(MuTestResult result);
+const char* Mu_TestStageToString(MuTestStage stage);

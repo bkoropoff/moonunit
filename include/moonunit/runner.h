@@ -28,29 +28,24 @@
 #ifndef __MU_RUNNER_H__
 #define __MU_RUNNER_H__
 
-struct MoonUnitLoader;
-struct MoonUnitHarness;
-struct MoonUnitLogger;
-struct MoonUnitPlugin;
+struct MuLoader;
+struct MuHarness;
+struct MuLogger;
+struct MuPlugin;
 
 #include <moonunit/option.h>
 #include <moonunit/error.h>
 
-typedef struct MoonUnitRunner
+typedef struct MuRunner
 {
-    struct MoonUnitPlugin* plugin;
-    void (*run_all) (struct MoonUnitRunner*, const char* library, MuError** err);
-    void (*run_set) (struct MoonUnitRunner*, const char* library, int setc, char** set, MuError** err);
-    MoonUnitOption option;
-} MoonUnitRunner;
+    struct MuPlugin* plugin;
+    void (*run_all) (struct MuRunner*, const char* library, MuError** err);
+    void (*run_set) (struct MuRunner*, const char* library, int setc, char** set, MuError** err);
+    MuOption option;
+} MuRunner;
 
-MoonUnitRunner* Mu_UnixRunner_Create(const char* self, 
-                                     struct MoonUnitLoader* loader, 
-                                     struct MoonUnitHarness* harness, 
-                                     struct MoonUnitLogger* logger);
-
-void Mu_Runner_RunAll(MoonUnitRunner*, const char* library, MuError** err);
-void Mu_Runner_RunSet(MoonUnitRunner*, const char* library, int setc, char** set, MuError** err);
-void Mu_Runner_SetOption(MoonUnitRunner*, const char *name, ...);
+void Mu_Runner_RunAll(MuRunner*, const char* library, MuError** err);
+void Mu_Runner_RunSet(MuRunner*, const char* library, int setc, char** set, MuError** err);
+void Mu_Runner_SetOption(MuRunner*, const char *name, ...);
 
 #endif

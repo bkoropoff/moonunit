@@ -31,36 +31,36 @@
 #include <moonunit/error.h>
 
 struct MuError;
-struct MoonUnitTest;
-struct MoonUnitLibrary;
-struct MoonUnitPlugin;
+struct MuTest;
+struct MuLibrary;
+struct MuPlugin;
 
-typedef struct MoonUnitLibrary MoonUnitLibrary;
+typedef struct MuLibrary MuLibrary;
 
-typedef void (*MoonUnitThunk) (void);
-typedef void (*MoonUnitTestThunk) (struct MoonUnitTest*);
+typedef void (*MuThunk) (void);
+typedef void (*MuTestThunk) (struct MuTest*);
 
-typedef struct MoonUnitLoader
+typedef struct MuLoader
 {
-    struct MoonUnitPlugin* plugin;
+    struct MuPlugin* plugin;
     // Opens a library and returns a handle
-    MoonUnitLibrary* (*open) (struct MoonUnitLoader*, const char* path, MuError** err);
+    MuLibrary* (*open) (struct MuLoader*, const char* path, MuError** err);
     // Returns a null-terminated list of unit tests
-    struct MoonUnitTest** (*tests) (struct MoonUnitLoader*, MoonUnitLibrary* handle);
+    struct MuTest** (*tests) (struct MuLoader*, MuLibrary* handle);
     // Returns the library setup routine for handle
-    MoonUnitThunk (*library_setup)(struct MoonUnitLoader*, MoonUnitLibrary* handle);
+    MuThunk (*library_setup)(struct MuLoader*, MuLibrary* handle);
     // Returns the library teardown routine for handle
-    MoonUnitThunk (*library_teardown)(struct MoonUnitLoader*, MoonUnitLibrary* handle);
+    MuThunk (*library_teardown)(struct MuLoader*, MuLibrary* handle);
     // Returns the fixture setup routine for suite name in handle
-    MoonUnitTestThunk (*fixture_setup)(struct MoonUnitLoader*, 
-                                       const char* name, MoonUnitLibrary* handle);
+    MuTestThunk (*fixture_setup)(struct MuLoader*, 
+                                       const char* name, MuLibrary* handle);
     // Returns the fixture teardown routine for suite name in handle
-    MoonUnitTestThunk (*fixture_teardown)(struct MoonUnitLoader*,
-                                          const char* name, MoonUnitLibrary* handle);
+    MuTestThunk (*fixture_teardown)(struct MuLoader*,
+                                          const char* name, MuLibrary* handle);
     // Closes a library
-    void (*close) (struct MoonUnitLoader*, MoonUnitLibrary* handle);
+    void (*close) (struct MuLoader*, MuLibrary* handle);
     // Get name of a library
-    const char * (*name) (struct MoonUnitLoader*, MoonUnitLibrary* handle);
-} MoonUnitLoader;
+    const char * (*name) (struct MuLoader*, MuLibrary* handle);
+} MuLoader;
 
 #endif

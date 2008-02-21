@@ -37,41 +37,41 @@
 
 typedef struct
 {
-    MoonUnitLogger base;
+    MuLogger base;
     int fd;
     FILE* out;
-    MoonUnitTest* current_test;
+    MuTest* current_test;
 } XmlLogger;
 
-static void library_enter(MoonUnitLogger* _self, const char* name)
+static void library_enter(MuLogger* _self, const char* name)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
     fprintf(self->out, "<library name=\"%s\">\n", name);
 }
 
-static void library_leave(MoonUnitLogger* _self)
+static void library_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
 	fprintf(self->out, "</library>\n");
 }
 
-static void suite_enter(MoonUnitLogger* _self, const char* name)
+static void suite_enter(MuLogger* _self, const char* name)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
 	fprintf(self->out, "  <suite name=\"%s\">\n", name);
 }
 
-static void suite_leave(MoonUnitLogger* _self)
+static void suite_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
 	fprintf(self->out, "  </suite>\n");
 }
 
-static void test_enter(MoonUnitLogger* _self, MoonUnitTest* test)
+static void test_enter(MuLogger* _self, MuTest* test)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
@@ -80,7 +80,7 @@ static void test_enter(MoonUnitLogger* _self, MoonUnitTest* test)
     fprintf(self->out, "    <test name=\"%s\">\n", test->name);
 }
 
-static void test_log(MoonUnitLogger* _self, MuLogEvent* event)
+static void test_log(MuLogger* _self, MuLogEvent* event)
 {
     XmlLogger* self = (XmlLogger*) _self;
     const char* level_str;
@@ -103,8 +103,8 @@ static void test_log(MoonUnitLogger* _self, MuLogEvent* event)
     fprintf(self->out, "      </event>\n");
 }
 
-static void test_leave(MoonUnitLogger* _self, 
-                       MoonUnitTest* test, MoonUnitTestSummary* summary)
+static void test_leave(MuLogger* _self, 
+                       MuTest* test, MuTestSummary* summary)
 {
     XmlLogger* self = (XmlLogger*) _self;
     const char* stage;
@@ -166,7 +166,7 @@ static const void* option_get(void* _self, const char* name)
     }
 }
 
-static MoonUnitType option_type(void* _self, const char* name)
+static MuType option_type(void* _self, const char* name)
 {
     if (!strcmp(name, "fd"))
     {
@@ -199,18 +199,18 @@ static XmlLogger xmllogger =
     .fd = -1
 };
 
-static MoonUnitLogger*
+static MuLogger*
 create_xmllogger()
 {
     XmlLogger* logger = malloc(sizeof(XmlLogger));
 
     *logger = xmllogger;
 
-    return (MoonUnitLogger*) logger;
+    return (MuLogger*) logger;
 }
 
 static void
-destroy_xmllogger(MoonUnitLogger* _logger)
+destroy_xmllogger(MuLogger* _logger)
 {
     XmlLogger* logger = (XmlLogger*) _logger;
 
@@ -219,7 +219,7 @@ destroy_xmllogger(MoonUnitLogger* _logger)
 }
 
 
-static MoonUnitPlugin plugin =
+static MuPlugin plugin =
 {
     .name = "xml",
     .create_loader = NULL,

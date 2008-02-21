@@ -32,17 +32,17 @@
 
 #include <stdlib.h>
 
-extern struct MoonUnitLoader mu_unixloader;
-extern struct MoonUnitHarness mu_unixharness;
-extern struct MoonUnitRunner* Mu_UnixRunner_Create(const char*, 
-                                                   struct MoonUnitLoader*, 
-                                                   struct MoonUnitHarness*, 
-                                                   struct MoonUnitLogger*);
+extern struct MuLoader mu_unixloader;
+extern struct MuHarness mu_unixharness;
+extern struct MuRunner* Mu_UnixRunner_Create(const char*, 
+                                                   struct MuLoader*, 
+                                                   struct MuHarness*, 
+                                                   struct MuLogger*);
 
-static struct MoonUnitLoader*
+static struct MuLoader*
 create_unixloader()
 {
-    MoonUnitLoader* loader = malloc(sizeof (*loader));
+    MuLoader* loader = malloc(sizeof (*loader));
 
     if (!loader)
         return NULL;
@@ -53,15 +53,15 @@ create_unixloader()
 }
 
 static void
-destroy_unixloader(MoonUnitLoader* loader)
+destroy_unixloader(MuLoader* loader)
 {
     free(loader);
 }
 
-static struct MoonUnitHarness*
+static struct MuHarness*
 create_unixharness()
 {
-    MoonUnitHarness* harness = malloc(sizeof(*harness));
+    MuHarness* harness = malloc(sizeof(*harness));
 
     if (!harness)
         return NULL;
@@ -72,27 +72,27 @@ create_unixharness()
 }
 
 static void
-destroy_unixharness(MoonUnitHarness* harness)
+destroy_unixharness(MuHarness* harness)
 {
     free(harness);
 }
 
-static struct MoonUnitRunner*
-create_unixrunner(const char* self, struct MoonUnitLoader* loader, 
-                  struct MoonUnitHarness* harness, struct MoonUnitLogger* logger)
+static struct MuRunner*
+create_unixrunner(const char* self, struct MuLoader* loader, 
+                  struct MuHarness* harness, struct MuLogger* logger)
 {
     return Mu_UnixRunner_Create(self, loader, harness, logger);
 }
 
-extern void Mu_UnixRunner_Destroy(MoonUnitRunner* _runner);
+extern void Mu_UnixRunner_Destroy(MuRunner* _runner);
 
 static void
-destroy_unixrunner(MoonUnitRunner* runner)
+destroy_unixrunner(MuRunner* runner)
 {
     Mu_UnixRunner_Destroy(runner);
 }
 
-static MoonUnitPlugin plugin =
+static MuPlugin plugin =
 {
     .name = "unix",
     .create_loader = create_unixloader,

@@ -28,29 +28,29 @@
 #ifndef __MU_LOGGER_H__
 #define __MU_LOGGER_H__
 
-struct MoonUnitTestSummary;
-struct MoonUnitTest;
-struct MoonUnitPlugin;
+struct MuTestSummary;
+struct MuTest;
+struct MuPlugin;
 struct MuLogEvent;
 
 #include <moonunit/option.h>
 
-typedef struct MoonUnitLogger
+typedef struct MuLogger
 {
-    struct MoonUnitPlugin* plugin;
-    void (*library_enter) (struct MoonUnitLogger*, const char*);
-    void (*library_leave) (struct MoonUnitLogger*);
-    void (*suite_enter) (struct MoonUnitLogger*, const char*);
-    void (*suite_leave) (struct MoonUnitLogger*);
-    void (*test_enter) (struct MoonUnitLogger*, struct MoonUnitTest* test);
-    void (*test_log) (struct MoonUnitLogger*, struct MuLogEvent* event);
-    void (*test_leave) (struct MoonUnitLogger*, 
-                    struct MoonUnitTest*, struct MoonUnitTestSummary*);
-    MoonUnitOption option;
-} MoonUnitLogger;
+    struct MuPlugin* plugin;
+    void (*library_enter) (struct MuLogger*, const char*);
+    void (*library_leave) (struct MuLogger*);
+    void (*suite_enter) (struct MuLogger*, const char*);
+    void (*suite_leave) (struct MuLogger*);
+    void (*test_enter) (struct MuLogger*, struct MuTest* test);
+    void (*test_log) (struct MuLogger*, struct MuLogEvent* event);
+    void (*test_leave) (struct MuLogger*, 
+                    struct MuTest*, struct MuTestSummary*);
+    MuOption option;
+} MuLogger;
 
-void Mu_Logger_SetOption(MoonUnitLogger* logger, const char *name, ...);
-void Mu_Logger_SetOptionString(MoonUnitLogger* logger, const char *name, const char *value);
-MoonUnitType Mu_Logger_OptionType(MoonUnitLogger* logger, const char *name);
+void Mu_Logger_SetOption(MuLogger* logger, const char *name, ...);
+void Mu_Logger_SetOptionString(MuLogger* logger, const char *name, const char *value);
+MuType Mu_Logger_OptionType(MuLogger* logger, const char *name);
 
 #endif

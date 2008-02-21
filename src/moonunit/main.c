@@ -52,9 +52,9 @@
 int main (int argc, char** argv)
 {
     MuError* err = NULL;
-	MoonUnitRunner* runner;
+	MuRunner* runner;
     unsigned int file_index;
-    MoonUnitLogger* logger;
+    MuLogger* logger;
     OptionTable option = {0};
 
     if (Option_Parse(argc, argv, &option))

@@ -32,17 +32,17 @@
 #include <moonunit/type.h>
 
 
-typedef struct MoonUnitOption
+typedef struct MuOption
 {
     void (*set) (void*, const char *name, void* value);
     const void *(*get) (void*, const char *name);
-    MoonUnitType (*type) (void*, const char*name);
-} MoonUnitOption;
+    MuType (*type) (void*, const char*name);
+} MuOption;
 
-void Mu_Option_SetString(void*, MoonUnitOption*, const char *name, const char* value);
-void Mu_Option_Setv(void*, MoonUnitOption*, const char *name, va_list ap);
-void Mu_Option_Set(void*, MoonUnitOption*, const char *name, ...);
-const void* Mu_Option_Get(void*, MoonUnitOption*, const char *name);
-MoonUnitType Mu_Option_Type(void*, MoonUnitOption*, const char* name);
+void Mu_Option_SetString(void*, MuOption*, const char *name, const char* value);
+void Mu_Option_Setv(void*, MuOption*, const char *name, va_list ap);
+void Mu_Option_Set(void*, MuOption*, const char *name, ...);
+const void* Mu_Option_Get(void*, MuOption*, const char *name);
+MuType Mu_Option_Type(void*, MuOption*, const char* name);
 
 #endif

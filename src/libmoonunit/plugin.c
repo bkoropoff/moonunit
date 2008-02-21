@@ -39,10 +39,10 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
-static MoonUnitPlugin** loaded_plugins = NULL;
+static MuPlugin** loaded_plugins = NULL;
 static unsigned int loaded_plugins_size = 0;
 
-static MoonUnitPlugin*
+static MuPlugin*
 load_plugin_path(const char* prefix, const char* name)
 {
     const char* path = format("%s%s%s",
@@ -52,7 +52,7 @@ load_plugin_path(const char* prefix, const char* name)
     
     void* handle = dlopen(path, RTLD_LAZY);
 
-    MoonUnitPlugin* (*load)(void);
+    MuPlugin* (*load)(void);
 
     free((void*) path);
 
@@ -70,10 +70,10 @@ load_plugin_path(const char* prefix, const char* name)
     return load();
 }
 
-static MoonUnitPlugin*
+static MuPlugin*
 load_plugin(const char* name)
 {
-    MoonUnitPlugin* plugin;
+    MuPlugin* plugin;
     char* pathenv;
 
     if ((pathenv = getenv("MU_PLUGIN_PATH")))
@@ -113,11 +113,11 @@ load_plugin(const char* name)
     return NULL;
 }
 
-static MoonUnitPlugin*
+static MuPlugin*
 get_plugin(const char* name)
 {
     unsigned int index;
-    MoonUnitPlugin* plugin;
+    MuPlugin* plugin;
 
     for (index = 0; index < loaded_plugins_size; index++)
     {
@@ -138,11 +138,11 @@ get_plugin(const char* name)
     return plugin;
 }
 
-struct MoonUnitLoader*
+struct MuLoader*
 Mu_Plugin_CreateLoader(const char *name)
 {
-    MoonUnitPlugin* plugin = get_plugin(name);
-    MoonUnitLoader* loader;
+    MuPlugin* plugin = get_plugin(name);
+    MuLoader* loader;
 
     if (!plugin)
         return NULL;
@@ -160,17 +160,17 @@ Mu_Plugin_CreateLoader(const char *name)
     return loader;
 }
 
-void Mu_Plugin_DestroyLoader(MoonUnitLoader* loader)
+void Mu_Plugin_DestroyLoader(MuLoader* loader)
 {
     if (loader->plugin && loader->plugin->destroy_loader)
         loader->plugin->destroy_loader(loader);
 }
 
-struct MoonUnitHarness*
+struct MuHarness*
 Mu_Plugin_CreateHarness(const char *name)
 {
-    MoonUnitPlugin* plugin = get_plugin(name);
-    MoonUnitHarness* harness;
+    MuPlugin* plugin = get_plugin(name);
+    MuHarness* harness;
 
     if (!plugin)
         return NULL;
@@ -188,17 +188,17 @@ Mu_Plugin_CreateHarness(const char *name)
     return harness;
 }
 
-void Mu_Plugin_DestroyHarness(MoonUnitHarness* harness)
+void Mu_Plugin_DestroyHarness(MuHarness* harness)
 {
     if (harness->plugin && harness->plugin->destroy_harness)
         harness->plugin->destroy_harness(harness);
 }
 
-struct MoonUnitLogger*
+struct MuLogger*
 Mu_Plugin_CreateLogger(const char* name)
 {
-    MoonUnitPlugin* plugin = get_plugin(name);
-    MoonUnitLogger* logger;
+    MuPlugin* plugin = get_plugin(name);
+    MuLogger* logger;
 
 
     if (!plugin)
@@ -217,18 +217,18 @@ Mu_Plugin_CreateLogger(const char* name)
     return logger;
 }
 
-void Mu_Plugin_DestroyLogger(MoonUnitLogger* logger)
+void Mu_Plugin_DestroyLogger(MuLogger* logger)
 {
     if (logger->plugin && logger->plugin->destroy_logger)
         logger->plugin->destroy_logger(logger);
 }
 
-struct MoonUnitRunner* 
-Mu_Plugin_CreateRunner(const char* name, const char* self, struct MoonUnitLoader* loader, 
-                       struct MoonUnitHarness* harness, struct MoonUnitLogger* logger)
+struct MuRunner* 
+Mu_Plugin_CreateRunner(const char* name, const char* self, struct MuLoader* loader, 
+                       struct MuHarness* harness, struct MuLogger* logger)
 {
-    MoonUnitPlugin* plugin = get_plugin(name);
-    MoonUnitRunner* runner;
+    MuPlugin* plugin = get_plugin(name);
+    MuRunner* runner;
 
     if (!plugin)
         return NULL;
@@ -247,17 +247,17 @@ Mu_Plugin_CreateRunner(const char* name, const char* self, struct MoonUnitLoader
 }
 
 
-void Mu_Plugin_DestroyRunner(MoonUnitRunner* runner)
+void Mu_Plugin_DestroyRunner(MuRunner* runner)
 {
     if (runner->plugin && runner->plugin->destroy_runner)
         runner->plugin->destroy_runner(runner);
 }
 
-struct MoonUnitRunner* 
-Mu_CreateRunner(const char* name, const char* self, struct MoonUnitLogger* logger)
+struct MuRunner* 
+Mu_CreateRunner(const char* name, const char* self, struct MuLogger* logger)
 {
-    struct MoonUnitLoader* loader;
-    struct MoonUnitHarness* harness;
+    struct MuLoader* loader;
+    struct MuHarness* harness;
     
     loader = Mu_Plugin_CreateLoader(name);
    

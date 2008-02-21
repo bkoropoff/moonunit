@@ -106,11 +106,11 @@
 #define MU_TEST(suite, name)                                           \
     __MU_SECTION_TEXT__                                                \
     __MU_HIDDEN__                                                      \
-    void __mu_f_##suite##_##name(MoonUnitTest*);                       \
+    void __mu_f_##suite##_##name(MuTest*);                       \
     __MU_SECTION_DATA__                                                \
     __MU_HIDDEN_TEST__                                                 \
     __MU_USED__                                                        \
-    MoonUnitTest __mu_t_##suite##_##name =                             \
+    MuTest __mu_t_##suite##_##name =                             \
     {                                                                  \
         #suite,                                                        \
         #name,                                                         \
@@ -119,7 +119,7 @@
         __mu_f_##suite##_##name,                                       \
         0, 0, 0, 0                                                     \
     };                                                                 \
-    void __mu_f_##suite##_##name(MoonUnitTest* __mu_self__)
+    void __mu_f_##suite##_##name(MuTest* __mu_self__)
 
 /**
  * @brief Define library setup routine
@@ -224,7 +224,7 @@
 #define MU_FIXTURE_SETUP(_name)                 \
     __MU_USED__                                 \
 	__MU_HIDDEN_TEST__                          \
-    void __mu_f_fs_##_name(MoonUnitTest* __mu_self__); \
+    void __mu_f_fs_##_name(MuTest* __mu_self__); \
     __MU_USED__ \
     __MU_HIDDEN_TEST__ \
     MuFixtureSetup __mu_fs_##_name = \
@@ -234,7 +234,7 @@
         .line = __LINE__, \
         .function = __mu_f_fs_##_name \
     }; \
-   void __mu_f_fs_##_name(MoonUnitTest* __mu_self__)
+   void __mu_f_fs_##_name(MuTest* __mu_self__)
 
 /**
  * @brief Define test fixture teardown routine
@@ -277,7 +277,7 @@
 #define MU_FIXTURE_TEARDOWN(_name) \
     __MU_USED__ \
 	__MU_HIDDEN_TEST__ \
-    void __mu_f_ft_##_name(MoonUnitTest* __mu_self__); \
+    void __mu_f_ft_##_name(MuTest* __mu_self__); \
     __MU_USED__ \
     __MU_HIDDEN_TEST__ \
     MuFixtureTeardown __mu_ft_##_name = \
@@ -287,7 +287,7 @@
         .line = __LINE__, \
         .function = __mu_f_ft_##_name \
     }; \
-   void __mu_f_ft_##_name(MoonUnitTest* __mu_self__)
+   void __mu_f_ft_##_name(MuTest* __mu_self__)
 
 /*@}*/
 
@@ -488,7 +488,7 @@
  * Contains all information describing a particular
  * unit test
  */
-typedef struct MoonUnitTest
+typedef struct MuTest
 {
     /** Test suite name */
     const char* suite;
@@ -499,21 +499,21 @@ typedef struct MoonUnitTest
     /** First line of test definition */
     unsigned int line;
     /** Test function */
-    void (*function) (struct MoonUnitTest*);
+    void (*function) (struct MuTest*);
 
 #ifndef DOXYGEN
 	/** Loader which loaded this test */
-    struct MoonUnitLoader* loader;
+    struct MuLoader* loader;
     /** Library which contains this test */
-    struct MoonUnitLibrary* library;
+    struct MuLibrary* library;
 	/** Harness which is running this test */
-    struct MoonUnitHarness* harness;  
-    struct MoonUnitTestMethods* methods;
+    struct MuHarness* harness;  
+    struct MuTestMethods* methods;
 #endif    
 
     /** Custom user data */
     void* data;
-} MoonUnitTest;
+} MuTest;
 
 #ifndef DOXYGEN
 typedef struct MuFixtureSetup
@@ -521,7 +521,7 @@ typedef struct MuFixtureSetup
     const char* name;
     const char* file;
     unsigned int line;
-    void (*function) (struct MoonUnitTest*);
+    void (*function) (struct MuTest*);
 } MuFixtureSetup;
 
 typedef struct MuFixtureTeardown
@@ -529,7 +529,7 @@ typedef struct MuFixtureTeardown
     const char* name;
     const char* file;
     unsigned int line;
-    void (*function) (struct MoonUnitTest*);
+    void (*function) (struct MuTest*);
 } MuFixtureTeardown;
 
 typedef struct MuLibrarySetup
@@ -550,7 +550,7 @@ typedef struct MuLibraryTeardown
 /**
  * @brief Access current unit test
  *
- * This macro expands to a pointer to the MoonUnitTest
+ * This macro expands to a pointer to the MuTest
  * structure for the currently running test.  Modification
  * of this structure is strongly discouraged, but access
  * to information contained therein may be useful in
@@ -588,25 +588,21 @@ typedef enum
 } MuLogLevel;
 
 #ifndef DOXYGEN
-struct MoonUnitHarness;
-struct MoonUnitLoader;
-struct MoonUnitLibrary;
-struct MoonUnitTestMethods;
 
-typedef struct MoonUnitTestMethods
+typedef struct MuTestMethods
 {
-    void (*event)(MoonUnitTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
-	void (*assert)(MoonUnitTest* test, 
+    void (*event)(MuTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
+	void (*assert)(MuTest* test, 
 				   int result, const char* expr, const char* file, unsigned int line);
-	void (*assert_equal)(MoonUnitTest* test, 
+	void (*assert_equal)(MuTest* test, 
 				   		 const char* expr, const char* expected, 
-				 		 const char* file, unsigned int line, MoonUnitType type, ...);
-	void (*success)(MoonUnitTest* test);
-	void (*failure)(MoonUnitTest* test, 
+				 		 const char* file, unsigned int line, MuType type, ...);
+	void (*success)(MuTest* test);
+	void (*failure)(MuTest* test, 
 				    const char* file, unsigned int line, const char* message, ...);
-} MoonUnitTestMethods;
+} MuTestMethods;
 
-extern MoonUnitTestMethods Mu_TestMethods;
+extern MuTestMethods Mu_TestMethods;
 
 #endif
 

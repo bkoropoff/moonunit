@@ -28,38 +28,38 @@
 #ifndef __MU_PLUGIN_H__
 #define __MU_PLUGIN_H__
 
-struct MoonUnitLogger;
-struct MoonUnitHarness;
-struct MoonUnitRunner;
-struct MoonUnitLoader;
+struct MuLogger;
+struct MuHarness;
+struct MuRunner;
+struct MuLoader;
 
-typedef struct MoonUnitPlugin
+typedef struct MuPlugin
 {
     const char* name;
-    struct MoonUnitLoader*  (*create_loader) ();
-    void (*destroy_loader) (struct MoonUnitLoader*);
-    struct MoonUnitHarness* (*create_harness) ();
-    void (*destroy_harness) (struct MoonUnitHarness*);
-    struct MoonUnitLogger*  (*create_logger) ();
-    void (*destroy_logger) (struct MoonUnitLogger*);
-    struct MoonUnitRunner*  (*create_runner) 
-        (const char* self, struct MoonUnitLoader*, struct MoonUnitHarness*, struct MoonUnitLogger*);
-    void (*destroy_runner) (struct MoonUnitRunner*);
-} MoonUnitPlugin;
+    struct MuLoader*  (*create_loader) ();
+    void (*destroy_loader) (struct MuLoader*);
+    struct MuHarness* (*create_harness) ();
+    void (*destroy_harness) (struct MuHarness*);
+    struct MuLogger*  (*create_logger) ();
+    void (*destroy_logger) (struct MuLogger*);
+    struct MuRunner*  (*create_runner) 
+        (const char* self, struct MuLoader*, struct MuHarness*, struct MuLogger*);
+    void (*destroy_runner) (struct MuRunner*);
+} MuPlugin;
 
 #define MU_PLUGIN_INIT \
-    MoonUnitPlugin* __mu_p_init ()
+    MuPlugin* __mu_p_init ()
 
-struct MoonUnitLoader* Mu_Plugin_CreateLoader(const char *name);
-void Mu_Plugin_DestroyLoader(struct MoonUnitLoader*);
-struct MoonUnitHarness* Mu_Plugin_CreateHarness(const char *name);
-void Mu_Plugin_DestroyHarness(struct MoonUnitHarness*);
-struct MoonUnitLogger* Mu_Plugin_CreateLogger(const char* name);
-void Mu_Plugin_DestroyLogger(struct MoonUnitLogger*);
-struct MoonUnitRunner* Mu_Plugin_CreateRunner(const char* name, const char* self,
-                                              struct MoonUnitLoader*, struct MoonUnitHarness*, struct MoonUnitLogger*);
-void Mu_Plugin_DestroyRunner(struct MoonUnitRunner*);
-struct MoonUnitRunner* Mu_CreateRunner(const char* name, const char* self, struct MoonUnitLogger* logger);
+struct MuLoader* Mu_Plugin_CreateLoader(const char *name);
+void Mu_Plugin_DestroyLoader(struct MuLoader*);
+struct MuHarness* Mu_Plugin_CreateHarness(const char *name);
+void Mu_Plugin_DestroyHarness(struct MuHarness*);
+struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
+void Mu_Plugin_DestroyLogger(struct MuLogger*);
+struct MuRunner* Mu_Plugin_CreateRunner(const char* name, const char* self,
+                                              struct MuLoader*, struct MuHarness*, struct MuLogger*);
+void Mu_Plugin_DestroyRunner(struct MuRunner*);
+struct MuRunner* Mu_CreateRunner(const char* name, const char* self, struct MuLogger* logger);
 
 
 #endif

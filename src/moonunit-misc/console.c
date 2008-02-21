@@ -39,7 +39,7 @@
 
 typedef struct
 {
-    MoonUnitLogger base;
+    MuLogger base;
 
     int fd;
     FILE* out;
@@ -51,7 +51,7 @@ typedef struct
 } ConsoleLogger;
 
 static void
-library_enter(MoonUnitLogger* _self, const char* name)
+library_enter(MuLogger* _self, const char* name)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
@@ -59,7 +59,7 @@ library_enter(MoonUnitLogger* _self, const char* name)
 }
 
 static void
-library_leave(MoonUnitLogger* _self)
+library_leave(MuLogger* _self)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
@@ -67,7 +67,7 @@ library_leave(MoonUnitLogger* _self)
 }
 
 static void
-suite_enter(MoonUnitLogger* _self, const char* name)
+suite_enter(MuLogger* _self, const char* name)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
@@ -75,7 +75,7 @@ suite_enter(MoonUnitLogger* _self, const char* name)
 }
 
 static void
-suite_leave(MoonUnitLogger* _self)
+suite_leave(MuLogger* _self)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
@@ -83,7 +83,7 @@ suite_leave(MoonUnitLogger* _self)
 }
 
 static void
-test_enter(MoonUnitLogger* _self, MoonUnitTest* test)
+test_enter(MuLogger* _self, MuTest* test)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
@@ -91,7 +91,7 @@ test_enter(MoonUnitLogger* _self, MoonUnitTest* test)
 }
 
 static void
-test_log(MoonUnitLogger* _self, MuLogEvent* event)
+test_log(MuLogger* _self, MuLogEvent* event)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
     char* level_str = NULL;
@@ -125,7 +125,7 @@ test_log(MoonUnitLogger* _self, MuLogEvent* event)
 }
 
 static void
-test_leave(MoonUnitLogger* _self, MoonUnitTest* test, MoonUnitTestSummary* summary)
+test_leave(MuLogger* _self, MuTest* test, MuTestSummary* summary)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
     FILE* out = self->out;
@@ -219,7 +219,7 @@ option_get(void* _self, const char* name)
 }
 
 
-static MoonUnitType
+static MuType
 option_type(void* _self, const char* name)
 {
     if (!strcmp(name, "fd"))
@@ -264,17 +264,17 @@ static ConsoleLogger consolelogger =
     .align = 80
 };
 
-static MoonUnitLogger*
+static MuLogger*
 create_consolelogger()
 {
     ConsoleLogger* logger = malloc(sizeof(ConsoleLogger));
 
     *logger = consolelogger;
 
-    return (MoonUnitLogger*) logger;
+    return (MuLogger*) logger;
 }
 
-static MoonUnitPlugin plugin =
+static MuPlugin plugin =
 {
     .name = "console",
     .create_loader = NULL,

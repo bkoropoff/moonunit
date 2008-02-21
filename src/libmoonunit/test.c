@@ -35,7 +35,7 @@
 #include <stdio.h>
 
 void
-__mu_event(MoonUnitTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
+__mu_event(MuTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
 {
     MuLogEvent event;
     va_list ap;
@@ -55,7 +55,7 @@ __mu_event(MoonUnitTest* test, MuLogLevel level, const char* file, unsigned int 
 }
 
 void
-__mu_assert(MoonUnitTest* test, int result, const char* expr,
+__mu_assert(MuTest* test, int result, const char* expr,
             const char* file, unsigned int line)
 {
 
@@ -63,7 +63,7 @@ __mu_assert(MoonUnitTest* test, int result, const char* expr,
         return;
     else
     {
-        MoonUnitTestSummary summary;
+        MuTestSummary summary;
         
         summary.result = MOON_RESULT_ASSERTION;
         summary.stage = MOON_STAGE_TEST;
@@ -110,8 +110,8 @@ assert_equal_float(const char* expr, const char* expected, va_list ap, int* resu
 }
 
 void
-__mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected, 
-                  const char* file, unsigned int line, MoonUnitType type, ...)
+__mu_assert_equal(MuTest* test, const char* expr, const char* expected, 
+                  const char* file, unsigned int line, MuType type, ...)
 {
 	int result;
 	char* reason;
@@ -136,7 +136,7 @@ __mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected,
         return;
     else
     {
-        MoonUnitTestSummary summary;
+        MuTestSummary summary;
         
         summary.result = MOON_RESULT_ASSERTION;
         summary.stage = MOON_STAGE_TEST;
@@ -150,9 +150,9 @@ __mu_assert_equal(MoonUnitTest* test, const char* expr, const char* expected,
 }
 
 void
-__mu_success(MoonUnitTest* test)
+__mu_success(MuTest* test)
 {
-    MoonUnitTestSummary summary;
+    MuTestSummary summary;
 
     summary.result = MOON_RESULT_SUCCESS;
     summary.stage = MOON_STAGE_TEST;
@@ -163,10 +163,10 @@ __mu_success(MoonUnitTest* test)
 }
  
 void   
-__mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char* message, ...)
+__mu_failure(MuTest* test, const char* file, unsigned int line, const char* message, ...)
 {
     va_list ap;
-    MoonUnitTestSummary summary;
+    MuTestSummary summary;
 
     va_start(ap, message);
     summary.result = MOON_RESULT_FAILURE;
@@ -179,7 +179,7 @@ __mu_failure(MoonUnitTest* test, const char* file, unsigned int line, const char
     free((void*) summary.reason);
 }
 
-MoonUnitTestMethods Mu_TestMethods =
+MuTestMethods Mu_TestMethods =
 {
     __mu_event,
 	__mu_assert,

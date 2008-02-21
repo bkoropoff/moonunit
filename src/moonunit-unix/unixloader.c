@@ -43,12 +43,12 @@
 
 // Opens a library and returns a handle
 
-struct MoonUnitLibrary
+struct MuLibrary
 {
-    MoonUnitLoader* loader;
+    MuLoader* loader;
 	const char* path;
 	void* dlhandle;
-	MoonUnitTest** tests;
+	MuTest** tests;
 	MuLibrarySetup* library_setup;
     MuLibraryTeardown* library_teardown;
     MuFixtureSetup** fixture_setups;
@@ -94,7 +94,7 @@ test_filter(const char* sym, void *unused)
 }
 
 static void
-test_init(MoonUnitTest* test, MoonUnitLibrary* library)
+test_init(MuTest* test, MuLibrary* library)
 {
     test->loader = library->loader;
     test->library = library;
@@ -104,11 +104,11 @@ test_init(MoonUnitTest* test, MoonUnitLibrary* library)
 static bool
 test_add(symbol* sym, void* _library, MuError **_err)
 {
-    MoonUnitLibrary* library = (MoonUnitLibrary*) _library;	
+    MuLibrary* library = (MuLibrary*) _library;	
 
 	if (!strncmp (MU_TEST_PREFIX, sym->name, strlen(MU_TEST_PREFIX)))
 	{
-		MoonUnitTest* test = (MoonUnitTest*) sym->addr;
+		MuTest* test = (MuTest*) sym->addr;
 		
 		if (test->library)
         {
@@ -116,7 +116,7 @@ test_add(symbol* sym, void* _library, MuError **_err)
         }
 		else
         {
-            library->tests = PTRARRAY_APPEND(library->tests, test, MoonUnitTest*);
+            library->tests = PTRARRAY_APPEND(library->tests, test, MuTest*);
 
             if (!library->tests)
                 MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
@@ -150,7 +150,7 @@ test_add(symbol* sym, void* _library, MuError **_err)
 
 #ifdef HAVE_LIBELF
 static bool
-unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle, MuError ** _err)
+unixloader_scan (MuLoader* _self, MuLibrary* handle, MuError ** _err)
 {
     MuError* err = NULL;
 
@@ -167,7 +167,7 @@ error:
 }
 #else
 static bool
-unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle)
+unixloader_scan (MuLoader* _self, MuLibrary* handle)
 {
 	const char* command;
 	
@@ -180,14 +180,14 @@ unixloader_scan (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 }
 #endif
 
-static MoonUnitLibrary*
-unixloader_open(MoonUnitLoader* _self, const char* path, MuError** _err)
+static MuLibrary*
+unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 {
-	MoonUnitLibrary* library = malloc(sizeof (MoonUnitLibrary));
+	MuLibrary* library = malloc(sizeof (MuLibrary));
     MuError* err = NULL;
     void (*stub_hook)(MuLibrarySetup** ls, MuLibraryTeardown** lt,
                       MuFixtureSetup*** fss, MuFixtureTeardown*** fts,
-                      MoonUnitTest*** ts);
+                      MuTest*** ts);
 
 
     if (!library)
@@ -236,15 +236,15 @@ unixloader_open(MoonUnitLoader* _self, const char* path, MuError** _err)
 	return library;
 }
 
-static MoonUnitTest**
-unixloader_tests (MoonUnitLoader* _self, MoonUnitLibrary* handle)
+static MuTest**
+unixloader_tests (MuLoader* _self, MuLibrary* handle)
 {
 	return handle->tests;
 }
     
 // Returns the library setup routine for handle
-static MoonUnitThunk
-unixloader_library_setup (MoonUnitLoader* _self, MoonUnitLibrary* handle)
+static MuThunk
+unixloader_library_setup (MuLoader* _self, MuLibrary* handle)
 {
     if (handle->library_setup)
     	return handle->library_setup->function;
@@ -252,8 +252,8 @@ unixloader_library_setup (MoonUnitLoader* _self, MoonUnitLibrary* handle)
         return NULL;
 }
 
-static MoonUnitThunk
-unixloader_library_teardown (MoonUnitLoader* _self, MoonUnitLibrary* handle)
+static MuThunk
+unixloader_library_teardown (MuLoader* _self, MuLibrary* handle)
 {
     if (handle->library_teardown)
     	return handle->library_teardown->function;
@@ -261,8 +261,8 @@ unixloader_library_teardown (MoonUnitLoader* _self, MoonUnitLibrary* handle)
         return NULL;
 }
 
-static MoonUnitTestThunk
-unixloader_fixture_setup (MoonUnitLoader* _self, const char* name, MoonUnitLibrary* handle)
+static MuTestThunk
+unixloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
 {
 	unsigned int i;
 	
@@ -277,8 +277,8 @@ unixloader_fixture_setup (MoonUnitLoader* _self, const char* name, MoonUnitLibra
 	return NULL;
 }
 
-static MoonUnitTestThunk
-unixloader_fixture_teardown (MoonUnitLoader* _self, const char* name, MoonUnitLibrary* handle)
+static MuTestThunk
+unixloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handle)
 {
 	unsigned int i;
 	
@@ -294,7 +294,7 @@ unixloader_fixture_teardown (MoonUnitLoader* _self, const char* name, MoonUnitLi
 }
    
 static void
-unixloader_close (MoonUnitLoader* _self, MoonUnitLibrary* handle)
+unixloader_close (MuLoader* _self, MuLibrary* handle)
 {
 	unsigned int i;
 	
@@ -311,12 +311,12 @@ unixloader_close (MoonUnitLoader* _self, MoonUnitLibrary* handle)
 }
 
 static const char*
-unixloader_name (MoonUnitLoader* _self, MoonUnitLibrary* handle)
+unixloader_name (MuLoader* _self, MuLibrary* handle)
 {
 	return basename(handle->path);
 }
 
-MoonUnitLoader mu_unixloader =
+MuLoader mu_unixloader =
 {
     .plugin = NULL,
 	.open = unixloader_open,

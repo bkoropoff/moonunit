@@ -43,7 +43,7 @@ static uipc_typeinfo testsummary_info =
 {
 	1,
 	{
-		UIPC_POINTER(MoonUnitTestSummary, reason, NULL)
+		UIPC_POINTER(MuTestSummary, reason, NULL)
 	}
 };
 
@@ -59,10 +59,10 @@ static uipc_typeinfo logevent_info =
 #define MSG_TYPE_RESULT 0
 #define MSG_TYPE_EVENT 1
 
-static MoonUnitTestStage current_stage;
-static MoonUnitTest* current_test;
+static MuTestStage current_stage;
+static MuTest* current_test;
 
-void unixharness_event(struct MoonUnitHarness* harness, struct MoonUnitTest* test, const MuLogEvent* _event)
+void unixharness_event(struct MuHarness* harness, struct MuTest* test, const MuLogEvent* _event)
 {
     uipc_handle* ipc_handle = test->data;
 
@@ -98,7 +98,7 @@ void unixharness_event(struct MoonUnitHarness* harness, struct MoonUnitTest* tes
     uipc_waitdone(ipc_handle, NULL);
 }
 
-void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUnitTestSummary* _summary)
+void unixharness_result(MuHarness* _self, MuTest* test, const MuTestSummary* _summary)
 {	
 	uipc_handle* ipc_handle = test->data;
 
@@ -109,7 +109,7 @@ void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUn
 
 	uipc_message* message = uipc_msg_new(ipc_handle, MSG_TYPE_RESULT, 2048);
 	
-	MoonUnitTestSummary* summary = uipc_msg_alloc(message, sizeof(MoonUnitTestSummary));
+	MuTestSummary* summary = uipc_msg_alloc(message, sizeof(MuTestSummary));
 	
 	*summary = *_summary;
 	
@@ -132,7 +132,7 @@ void unixharness_result(MoonUnitHarness* _self, MoonUnitTest* test, const MoonUn
 static void
 signal_handler(int sig)
 {
-	MoonUnitTestSummary summary;
+	MuTestSummary summary;
 	
 	summary.result = MOON_RESULT_CRASH;
 	summary.stage = current_stage;
@@ -143,7 +143,7 @@ signal_handler(int sig)
 }
 
 
-void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTestSummary* summary, MuLogCallback cb, void* data)
+void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary, MuLogCallback cb, void* data)
 {
 	int sockets[2];
 	pid_t pid;
@@ -158,7 +158,7 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 
 	if (!(pid = fork()))
 	{
-		MoonUnitTestThunk thunk;
+		MuTestThunk thunk;
 		uipc_handle* ipc_test = uipc_connect(sockets[1]);
 
 		close(sockets[0]);
@@ -200,7 +200,7 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 	else
 	{
 		uipc_handle* ipc_harness = uipc_connect(sockets[0]);
-		MoonUnitTestSummary *_summary;
+		MuTestSummary *_summary;
 		uipc_message* message = NULL;
 		int status;
         UipcStatus uipc_result, uipc_result2;
@@ -287,7 +287,7 @@ void unixharness_dispatch(MoonUnitHarness* _self, MoonUnitTest* test, MoonUnitTe
 	}
 }
 
-pid_t unixharness_debug(MoonUnitHarness* _self, MoonUnitTest* test)
+pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 {
 	int sockets[2];
 	pid_t pid;
@@ -296,7 +296,7 @@ pid_t unixharness_debug(MoonUnitHarness* _self, MoonUnitTest* test)
 	
 	if (!(pid = fork()))
 	{
-		MoonUnitTestThunk thunk;
+		MuTestThunk thunk;
 
 		close(sockets[0]);
 
@@ -331,12 +331,12 @@ pid_t unixharness_debug(MoonUnitHarness* _self, MoonUnitTest* test)
 	}
 }
   
-void unixharness_cleanup (MoonUnitHarness* _self, MoonUnitTestSummary* summary)
+void unixharness_cleanup (MuHarness* _self, MuTestSummary* summary)
 {
 	free((void*) summary->reason);
 }
 
-MoonUnitHarness mu_unixharness =
+MuHarness mu_unixharness =
 {
     .plugin = NULL,
     .event = unixharness_event,

@@ -31,7 +31,7 @@
 #include <string.h>
 
 void
-Mu_Option_SetString(void* obj, MoonUnitOption* option, const char *name, const char* value)
+Mu_Option_SetString(void* obj, MuOption* option, const char *name, const char* value)
 {
     void* data;
     bool boolean;
@@ -42,23 +42,23 @@ Mu_Option_SetString(void* obj, MoonUnitOption* option, const char *name, const c
 
     switch (option->type(obj, name))
     {
-    case 'b':
+    case MU_BOOLEAN:
         boolean = !strcmp(value, "true");
         data = &boolean;
         break;
-    case 'i':
+    case MU_INTEGER:
         integer = atoi(value);
         data = &integer;
         break;
-    case 's':
+    case MU_STRING:
         string = (char*) value;
         data = string;
         break;
-    case 'f':
+    case MU_FLOAT:
         fpoint = atof(value);
         data = &fpoint;
         break;
-    case 'p':
+    case MU_POINTER:
         pointer = (void*) value;
         data = pointer;
         break;
@@ -72,7 +72,7 @@ Mu_Option_SetString(void* obj, MoonUnitOption* option, const char *name, const c
 }
 
 void
-Mu_Option_Setv(void* obj, MoonUnitOption* option, const char *name, va_list ap)
+Mu_Option_Setv(void* obj, MuOption* option, const char *name, va_list ap)
 {
     void* data;
     bool boolean;
@@ -83,23 +83,23 @@ Mu_Option_Setv(void* obj, MoonUnitOption* option, const char *name, va_list ap)
 
     switch (option->type(obj, name))
     {
-    case 'b':
+    case MU_BOOLEAN:
         boolean = va_arg(ap, int);
         data = &boolean;
         break;
-    case 'i':
+    case MU_INTEGER:
         integer = va_arg(ap, int);
         data = &integer;
         break;
-    case 's':
+    case MU_STRING:
         string = va_arg(ap, char*);
         data = string;
         break;
-    case 'f':
+    case MU_FLOAT:
         fpoint = va_arg(ap, double);
         data = &fpoint;
         break;
-    case 'p':
+    case MU_POINTER:
         pointer = va_arg(ap, void*);
         data = pointer;
         break;
@@ -113,7 +113,7 @@ Mu_Option_Setv(void* obj, MoonUnitOption* option, const char *name, va_list ap)
 }
 
 void
-Mu_Option_Set(void* obj, MoonUnitOption* option, const char *name, ...)
+Mu_Option_Set(void* obj, MuOption* option, const char *name, ...)
 {
     va_list ap;
 
@@ -126,13 +126,13 @@ Mu_Option_Set(void* obj, MoonUnitOption* option, const char *name, ...)
 
 
 const void*
-Mu_Option_Get(void* obj, MoonUnitOption* option, const char* name)
+Mu_Option_Get(void* obj, MuOption* option, const char* name)
 {
     return option->get(obj, name);
 }
 
-MoonUnitType
-Mu_Option_Type(void* obj, MoonUnitOption* option, const char* name)
+MuType
+Mu_Option_Type(void* obj, MuOption* option, const char* name)
 {
     return option->type(obj, name);
 }

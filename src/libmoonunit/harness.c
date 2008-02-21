@@ -28,7 +28,7 @@
 #include <moonunit/harness.h>
 
 const char*
-Mu_TestResultToString(MoonUnitTestResult result)
+Mu_TestResultToString(MuTestResult result)
 {
 	switch (result)
 	{
@@ -46,7 +46,7 @@ Mu_TestResultToString(MoonUnitTestResult result)
 }
 
 const char*
-Mu_TestStageToString(MoonUnitTestStage stage)
+Mu_TestStageToString(MuTestStage stage)
 {
 	switch (stage)
 	{

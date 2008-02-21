@@ -28,31 +28,14 @@
 #ifndef __MU_TYPE_H__
 #define __MU_TYPE_H__
 
-typedef char MoonUnitType;
-
-/**
- * @brief Integer type token
- *
- * Specifies that the arguments of an equality assertion are integers
- */
-#define MU_INTEGER 'i'
-/**
- * @brief String type token
- *
- * Specifies that the arguments of an equality assertion are strings
- */
-#define MU_STRING  's'
-/**
- * @brief Float type token
- *
- * Specifies that the arguments of an equality assertion are floats
- */
-#define MU_FLOAT   'f'
-
-#define MU_POINTER 'p'
-
-#define MU_BOOLEAN 'b'
-
-#define MU_UNKNOWN_TYPE '\0'
+typedef enum MuType
+{
+    MU_INTEGER,
+    MU_STRING,
+    MU_FLOAT,
+    MU_BOOLEAN,
+    MU_POINTER,
+    MU_UNKNOWN_TYPE    
+}MuType;
 
 #endif

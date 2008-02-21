@@ -56,7 +56,7 @@ function emit_test_prototypes()
     local symbol;
     for symbol in "$@"
     do
-        echo "extern MoonUnitTest ${symbol};"
+        echo "extern MuTest ${symbol};"
     done
 }
 
@@ -107,7 +107,7 @@ function emit_stub_hook()
     cat << __PRE__
 void __mu_stub_hook(MuLibrarySetup** ls, MuLibraryTeardown** lt,
                     MuFixtureSetup*** fss, MuFixtureTeardown*** fts,
-                    MoonUnitTest*** ts)
+                    MuTest*** ts)
 {
 __PRE__
 
@@ -137,7 +137,7 @@ __PRE__
 
     echo
 
-    echo "    static MoonUnitTest* tests[] ="
+    echo "    static MuTest* tests[] ="
     echo "    {"
     
     for symbol in $tests
@@ -208,9 +208,9 @@ function usage()
 {
     name=`basename $1`
     cat << __EOF__
-$name -- MoonUnit test loading stub generator
+$name -- Mu test loading stub generator
 
-  This script scans C source code files for MoonUnit unit tests
+  This script scans C source code files for Mu unit tests
   and generates a test loading stub.  This stub allows MoonUnit
   to load unit tests without scanning symbols in your library
   at runtime (an operation which is highly platform-dependent

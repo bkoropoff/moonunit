@@ -43,11 +43,11 @@
 
 typedef struct UnixRunner
 {
-    MoonUnitRunner base;
+    MuRunner base;
 
-	MoonUnitLoader* loader;
-	MoonUnitHarness* harness;
-	MoonUnitLogger* logger;
+	MuLoader* loader;
+	MuHarness* harness;
+	MuLogger* logger;
     const char* self;
 
     struct 
@@ -58,8 +58,8 @@ typedef struct UnixRunner
 
 static int test_compare(const void* _a, const void* _b)
 {
-	MoonUnitTest* a = *(MoonUnitTest**) _a;
-	MoonUnitTest* b = *(MoonUnitTest**) _b;
+	MuTest* a = *(MuTest**) _a;
+	MuTest* b = *(MuTest**) _b;
 	int result;
 	
 	if ((result = strcmp(a->suite, b->suite)))
@@ -68,7 +68,7 @@ static int test_compare(const void* _a, const void* _b)
 		return (a == b) ? 0 : ((a < b) ? -1 : 1);
 }
 
-static unsigned int test_count(MoonUnitTest** tests)
+static unsigned int test_count(MuTest** tests)
 {
 	unsigned int result;
 	
@@ -115,14 +115,14 @@ static const void *UnixRunner_OptionGet(void* _runner, const char* name)
     }
 }
 
-static MoonUnitOption unixrunner_option =
+static MuOption unixrunner_option =
 {
     .set = UnixRunner_OptionSet,
     .get = UnixRunner_OptionGet,
     .type = UnixRunner_OptionType
 };
 
-static bool in_set(MoonUnitTest* test, int setc, char** set)
+static bool in_set(MuTest* test, int setc, char** set)
 {
     unsigned int i;
 
@@ -150,7 +150,7 @@ static bool in_set(MoonUnitTest* test, int setc, char** set)
 
 static void event_proxy_cb(MuLogEvent* event, void* data)
 {
-    MoonUnitLogger* logger = (MoonUnitLogger*) data;
+    MuLogger* logger = (MuLogger*) data;
 
     logger->test_log(logger, event);
 }
@@ -159,18 +159,18 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path,
                            int setc, char** set, MuError** _err)
 {
     MuError* err = NULL;
-   	MoonUnitLibrary* library = runner->loader->open(runner->loader, path, &err);
+   	MuLibrary* library = runner->loader->open(runner->loader, path, &err);
 
     if (err)
     {
         MU_RERAISE_GOTO(error, _err, err);
     }
 
-    MoonUnitLogger* logger = runner->logger;
+    MuLogger* logger = runner->logger;
 
 	logger->library_enter(logger, basename(path));
 	
-	MoonUnitTest** tests = runner->loader->tests(runner->loader, library);
+	MuTest** tests = runner->loader->tests(runner->loader, library);
 	
     /* FIXME: it's probably not ok to sort this array in place since
      * it's owned by the loader.  It might be worthwhile to change the
@@ -181,15 +181,15 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path,
 	
 	unsigned int index;
 	const char* current_suite = NULL;
-	MoonUnitThunk thunk;
+	MuThunk thunk;
 	
 	if ((thunk = runner->loader->library_setup(runner->loader, library)))
 		thunk();
 	
 	for (index = 0; tests[index]; index++)
 	{
-		MoonUnitTestSummary summary;
-		MoonUnitTest* test = tests[index];
+		MuTestSummary summary;
+		MuTest* test = tests[index];
         
         if (set != NULL && !in_set(test, setc, set))
             continue;
@@ -244,19 +244,19 @@ error:
 
 }
 
-static void UnixRunner_RunSet(MoonUnitRunner* _runner, const char* path, 
+static void UnixRunner_RunSet(MuRunner* _runner, const char* path, 
                               int setc, char** set, MuError** _err)
 {
     UnixRunner_Run((UnixRunner*) _runner, path, setc, set, _err);
 }
 
-static void UnixRunner_RunAll(MoonUnitRunner* _runner, const char* path, MuError** _err)
+static void UnixRunner_RunAll(MuRunner* _runner, const char* path, MuError** _err)
 {
     UnixRunner_Run((UnixRunner*) _runner, path, 0, NULL, _err);
 }
 
-MoonUnitRunner*
-Mu_UnixRunner_Create(const char* self, MoonUnitLoader* loader, MoonUnitHarness* harness, MoonUnitLogger* logger)
+MuRunner*
+Mu_UnixRunner_Create(const char* self, MuLoader* loader, MuHarness* harness, MuLogger* logger)
 {
 	UnixRunner* runner = malloc(sizeof(*runner));
 
@@ -271,11 +271,11 @@ Mu_UnixRunner_Create(const char* self, MoonUnitLoader* loader, MoonUnitHarness* 
 
     runner->option.gdb = false;
 
-	return (MoonUnitRunner*) runner;
+	return (MuRunner*) runner;
 }
 
 void
-Mu_UnixRunner_Destroy(MoonUnitRunner* _runner)
+Mu_UnixRunner_Destroy(MuRunner* _runner)
 {
     UnixRunner* runner = (UnixRunner*) _runner;
 

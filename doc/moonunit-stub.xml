@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!-- lifted from troff+man by doclifter -->
+<refentry id='moonunit-stub.1'>
+<refmeta>
+<refentrytitle>MOONUNIT-STUB</refentrytitle>
+<manvolnum>1</manvolnum>
+<refmiscinfo class='source'>February 2008</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>moonunit-stub</refname>
+<refpurpose>Generates MoonUnit test loading stubs</refpurpose>
+</refnamediv>
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+<cmdsynopsis>
+  <command>moonunit</command>    <arg choice='opt'>-o <replaceable>file</replaceable></arg>
+    <arg choice='opt' rep='repeat'><replaceable>name=value</replaceable></arg>
+    <arg choice='plain' rep='repeat'><replaceable>&lt;sources</replaceable></arg>
+    <arg>&gt;</arg>
+</cmdsynopsis>
+</refsynopsisdiv>
+
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para><emphasis remap='B'>moonunit-stub</emphasis> scans C and C++ source files for
+<emphasis remap='B'>MoonUnit</emphasis> unit tests and generates a C stub file
+which assists the default test loader.  Scanned files
+are first processed by the C preprocessor as specified
+by the CPP and CPPFLAGS environment variables.</para>
+
+</refsect1>
+
+<refsect1 id='rationale'><title>RATIONALE</title>
+<para>Ordinarily, the default <emphasis remap='B'>MoonUnit</emphasis> test loader depends
+on the availability of symbol information read from
+a shared library to locate and access all unit tests.
+This symbol scanning process is highly platform-dependent
+and suffers from other limitations besides portability --
+unit tests must be located in a shared, dlopen-able library
+and have publically-visible symbols (barring clever hacks
+available on some platforms).  These limitations are not
+an issue if the unit tests in question are in a separate
+compilation unit and excercise a well-defined public
+interface in the code to be tested -- however, unit tests
+within the same compliation unit would not be feasible
+in this scenario.</para>
+
+<para>By scanning the source code for unit tests prior to compilation,
+<emphasis remap='B'>moonunit-stub</emphasis> skirts portability issues and also allows
+more flexibility in build organization.  For example, unit tests
+may be present as non-public symbols in a static library; the
+the generated stub code, however, can be compiled into a loadable
+module that links against it.</para>
+</refsect1>
+
+<refsect1 id='options'><title>OPTIONS</title>
+<para><emphasis remap='B'>moonunit-stub</emphasis> expects one or more C or C++ source files
+to be specified as arguments.</para>
+
+<para>In addition, the following options are available:</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><option>-o</option>&nbsp;<emphasis remap='I'>file</emphasis></term>
+  <listitem>
+<para>Write the generated stub to <emphasis remap='I'>file</emphasis>.  By default, the
+stub is written to stdout.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><option>-?</option></term>
+  <listitem>
+<para>Lists brief usage and option information and exits.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><option>--help</option></term>
+  <listitem>
+<para>Equivalent to <option>-?</option></para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>name</emphasis><emphasis remap='B'>=</emphasis><emphasis remap='I'>value</emphasis></term>
+  <listitem>
+<para>Sets an environment variable for the duration of this
+script.  This provides a convenient shorthand for
+setting variables such as CPPFLAGS.  See the ENVIRONMENT
+section for more details.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='environment'><title>ENVIRONMENT</title>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term>CPP</term>
+  <listitem>
+<para>The C preprocessor which will be invoked to process source
+files before scanning for unit tests.  Defaults to <emphasis remap='B'>cpp</emphasis>.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>CPPFLAGS</term>
+  <listitem>
+<para>Additional arguments which will be passed to the C preprocessor.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='examples'><title>EXAMPLES</title>
+<variablelist remap='TP'>
+  <varlistentry>
+  <term>moonunit-stub foo.c bar.c</term>
+  <listitem>
+
+<para>Scan foo.c and bar.c for unit tests and write the resulting
+stub to stdout.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term>moonunit-stub -o stub.c bob.c CPP="gcc -E</term>
+  <listitem>
+
+<para>Scan bob.c for tests and write the resulting stub to stub.c;
+invokes <userinput>gcc -E</userinput> to preprocess source files.</para>
+
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='copyright'><title>COPYRIGHT</title>
+<para>Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.</para>
+
+<para>Redistribution in source and binary form is permitted under
+the terms of the 3-clause BSD license.  See COPYING in the
+documentation or source distribution for details.</para>
+</refsect1>
+
+<refsect1 id='seealso'><title>SEE&nbsp;ALSO</title>
+<para><citerefentry><refentrytitle>moonunit-lt</refentrytitle><manvolnum>1</manvolnum></citerefentry>, <citerefentry><refentrytitle>moonunit</refentrytitle><manvolnum>1</manvolnum></citerefentry>, <citerefentry><refentrytitle>moonunit-strip</refentrytitle><manvolnum>1</manvolnum></citerefentry></para>
+</refsect1>
+</refentry>
+

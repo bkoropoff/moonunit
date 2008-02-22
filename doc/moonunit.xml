@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+          "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<refentry id='moonunit.1'>
+  <refmeta>
+    <refentrytitle>moonunit</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+  <refnamediv id='name'>
+    <refname>moonunit</refname>
+    <refpurpose>Run MoonUnit unit tests in shared libraries</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>moonunit</command>
+      <arg choice='opt'><replaceable class='option'>options</replaceable></arg>
+      <arg choice='plain' rep='repeat'><replaceable class='parameter'>libraries</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  
+  <refsect1 id='description'>
+    <title>Description</title>
+    <para>
+      <command>moonunit</command> detects, loads and invokes 
+      <emphasis>MoonUnit</emphasis> unit tests in dynamic shared
+      libraries.  By default, test results are formatted and printed
+      to the console in real time, but an alternate logging plugin
+      may optionally be specified.
+    </para>
+  </refsect1>
+  
+  <refsect1 id='options'>
+    <title>Options</title>
+    <para>
+      <command>moonunit</command> expects one or more shared libraries
+      containing unit tests to be specified as arguments.
+    </para> 
+    <para>
+      In addition, the following options are available:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term><option>-s</option> <replaceable>suite</replaceable></term>
+        <term><option>--suite</option> <replaceable>suite</replaceable></term>
+        <listitem>
+          <para>
+            Runs all tests in <replaceable>suite</replaceable>.
+            This option may be specified multiple times to run tests in
+            multiple suites.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-t</option> <replaceable>suite</replaceable><literal>/</literal><replaceable>name</replaceable></term>
+        <term><option>--test</option> <replaceable>suite</replaceable><literal>/</literal><replaceable>name</replaceable></term>
+        <listitem>
+          <para>
+            Runs the test named <replaceable>name</replaceable> in
+            suite <replaceable>suite</replaceable>.  This option may be
+            specified multiple times to run multiple different tests.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-a</option></term>
+        <term><option>--all</option></term>
+        <listitem>
+          <para>
+            Run all tests in all suites.  This is the default behavior
+            if no instances of <option>-s</option> or <option>-t</option>
+            are specified.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-g</option></term>
+        <term><option>--gdb</option></term>
+        <listitem>
+          <para>
+            Interactively trace failed tests in <emphasis>GDB</emphasis>,
+            the GNU debugger. Each test that fails will immediately be 
+            rerun inside a GDB session with a breakpoint set at the line
+            or function nearest to the failure.  After leaving the
+            <emphasis>GDB</emphasis> session, <command>moonunit</command>
+            will resume at the next unit test.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-l</option> <replaceable>name</replaceable></term>
+        <term><option>--logger=</option><replaceable>name</replaceable></term>
+        <listitem>
+          <para>
+            Attempts to load and use the logger plugin <replaceable>name</replaceable>.
+            The default logger plugin is "console", which neatly formats and prints 
+            test results to stdout.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-o</option>
+          <replaceable>component</replaceable><literal>.</literal><replaceable>option</replaceable><literal>:</literal><replaceable>value</replaceable></term>
+        <term><option>--option</option>
+          <replaceable>component</replaceable><literal>.</literal><replaceable>option</replaceable><literal>:</literal><replaceable>value</replaceable></term>
+        <listitem>
+          <para>
+            Sets an option for a particular test component, such as
+            the logger or test runner.  These options are largely
+            plugin-specific, although most plugins honor a standard
+            set of common options.
+          </para>
+          <para>
+            <replaceable>component</replaceable> may be one of "logger" or
+            "runner", with <replaceable>option</replaceable> and
+            <replaceable>value</replaceable> being the option name and value
+            to set on the plugin filling that particular role.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-?</option></term>
+        <term><option>-h</option></term>
+        <term><option>--help</option></term>
+        <listitem>
+          <para>
+            Lists brief usage and option information and exits.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  
+  <refsect1 id='examples'><title>Examples</title>
+    <variablelist>
+      <varlistentry>
+        <term><literal>moonunit library1.so library2.so</literal></term>
+        <listitem>
+          <para>
+            Run all unit tests in <literal>library1.so</literal> and
+            <literal>library2.so</literal>, printing results to the console.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>moonunit -t Foo/bar -g library.so</literal>
+        </term>
+        <listitem>
+          <para>
+            Run test <literal>bar</literal> in the suite <literal>Foo</literal>
+            in <literal>library.so</literal> and trace any failures in <emphasis>GDB</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>moonunit -o logger.ansi:false library.so</literal></term>
+        <listitem>
+          <para>
+            Run all tests in <literal>library.so</literal>, printing results to the console without
+            ANSI color or fonts codes.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>moonunit -l xml library.so</literal></term>
+        <listitem>
+          <para>
+            Run all tests in <literal>library.so</literal>, printing an XML-formatted test summary
+            suitable for postprocessing (e.g. with an XSLT stylesheet) to stdout.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1 id='copyright'><title>Copyright</title>
+    <para>Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.</para>
+    
+    <para>
+      Redistribution in source and binary form is permitted under
+      the terms of the 3-clause BSD license.  See COPYING in the
+      documentation or source distribution for details.
+    </para>
+  </refsect1>
+  
+  <refsect1 id='seealso'><title>SEE ALSO</title>
+    <para>
+      <citerefentry><refentrytitle>moonunit-lt</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>moonunit-stub</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>moonunit-strip</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+    </para>
+  </refsect1>
+</refentry>
+

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!-- lifted from troff+man by doclifter -->
+<refentry id='moonunit-strip.1'>
+<refmeta>
+<refentrytitle>MOONUNIT-STRIP</refentrytitle>
+<manvolnum>1</manvolnum>
+<refmiscinfo class='source'>February 2008</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>moonunit-strip</refname>
+<refpurpose>Removes MoonUnit tests from libraries and object files</refpurpose>
+</refnamediv>
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+<cmdsynopsis>
+  <command>moonunit</command>    <arg choice='opt'><replaceable>options</replaceable></arg>
+    <arg choice='plain' rep='repeat'><replaceable>file1</replaceable></arg>
+    
+</cmdsynopsis>
+</refsynopsisdiv>
+
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para><emphasis remap='B'>moonunit-strip</emphasis> removes <emphasis remap='B'>MoonUnit</emphasis> function and
+data sections from libraries, executables and object files
+and strips related symbols, effectively excising all unit tests
+from a binary.</para>
+
+<para>This permits unit tests to be compiled directly into
+libraries and executables, run, and subsequently stripped,
+yielding a binary suitable for distribution.</para>
+
+</refsect1>
+
+<refsect1 id='options'><title>OPTIONS</title>
+<para><emphasis remap='B'>moonunit-strip</emphasis> expects one or more shared library,
+static library, dynamic module, or object files to be
+specified as arguments.</para> 
+
+<para>In addition, the following options are available:</para>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><option>-?</option>,&nbsp;<option>-h</option></term>
+  <listitem>
+<para>Lists brief usage and option information and exits.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><option>--help</option></term>
+  <listitem>
+<para>Equivalent to <option>-?</option> and <option>-h</option></para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='caveats'><title>CAVEATS</title>
+<para>Relocations will typically prevent symbols from being
+stripped in intermediate files such as static libraries
+and object files; however, the data and functions
+themselves will be removed, and the vestigal symbols
+should be cleaned up by ordinary stripping of the final
+library or executable.</para>
+
+<para>If a shared library was compiled with publically-visible
+unit tests (that is, present in the dynamic symbol table),
+the symbols cannot be stripped.  To allow stripping, define
+<emphasis remap='B'>MU_HIDE_TESTS</emphasis> before including <emphasis remap='B'>moonunit/test.h</emphasis>
+or as part of your compiler invocation.  Note that on ELF
+systems, <command>moonunit</command> will still generally be able to
+locate unit tests in shared libraries even if they are
+hidden in this manner; other platforms may require the use
+of <citerefentry><refentrytitle>moonunit-stub</refentrytitle><manvolnum>1</manvolnum></citerefentry> to allow the loader access to
+hidden tests.</para>
+
+<para><emphasis remap='B'>moonunit-strip</emphasis> requires GNU <emphasis remap='B'>objcopy</emphasis>.</para>
+
+</refsect1>
+
+<refsect1 id='examples'><title>EXAMPLES</title>
+<variablelist remap='TP'>
+  <varlistentry>
+  <term>moonunit-strip library.so</term>
+  <listitem>
+
+<para>Remove all unit test data and functions as well as strippable
+unit test symbols from library.so.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</refsect1>
+
+<refsect1 id='copyright'><title>COPYRIGHT</title>
+<para>Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.</para>
+
+<para>Redistribution in source and binary form is permitted under
+the terms of the 3-clause BSD license.  See COPYING in the
+documentation or source distribution for details.</para>
+</refsect1>
+
+<refsect1 id='seealso'><title>SEE&nbsp;ALSO</title>
+<para><citerefentry><refentrytitle>moonunit</refentrytitle><manvolnum>1</manvolnum></citerefentry>, <citerefentry><refentrytitle>moonunit-lt</refentrytitle><manvolnum>1</manvolnum></citerefentry>, <citerefentry><refentrytitle>moonunit-stub</refentrytitle><manvolnum>1</manvolnum></citerefentry></para>
+</refsect1>
+</refentry>
+

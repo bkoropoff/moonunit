@@ -3,7 +3,5 @@
 		xmlns:html="http://www.w3.org/1999/xhtml"
 		version="1.0">
   <xsl:import href="@DOCBOOK_XSL_DIR@/xhtml/profile-chunk.xsl"/>
-  <xsl:template name="generate.citerefentry.link">
-    <xsl:value-of select="refentrytitle"/>.<xsl:value-of select="manvolnum"/>.html
-  </xsl:template>
+  <xsl:template name="generate.citerefentry.link"><xsl:value-of select="refentrytitle"/>.html</xsl:template>
 </xsl:stylesheet>

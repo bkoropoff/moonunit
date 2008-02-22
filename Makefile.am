@@ -1,10 +1,6 @@
 AUTOMAKE_OPTIONS= foreign
 
-SUBDIRS = src include man
-
-if HAVE_DOXYGEN
-SUBDIRS += doc
-endif
+SUBDIRS = src include doc
 
 CHECK_PLUGINS= \
 	--plugin $(top_builddir)/src/moonunit-unix/unix.la \

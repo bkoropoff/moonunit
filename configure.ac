@@ -120,20 +120,38 @@ AC_SUBST(POPT_LIBADD)
 LDFLAGS=$saved_LDFLAGS
 CPPFLAGS=$saved_CPPFLAGS
 			 
-
+HAVE_DOXYGEN=no
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [false])
+AM_CONDITIONAL([HAVE_DOXYGEN], [test x"$DOXYGEN" != x"false" && HAVE_DOXYGEN=yes])
 
-AM_CONDITIONAL([HAVE_DOXYGEN], [test x"$DOXYGEN" != x"false"])
+HAVE_DOCBOOK=no
+AC_CHECK_PROG([XSLTPROC], [xsltproc], [xsltproc], [false])
+
+AC_MSG_CHECKING([DocBook XSL stylesheet directory])
+DOCBOOK_SEARCH_PATH="/usr/share/xml/docbook/stylesheet/nwalsh"
+
+for path in ${DOCBOOK_SEARCH_PATH}
+do
+	if test -d "$path"
+	then
+		DOCBOOK_XSL_DIR="$path"
+	fi
+done
+
+if test x"${DOCBOOK_XSL_DIR}" = x
+then
+	AC_MSG_RESULT(not found)
+else
+	AC_MSG_RESULT($DOCBOOK_XSL_DIR)
+fi
+
+AC_SUBST(DOCBOOK_XSL_DIR)
+AM_CONDITIONAL([HAVE_DOCBOOK], [test x"$XSLTPROC" != x"false" -a x"$DOCBOOK_XSL_DIR" != x && HAVE_DOCBOOK=yes])
 
 AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile
 		include/Makefile include/moonunit/Makefile src/libuipc/Makefile
 	  	src/moonunit-unix/Makefile src/moonunit-misc/Makefile include/uipc/Makefile
-        man/Makefile])
-
-if test x"$DOXYGEN" != x"false"
-then
-	AC_CONFIG_FILES([doc/Makefile doc/Doxyfile])
-fi
+		doc/Makefile doc/Doxyfile doc/docbook-html.xsl doc/docbook-man.xsl])
 
 AC_OUTPUT
 
@@ -142,4 +160,6 @@ echo ""
 echo "Configuration summary"
 echo
 echo "Backend:               $BACKEND"
+echo "DocBook documentation: $HAVE_DOCBOOK"
+echo "Doxygen documentation: $HAVE_DOXYGEN"
 echo ""

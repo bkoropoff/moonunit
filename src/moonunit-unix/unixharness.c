@@ -142,7 +142,6 @@ signal_handler(int sig)
 	current_test->harness->result(current_test->harness, current_test, &summary);
 }
 
-
 void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary, MuLogCallback cb, void* data)
 {
 	int sockets[2];

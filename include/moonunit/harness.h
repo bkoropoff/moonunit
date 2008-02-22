@@ -76,7 +76,7 @@ typedef struct MuLogEvent
     const char* message;
 } MuLogEvent;
 
-typedef (*MuLogCallback)(MuLogEvent* event, void* data);
+typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 
 typedef struct MuHarness
 {
@@ -94,7 +94,7 @@ typedef struct MuHarness
 
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.
-    void (*dispatch)(struct MuHarness*, struct MuTest*, MuTestSummary*, MuLogCallback*, void*);
+    void (*dispatch)(struct MuHarness*, struct MuTest*, MuTestSummary*, MuLogCallback, void*);
 
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by

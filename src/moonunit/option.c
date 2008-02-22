@@ -240,7 +240,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
 }
 
 int 
-Option_ApplyToLogger(OptionTable* option, struct MoonUnitLogger* logger)
+Option_ApplyToLogger(OptionTable* option, struct MuLogger* logger)
 {
     unsigned int index;
 

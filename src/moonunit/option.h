@@ -25,10 +25,10 @@ typedef struct
     poptContext context;
 } OptionTable;
 
-struct MoonUnitLogger;
+struct MuLogger;
 
 int Option_Parse(int argc, char** argv, OptionTable* option);
-int Option_ApplyToLogger(OptionTable* option, struct MoonUnitLogger* logger);
+int Option_ApplyToLogger(OptionTable* option, struct MuLogger* logger);
 void Option_Release(OptionTable* option);
 
 #endif

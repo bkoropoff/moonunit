@@ -119,6 +119,8 @@ AC_SUBST(POPT_LIBADD)
 
 LDFLAGS=$saved_LDFLAGS
 CPPFLAGS=$saved_CPPFLAGS
+
+CFLAGS="$CFLAGS -Wall -Werror"
 			 
 HAVE_DOXYGEN=no
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [false])

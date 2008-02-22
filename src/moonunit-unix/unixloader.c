@@ -296,8 +296,6 @@ unixloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handl
 static void
 unixloader_close (MuLoader* _self, MuLibrary* handle)
 {
-	unsigned int i;
-	
 	dlclose(handle->dlhandle);
 	free((void*) handle->path);
 

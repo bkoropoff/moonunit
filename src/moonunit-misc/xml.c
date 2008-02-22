@@ -29,6 +29,7 @@
 #include <moonunit/logger.h>
 #include <moonunit/harness.h>
 #include <moonunit/test.h>
+#include <moonunit/util.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -113,7 +114,7 @@ static void test_leave(MuLogger* _self,
 	switch (summary->result)
 	{
 		case MOON_RESULT_SUCCESS:
-            fprintf(out, "      <result status=\"pass\" />\n", test->name);
+            fprintf(out, "      <result status=\"pass\" />\n");
 			break;
 		case MOON_RESULT_FAILURE:
 		case MOON_RESULT_ASSERTION:

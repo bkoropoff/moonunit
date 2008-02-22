@@ -77,7 +77,8 @@ static unsigned int test_count(MuTest** tests)
 	return result;
 }
 
-static char UnixRunner_OptionType(void* _runner, const char* name)
+static MuType
+UnixRunner_OptionType(void* _runner, const char* name)
 {
     if (!strcmp(name, "gdb"))
     {
@@ -89,7 +90,8 @@ static char UnixRunner_OptionType(void* _runner, const char* name)
     }
 }
 
-static void UnixRunner_OptionSet(void* _runner, const char* name, void* _value)
+static void
+UnixRunner_OptionSet(void* _runner, const char* name, void* _value)
 {
     UnixRunner* runner = (UnixRunner*) _runner;
 
@@ -101,7 +103,8 @@ static void UnixRunner_OptionSet(void* _runner, const char* name, void* _value)
     }
 }
 
-static const void *UnixRunner_OptionGet(void* _runner, const char* name)
+static const void *
+UnixRunner_OptionGet(void* _runner, const char* name)
 {
     UnixRunner* runner = (UnixRunner*) _runner;
 

@@ -122,14 +122,19 @@ __mu_assert_equal(MuTest* test, const char* expr, const char* expected,
 	
 	switch (type)
 	{
-		case MU_INTEGER:
-			assert_equal_integer(expr, expected, ap, &result, &reason);
-			break;
-		case MU_STRING:
-			assert_equal_string(expr, expected, ap, &result, &reason);
-			break;
-		case MU_FLOAT:
-			assert_equal_float(expr, expected, ap, &result, &reason);
+    case MU_INTEGER:
+        assert_equal_integer(expr, expected, ap, &result, &reason);
+        break;
+    case MU_STRING:
+        assert_equal_string(expr, expected, ap, &result, &reason);
+        break;
+    case MU_FLOAT:
+        assert_equal_float(expr, expected, ap, &result, &reason);
+    case MU_POINTER:
+    case MU_BOOLEAN:
+    case MU_UNKNOWN_TYPE:
+        result = 0;
+        break;
 	}
 	
     if (result)

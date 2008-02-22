@@ -40,6 +40,8 @@
  */
 /*@{*/
 
+/*@}*/
+
 #ifndef __MU_TEST_H__
 #define __MU_TEST_H__
 
@@ -76,8 +78,6 @@
  * library and fixture setup and teardown routines.
  */
 /*@{*/
-
-/*@}*/
 
 /**
  * @brief Defines a unit test

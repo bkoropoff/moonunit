@@ -1,5 +1,9 @@
 HTML_TARGETS =
 HTML_INSTALL_TARGETS =
+DOCBOOK_XML = index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml moonunit-strip.xml
+DOCBOOK_XML_INDEXLESS = $(DOCBOOK_XML:index.xml=)
+DOCBOOK_HTML = $(DOCBOOK_XML:.xml=.html)
+DOCBOOK_MAN = $(DOCBOOK_XML_INDEXLESS:.xml=.1)
 
 if HAVE_DOXYGEN
 HTML_TARGETS += doc-doxygen
@@ -9,26 +13,31 @@ html/index.html: Doxyfile @top_srcdir@/include/moonunit/test.h
 	( cat $<; echo GENERATE_HTML=yes ) | $(DOXYGEN) -
 
 doc-doxygen: html/index.html
+
+install-doc-doxygen:
+	mkdir -p $(DESTDIR)$(htmldir)/api
+	cp html/* $(DESTDIR)$(htmldir)/api
 endif
 
 if HAVE_DOCBOOK
-man_MANS = moonunit.1 moonunit-lt.1 moonunit-stub.1 moonunit-strip.1
+man_MANS = $(DOCBOOK_MAN)
 HTML_TARGETS += doc-docbook-html
+HTML_INSTALL_TARGETS += install-doc-docbook-html
 
-index.html moonunit-lt.1.html moonunit-stub.1.html moonunit-strip.1.html: index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml moonunit-strip.xml docbook-html.xsl
+$(DOCBOOK_HTML): $(DOCBOOK_XML) docbook-html.xsl
 	$(XSLTPROC) --param citerefentry.link 1 --param use.id.as.filename 1 --xinclude docbook-html.xsl @srcdir@/index.xml
 
-doc-docbook-html: index.html
+doc-docbook-html: $(DOCBOOK_HTML)
+
+install-doc-docbook-html:
+	mkdir -p $(DESTDIR)$(htmldir)/tools
+	cp $(DOCBOOK_HTML) $(DESTDIR)$(htmldir)/tools
 endif
 
 html-local: $(HTML_TARGETS)
 
-moonunit.1 moonunit-lt.1 moonunit-stub.1 moonunit-strip.1: index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml moonunit-strip.xml docbook-man.xsl
+$(DOCBOOK_MAN): $(DOCKBOOK_XML) docbook-man.xsl
 	$(XSLTPROC) --xinclude docbook-man.xsl @srcdir@/index.xml
-
-install-doc-doxygen:
-	mkdir -p $(DESTDIR)$(htmldir)
-	cp -r html $(DESTDIR)$(htmldir)
 
 install-html-local: $(HTML_INSTALL_TARGETS)
 

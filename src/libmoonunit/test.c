@@ -133,7 +133,9 @@ __mu_assert_equal(MuTest* test, const char* expr, const char* expected,
     case MU_POINTER:
     case MU_BOOLEAN:
     case MU_UNKNOWN_TYPE:
+    default:
         result = 0;
+        reason = format("Unsupported type in equality assertion");
         break;
 	}
 	

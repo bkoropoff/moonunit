@@ -153,7 +153,8 @@ AM_CONDITIONAL([HAVE_DOCBOOK], [test x"$XSLTPROC" != x"false" -a x"$DOCBOOK_XSL_
 AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile
 		include/Makefile include/moonunit/Makefile src/libuipc/Makefile
 	  	src/moonunit-unix/Makefile src/moonunit-misc/Makefile include/uipc/Makefile
-		doc/Makefile doc/Doxyfile doc/docbook-html.xsl doc/docbook-man.xsl])
+		doc/Makefile doc/Doxyfile doc/docbook-html.xsl doc/docbook-man.xsl
+		extra/Makefile])
 
 AC_OUTPUT
 

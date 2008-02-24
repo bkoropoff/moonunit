@@ -57,7 +57,7 @@ struct MuLibrary
 };
 
 /* Some stupid helper functions */
-
+#ifdef HAVE_LIBELF
 static unsigned int
 PtrArray_Length(void** array)
 {
@@ -87,11 +87,7 @@ PtrArray_Append(void** array, void* element)
 
 #define PTRARRAY_APPEND(array, element, type) ((type*) PtrArray_Append((void **) (array), (type) element))
 
-static bool
-test_filter(const char* sym, void *unused)
-{
-	return !strncmp("__mu_", sym, strlen("__mu_"));
-}
+#endif
 
 static void
 test_init(MuTest* test, MuLibrary* library)
@@ -99,6 +95,14 @@ test_init(MuTest* test, MuLibrary* library)
     test->loader = library->loader;
     test->library = library;
     test->methods = &Mu_TestMethods;
+}
+
+#ifdef HAVE_LIBELF
+
+static bool
+test_filter(const char* sym, void *unused)
+{
+	return !strncmp("__mu_", sym, strlen("__mu_"));
 }
 
 static bool
@@ -148,7 +152,6 @@ test_add(symbol* sym, void* _library, MuError **_err)
     return true;
 }
 
-#ifdef HAVE_LIBELF
 static bool
 unixloader_scan (MuLoader* _self, MuLibrary* handle, MuError ** _err)
 {
@@ -165,26 +168,16 @@ error:
     
     return false;
 }
-#else
-static bool
-unixloader_scan (MuLoader* _self, MuLibrary* handle)
-{
-	const char* command;
-	
-	command = format("nm '%s' | grep " MU_TEST_PREFIX " | sed 's/.*\\(" MU_TEST_PREFIX ".*\\)[ \t]*/\\1/g'",
-					handle->path);
 
-	free((void*) command);
-	
-	return tests;
-}
 #endif
 
 static MuLibrary*
 unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 {
 	MuLibrary* library = malloc(sizeof (MuLibrary));
+#ifdef HAVE_LIBELF
     MuError* err = NULL;
+#endif
     void (*stub_hook)(MuLibrarySetup** ls, MuLibraryTeardown** lt,
                       MuFixtureSetup*** fss, MuFixtureTeardown*** fts,
                       MuTest*** ts);
@@ -225,6 +218,7 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 
         library->stub = true;
     }
+#ifdef HAVE_LIBELF
     else if (!unixloader_scan(_self, library, &err))
     {
         dlclose(library->dlhandle);
@@ -232,7 +226,14 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
         
         MU_RERAISE_RETURN(NULL, _err, err);
     }
-	
+#else
+    else
+    {
+        MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, 
+                        "Library did not contain a test loading stub and no "
+                        "reflection backend is available.");
+    }
+#endif
 	return library;
 }
 

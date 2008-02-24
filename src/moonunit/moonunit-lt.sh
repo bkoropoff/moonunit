@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2007, Brian Koropoff
+# Copyright (c) 2007-2008 Brian Koropoff
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

@@ -84,7 +84,7 @@ static void test_enter(MuLogger* _self, MuTest* test)
 static void test_log(MuLogger* _self, MuLogEvent* event)
 {
     XmlLogger* self = (XmlLogger*) _self;
-    const char* level_str;
+    const char* level_str = "unknown";
 
     switch (event->level)
     {

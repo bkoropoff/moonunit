@@ -159,7 +159,7 @@ libelf_symbol_scanner(void* handle, SymbolFilter filter, SymbolCallback callback
     MuError* err = NULL;
 	const char* filename = NULL;
 	int fd = -1;
-	Elf* elf;
+	Elf* elf = NULL;
 	Elf_Scn* section = NULL;
 	
 	filename = library_path(handle);

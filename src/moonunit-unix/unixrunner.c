@@ -170,81 +170,84 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path,
     }
 
     MuLogger* logger = runner->logger;
-
-	logger->library_enter(logger, basename(path));
+    
+    logger->library_enter(logger, basename(path));
+    
+    MuTest** tests = runner->loader->tests(runner->loader, library);
+    MuThunk thunk;
+    
+    if (tests)
+    {
 	
-	MuTest** tests = runner->loader->tests(runner->loader, library);
-	
-    /* FIXME: it's probably not ok to sort this array in place since
-     * it's owned by the loader.  It might be worthwhile to change the
-     * semantics of the loader->tests method to return something that
-     * should be freed
-     */
+	/* FIXME: it's probably not ok to sort this array in place since
+	 * it's owned by the loader.  It might be worthwhile to change the
+	 * semantics of the loader->tests method to return something that
+	 * should be freed
+	 */
 	qsort(tests, test_count(tests), sizeof(*tests), test_compare);
 	
 	unsigned int index;
 	const char* current_suite = NULL;
-	MuThunk thunk;
 	
 	if ((thunk = runner->loader->library_setup(runner->loader, library)))
-		thunk();
+	    thunk();
 	
 	for (index = 0; tests[index]; index++)
 	{
-		MuTestSummary summary;
-		MuTest* test = tests[index];
-        
-        if (set != NULL && !in_set(test, setc, set))
-            continue;
-
-		if (current_suite == NULL || strcmp(current_suite, test->suite))
-		{
-			if (current_suite)
-				logger->suite_leave(logger);
-			current_suite = test->suite;
-			logger->suite_enter(logger, test->suite);
-		}
+	    MuTestSummary summary;
+	    MuTest* test = tests[index];
+	    
+	    if (set != NULL && !in_set(test, setc, set))
+		continue;
+	    
+	    if (current_suite == NULL || strcmp(current_suite, test->suite))
+	    {
+		if (current_suite)
+		    logger->suite_leave(logger);
+		current_suite = test->suite;
+		logger->suite_enter(logger, test->suite);
+	    }
+	    
+	    logger->test_enter(logger, test);
+	    runner->harness->dispatch(runner->harness, test, &summary, event_proxy_cb, logger);
+	    logger->test_leave(logger, test, &summary);
+	    
+	    if (summary.result != MOON_RESULT_SUCCESS && runner->option.gdb)
+	    {
+		pid_t pid = runner->harness->debug(runner->harness, test);
+		char* breakpoint;
 		
-        logger->test_enter(logger, test);
-		runner->harness->dispatch(runner->harness, test, &summary, event_proxy_cb, logger);
-		logger->test_leave(logger, test, &summary);
-
-        if (summary.result != MOON_RESULT_SUCCESS && runner->option.gdb)
-        {
-            pid_t pid = runner->harness->debug(runner->harness, test);
-            char* breakpoint;
-
-            if (summary.line)
-                breakpoint = format("%s:%u", test->file, summary.line);
-            else if (summary.stage == MOON_STAGE_SETUP)
-                breakpoint = format("*%p", 
-                                    runner->loader->
-                                    fixture_setup(runner->loader, test->suite, library));
-            else if (summary.stage == MOON_STAGE_TEARDOWN)
-                breakpoint = format("*%p", 
-                                    runner->loader->
-                                    fixture_teardown(runner->loader, test->suite, library));
-            else
-                breakpoint = format("*%p", test->function);
-
-            gdb_attach_interactive(runner->self, pid, breakpoint);
-        }
-
-		runner->harness->cleanup(runner->harness, &summary);
+		if (summary.line)
+		    breakpoint = format("%s:%u", test->file, summary.line);
+		else if (summary.stage == MOON_STAGE_SETUP)
+		    breakpoint = format("*%p", 
+					runner->loader->
+					fixture_setup(runner->loader, test->suite, library));
+		else if (summary.stage == MOON_STAGE_TEARDOWN)
+		    breakpoint = format("*%p", 
+					runner->loader->
+					fixture_teardown(runner->loader, test->suite, library));
+		else
+		    breakpoint = format("*%p", test->function);
+		
+		gdb_attach_interactive(runner->self, pid, breakpoint);
+	    }
+	    
+	    runner->harness->cleanup(runner->harness, &summary);
 	}
 	
 	if (current_suite)
-		logger->suite_leave(logger);
-	logger->library_leave(logger);
-	
-	if ((thunk = runner->loader->library_teardown(runner->loader, library)))
-		thunk();
-	
+	    logger->suite_leave(logger);
+    }
+    
+    logger->library_leave(logger);
+    
+    if ((thunk = runner->loader->library_teardown(runner->loader, library)))
+	thunk();
 error:
-
+    
     if (library)
-        runner->loader->close(runner->loader, library);
-
+        runner->loader->close(runner->loader, library);   
 }
 
 static void UnixRunner_RunSet(MuRunner* _runner, const char* path, 

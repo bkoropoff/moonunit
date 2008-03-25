@@ -117,7 +117,7 @@
         __FILE__,                                                      \
         __LINE__,                                                      \
         __mu_f_##suite##_##name,                                       \
-        0, 0, 0, 0                                                     \
+        0, 0, 0, 0, 0						       \
     };                                                                 \
     void __mu_f_##suite##_##name(MuTest* __mu_self__)
 
@@ -592,14 +592,14 @@ typedef enum
 typedef struct MuTestMethods
 {
     void (*event)(MuTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
-	void (*assert)(MuTest* test, 
-				   int result, const char* expr, const char* file, unsigned int line);
-	void (*assert_equal)(MuTest* test, 
-				   		 const char* expr, const char* expected, 
-				 		 const char* file, unsigned int line, MuType type, ...);
-	void (*success)(MuTest* test);
-	void (*failure)(MuTest* test, 
-				    const char* file, unsigned int line, const char* message, ...);
+    void (*assert)(MuTest* test, 
+		   int result, const char* expr, const char* file, unsigned int line);
+    void (*assert_equal)(MuTest* test, 
+			 const char* expr, const char* expected, 
+			 const char* file, unsigned int line, MuType type, ...);
+    void (*success)(MuTest* test);
+    void (*failure)(MuTest* test, 
+		    const char* file, unsigned int line, const char* message, ...);
 } MuTestMethods;
 
 extern MuTestMethods Mu_TestMethods;

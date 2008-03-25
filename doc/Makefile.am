@@ -51,6 +51,6 @@ clean-local:
 
 all-local: html
 
-install-data-local: install-html
+install-data-local: install-html-local
 
 .PHONY: $(HTML_TARGETS)

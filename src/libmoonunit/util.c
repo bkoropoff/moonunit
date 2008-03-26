@@ -32,6 +32,18 @@
 
 #include <moonunit/util.h>
 
+bool
+ends_with (const char* haystack, const char* needle)
+{
+    size_t hlen = strlen(haystack);
+    size_t nlen = strlen(needle);
+
+    if (hlen >= nlen)
+        return !strcmp(haystack + hlen - nlen, needle);
+    else
+        return false;
+}
+
 char* formatv(const char* format, va_list ap)
 {
     va_list mine;
@@ -70,4 +82,72 @@ const char* basename_pure(const char* filename)
 		return final_slash + 1;
 	else
 		return filename;
+}
+
+typedef struct
+{
+    size_t size, capacity;
+    void* elements[];
+} _array;
+
+static inline array*
+hide(_array* a)
+{
+    return (array*) (((char*) a) + sizeof(_array));
+}
+
+static inline _array*
+reveal(array* a)
+{
+    return (_array*) (((char*) a) - sizeof(_array));
+}
+
+static inline _array*
+ensure(_array* a, size_t size)
+{
+    if (a->capacity >= size)
+    {
+        return a;
+    }
+    else
+    {
+        if (a->capacity == 0)
+        {
+            a->capacity = 32;
+        }
+        while (a->capacity < size)
+        {
+            a->capacity *= 2;
+        }
+        a = realloc(a, sizeof(_array) + sizeof(void*) * a->capacity);
+        return a;
+    }
+}
+
+array*
+array_new(void)
+{
+    _array* a = malloc(sizeof(_array));
+
+    a->size = a->capacity = 0;
+
+    return hide(a);
+}
+
+size_t
+array_size(array* a)
+{
+    return reveal(a)->size;
+}
+
+array*
+array_append(array* a, void* e)
+{
+    _array* _a = a ? reveal(a) : reveal(array_new());
+
+    _a = ensure(_a, _a->size + 1);
+
+    _a->elements[_a->size++] = e;
+
+    return hide(_a);
 }

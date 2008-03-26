@@ -29,9 +29,18 @@
 #define __MU_UTIL_H__
 
 #include <stdarg.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
+bool ends_with (const char* haystack, const char* needle);
 char* format(const char* format, ...);
 char* formatv(const char* format, va_list ap);
 const char* basename_pure(const char* filename);
+
+typedef void* array;
+
+array* array_new(void);
+size_t array_size(array* a);
+array* array_append(array* a, void* e);
 
 #endif

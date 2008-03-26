@@ -27,7 +27,7 @@ moonunit-stub: moonunit-stub.sh
 	chmod +x $@
 
 example_mu.c: example.c moonunit-stub
-	$(builddir)/moonunit-stub $(srcdir)/example.c CPPFLAGS="$(CPPFLAGS) $(AM_CPPFLAGS)" CPP="$(CPP)" > $@
+	$(top_builddir)/src/moonunit/moonunit-stub $(srcdir)/example.c CPPFLAGS="$(CPPFLAGS) $(AM_CPPFLAGS)" CPP="$(CPP)" > $@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include @POPT_INCLUDES@
 

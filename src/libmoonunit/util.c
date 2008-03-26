@@ -62,7 +62,7 @@ char* format(const char* format, ...)
     return result;
 }
 
-const char* basename(const char* filename)
+const char* basename_pure(const char* filename)
 {
 	char* final_slash = strrchr(filename, '/');
 	

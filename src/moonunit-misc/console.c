@@ -114,11 +114,11 @@ test_log(MuLogger* _self, MuLogEvent* event)
 
     if (self->ansi)
         self->test_log = format("%s      %s:%u: (\e[%im\e[1m%s\e[22m\e[0m) %s\n", old,
-                            basename(event->file), event->line,
+                            basename_pure(event->file), event->line,
                             level_code, level_str, event->message);
     else
         self->test_log = format("%s      %s:%u: (%s) %s\n", old,
-                            basename(event->file), event->line,
+                            basename_pure(event->file), event->line,
                             level_str, event->message);
 
     free(old);
@@ -161,7 +161,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestSummary* summary)
                 fprintf(out, "(%s) FAIL\n", stage);
 			
 			failure_message = summary->line != 0 
-				? format("%s:%i: %s", basename(test->file), summary->line, reason)
+				? format("%s:%i: %s", basename_pure(test->file), summary->line, reason)
 				: format("%s", reason);
 			
 			for (i = self->align - strlen(failure_message); i > 0; i--)

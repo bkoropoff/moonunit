@@ -171,7 +171,7 @@ static void UnixRunner_Run(UnixRunner* runner, const char* path,
 
     MuLogger* logger = runner->logger;
     
-    logger->library_enter(logger, basename(path));
+    logger->library_enter(logger, basename_pure(path));
     
     MuTest** tests = runner->loader->tests(runner->loader, library);
     MuThunk thunk;

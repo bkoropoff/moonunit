@@ -312,7 +312,7 @@ unixloader_close (MuLoader* _self, MuLibrary* handle)
 static const char*
 unixloader_name (MuLoader* _self, MuLibrary* handle)
 {
-	return basename(handle->path);
+	return basename_pure(handle->path);
 }
 
 MuLoader mu_unixloader =

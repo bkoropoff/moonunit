@@ -32,6 +32,6 @@
 
 char* format(const char* format, ...);
 char* formatv(const char* format, va_list ap);
-const char* basename(const char* filename);
+const char* basename_pure(const char* filename);
 
 #endif

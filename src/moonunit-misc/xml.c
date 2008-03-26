@@ -98,7 +98,7 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
             level_str = "trace"; break;
     }
     fprintf(self->out, "      <event level=\"%s\" file=\"%s\" line=\"%u\" stage=\"%s\">\n",
-            level_str, basename(event->file), event->line,
+            level_str, basename_pure(event->file), event->line,
             Mu_TestStageToString(event->stage));
     fprintf(self->out, "        <![CDATA[%s]]>\n", event->message);
     fprintf(self->out, "      </event>\n");
@@ -126,7 +126,7 @@ static void test_leave(MuLogger* _self,
             {
                 fprintf(out, "      <result status=\"fail\" stage=\"%s\"", stage);
                 if (summary->line)
-                    fprintf(out, " file=\"%s\" line=\"%u\"", basename(test->file), summary->line);
+                    fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
                 fprintf(out, ">\n");
                 fprintf(out, "        <![CDATA[%s]]>\n", summary->reason);
                 fprintf(out, "      </result>\n");
@@ -135,7 +135,7 @@ static void test_leave(MuLogger* _self,
             {
                 fprintf(out, "      <result status=\"fail\" stage=\"%s\"", stage);
                 if (summary->line)
-                    fprintf(out, " file=\"%s\" line=\"%u\"", basename(test->file), summary->line);
+                    fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
                 fprintf(out, "/>\n");
             }
 	}

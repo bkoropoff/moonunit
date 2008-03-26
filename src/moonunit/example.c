@@ -32,7 +32,7 @@
 
 /** \cond SKIP */
 
-#define MU_HIDE_TESTS
+//#define MU_HIDE_TESTS
 
 #include <moonunit/test.h>
 

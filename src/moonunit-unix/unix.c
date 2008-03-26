@@ -28,16 +28,11 @@
 #include <moonunit/plugin.h>
 #include <moonunit/loader.h>
 #include <moonunit/harness.h>
-#include <moonunit/runner.h>
 
 #include <stdlib.h>
 
 extern struct MuLoader mu_unixloader;
 extern struct MuHarness mu_unixharness;
-extern struct MuRunner* Mu_UnixRunner_Create(const char*, 
-                                                   struct MuLoader*, 
-                                                   struct MuHarness*, 
-                                                   struct MuLogger*);
 
 static struct MuLoader*
 create_unixloader()
@@ -77,21 +72,6 @@ destroy_unixharness(MuHarness* harness)
     free(harness);
 }
 
-static struct MuRunner*
-create_unixrunner(const char* self, struct MuLoader* loader, 
-                  struct MuHarness* harness, struct MuLogger* logger)
-{
-    return Mu_UnixRunner_Create(self, loader, harness, logger);
-}
-
-extern void Mu_UnixRunner_Destroy(MuRunner* _runner);
-
-static void
-destroy_unixrunner(MuRunner* runner)
-{
-    Mu_UnixRunner_Destroy(runner);
-}
-
 static MuPlugin plugin =
 {
     .name = "unix",
@@ -99,8 +79,6 @@ static MuPlugin plugin =
     .destroy_loader = destroy_unixloader,
     .create_harness = create_unixharness,
     .destroy_harness = destroy_unixharness,
-    .create_runner = create_unixrunner,
-    .destroy_runner = destroy_unixrunner,
     .create_logger = NULL,
     .destroy_logger = NULL,
 };

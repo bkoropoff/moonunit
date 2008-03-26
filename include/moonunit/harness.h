@@ -25,6 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef __MU_HARNESS_H__
+#define __MU_HARNESS_H__
+
 #include <sys/types.h>
 #include <moonunit/test.h>
 
@@ -108,3 +111,5 @@ typedef struct MuHarness
 
 const char* Mu_TestResultToString(MuTestResult result);
 const char* Mu_TestStageToString(MuTestStage stage);
+
+#endif

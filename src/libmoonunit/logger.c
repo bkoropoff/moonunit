@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/runner.h>
 #include <moonunit/loader.h>
 #include <moonunit/harness.h>
 #include <moonunit/util.h>

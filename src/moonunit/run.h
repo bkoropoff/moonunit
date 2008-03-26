@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2007-2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_RUNNER_H__
-#define __MU_RUNNER_H__
+#ifndef __MOONUNIT_RUN_H__
+#define __MOONUNIT_RUN_H__
 
-struct MuLoader;
-struct MuHarness;
-struct MuLogger;
-struct MuPlugin;
+#include <moonunit/harness.h>
+#include <moonunit/logger.h>
+#include <moonunit/loader.h>
 
-#include <moonunit/option.h>
-#include <moonunit/error.h>
-
-typedef struct MuRunner
+typedef struct
 {
-    struct MuPlugin* plugin;
-    void (*run_all) (struct MuRunner*, const char* library, MuError** err);
-    void (*run_set) (struct MuRunner*, const char* library, int setc, char** set, MuError** err);
-    MuOption option;
-} MuRunner;
+    const char* self;
+    MuLoader* loader;
+    MuHarness* harness;
+    MuLogger* logger;
+    bool debug;
+} RunSettings;
 
-void Mu_Runner_RunAll(MuRunner*, const char* library, MuError** err);
-void Mu_Runner_RunSet(MuRunner*, const char* library, int setc, char** set, MuError** err);
-void Mu_Runner_SetOption(MuRunner*, const char *name, ...);
+void run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError** _err);
+void run_all(RunSettings* settings, const char* path, MuError** _err);
 
 #endif

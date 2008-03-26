@@ -28,7 +28,6 @@
 #include <moonunit/plugin.h>
 #include <moonunit/util.h>
 #include <moonunit/loader.h>
-#include <moonunit/runner.h>
 #include <moonunit/logger.h>
 #include <moonunit/harness.h>
 
@@ -221,53 +220,4 @@ void Mu_Plugin_DestroyLogger(MuLogger* logger)
 {
     if (logger->plugin && logger->plugin->destroy_logger)
         logger->plugin->destroy_logger(logger);
-}
-
-struct MuRunner* 
-Mu_Plugin_CreateRunner(const char* name, const char* self, struct MuLoader* loader, 
-                       struct MuHarness* harness, struct MuLogger* logger)
-{
-    MuPlugin* plugin = get_plugin(name);
-    MuRunner* runner;
-
-    if (!plugin)
-        return NULL;
-
-    if (!plugin->create_runner)
-        return NULL;
-    
-    runner = plugin->create_runner(self, loader, harness, logger);
-
-    if (!runner)
-        return NULL;
-
-    runner->plugin = plugin;
-
-    return runner;
-}
-
-
-void Mu_Plugin_DestroyRunner(MuRunner* runner)
-{
-    if (runner->plugin && runner->plugin->destroy_runner)
-        runner->plugin->destroy_runner(runner);
-}
-
-struct MuRunner* 
-Mu_CreateRunner(const char* name, const char* self, struct MuLogger* logger)
-{
-    struct MuLoader* loader;
-    struct MuHarness* harness;
-    
-    loader = Mu_Plugin_CreateLoader(name);
-   
-    if (!loader)
-        return NULL;
-
-    harness = Mu_Plugin_CreateHarness(name);
-
-    if (!harness)
-        return NULL;
-
-    return Mu_Plugin_CreateRunner(name, self, loader, harness, logger);
 }

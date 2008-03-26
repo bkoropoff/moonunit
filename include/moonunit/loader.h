@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2007-2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,5 +62,14 @@ typedef struct MuLoader
     // Get name of a library
     const char * (*name) (struct MuLoader*, MuLibrary* handle);
 } MuLoader;
+
+MuLibrary* Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err);
+struct MuTest** Mu_Loader_Tests(struct MuLoader* loader, MuLibrary* handle);
+MuThunk Mu_Loader_LibrarySetup(struct MuLoader* loader, MuLibrary* handle);
+MuThunk Mu_Loader_LibraryTeardown(struct MuLoader* loader, MuLibrary* handle);
+MuTestThunk Mu_Loader_FixtureSetup(struct MuLoader* loader, MuLibrary* handle, const char* name);
+MuTestThunk Mu_Loader_FixtureTeardown(struct MuLoader* loader, MuLibrary* handle, const char* name);
+void Mu_Loader_Close(struct MuLoader* loader, MuLibrary* handle);
+const char* Mu_Loader_Name(struct MuLoader* loader, MuLibrary* handle);
 
 #endif

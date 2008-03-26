@@ -3,7 +3,7 @@ bin_SCRIPTS = moonunit-lt moonunit-strip moonunit-stub
 
 check_LTLIBRARIES = libexample.la libexample_mu.la
 
-moonunit_SOURCES = main.c option.c
+moonunit_SOURCES = main.c option.c run.c gdb.c
 moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @POPT_LIBADD@
 
 libexample_la_SOURCES = example.c
@@ -11,7 +11,7 @@ libexample_mu_la_SOURCES = example_mu.c
 libexample_mu_la_LIBADD = libexample.la
 libexample_mu_la_LDFLAGS = -module -rpath $(libdir)
 
-EXTRA_DIST = moonunit-lt.sh moonunit-strip.sh moonunit-stub.sh option.h
+EXTRA_DIST = moonunit-lt.sh moonunit-strip.sh moonunit-stub.sh option.h run.h gdb.h
 BUILT_SOURCES = example_mu.c
 
 moonunit-lt: moonunit-lt.sh moonunit

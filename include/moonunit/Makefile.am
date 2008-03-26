@@ -1,5 +1,5 @@
 include_HEADERS= \
-	test.h harness.h loader.h runner.h logger.h \
+	test.h harness.h loader.h logger.h \
 	option.h type.h error.h plugin.h
 
 EXTRA_DIST = util.h

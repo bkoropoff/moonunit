@@ -35,11 +35,11 @@
 #include <moonunit/logger.h>
 #include <moonunit/test.h>
 #include <moonunit/loader.h>
-#include <moonunit/runner.h>
 #include <moonunit/util.h>
 #include <moonunit/plugin.h>
 
 #include "option.h"
+#include "run.h"
 
 #define ALIGNMENT 60
 
@@ -52,9 +52,8 @@
 int main (int argc, char** argv)
 {
     MuError* err = NULL;
-	MuRunner* runner;
     unsigned int file_index;
-    MuLogger* logger;
+    RunSettings settings;
     OptionTable option = {0};
 
     if (Option_Parse(argc, argv, &option))
@@ -62,55 +61,59 @@ int main (int argc, char** argv)
         die("Error: %s", option.errormsg);
     }
 
-    logger = option.logger ?
+    settings.self = argv[0];
+    settings.debug = option.gdb;
+
+    settings.logger = option.logger ?
         Mu_Plugin_CreateLogger(option.logger) :
         Mu_Plugin_CreateLogger("console");
 
-    if (!logger)
+    if (!settings.logger)
     {
         die("Error: Could not create logger '%s'", option.logger);
     }
-            
-    if (Mu_Logger_OptionType(logger, "fd") == MU_INTEGER)
+
+    if (!(settings.harness = Mu_Plugin_CreateHarness("unix")))
     {
-        Mu_Logger_SetOption(logger, "fd", fileno(stdout));
+        die("Error: Could not create harness 'unix'");
+    }
+
+    if (!(settings.loader = Mu_Plugin_CreateLoader("unix")))
+    {
+        die("Error: Could not create loader 'unix'");
+    }
+
+    if (Mu_Logger_OptionType(settings.logger, "fd") == MU_INTEGER)
+    {
+        Mu_Logger_SetOption(settings.logger, "fd", fileno(stdout));
     }
     
-    if (Mu_Logger_OptionType(logger, "align") == MU_INTEGER)
+    if (Mu_Logger_OptionType(settings.logger, "align") == MU_INTEGER)
     {
-        Mu_Logger_SetOption(logger, "align", ALIGNMENT);
+        Mu_Logger_SetOption(settings.logger, "align", ALIGNMENT);
     }
 
-    if (Mu_Logger_OptionType(logger, "ansi") == MU_BOOLEAN)
+    if (Mu_Logger_OptionType(settings.logger, "ansi") == MU_BOOLEAN)
     {
-        Mu_Logger_SetOption(logger, "ansi", true);
+        Mu_Logger_SetOption(settings.logger, "ansi", true);
     }
 
-    if (Option_ApplyToLogger(&option, logger))
+    if (Option_ApplyToLogger(&option, settings.logger))
     {
         die("Error: %s", option.errormsg);
     }
 
-    runner = Mu_CreateRunner("unix", argv[0], logger);
-    
-    if (!runner)
-    {
-        die("Error: Could not create runner '%s'", "unix");
-    }
-
-    Mu_Runner_SetOption(runner, "gdb", option.gdb);
-            
     for (file_index = 0; file_index < option.files.size; file_index++)
     {
         char* file = option.files.value[file_index];
         
         if (option.all || option.tests.size == 0)
         {
-            Mu_Runner_RunAll(runner, file, &err);
+            run_all(&settings, file, &err);
         }
         else
         {
-            Mu_Runner_RunSet(runner, file, option.tests.size, option.tests.value, &err);
+            run_tests(&settings, file, option.tests.size, option.tests.value, &err);
         }
 
         if (err)
@@ -120,7 +123,9 @@ int main (int argc, char** argv)
     }
 
     Option_Release(&option);
-    Mu_Plugin_DestroyRunner(runner);
+    Mu_Plugin_DestroyLogger(settings.logger);
+    Mu_Plugin_DestroyHarness(settings.harness);
+    Mu_Plugin_DestroyLoader(settings.loader);
 
 	return 0;
 }

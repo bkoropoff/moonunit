@@ -47,14 +47,13 @@ typedef struct
     StringSet files;
     StringSet logger_options;
     char* errormsg;
-
     poptContext context;
 } OptionTable;
 
 struct MuLogger;
 
 int Option_Parse(int argc, char** argv, OptionTable* option);
-int Option_ApplyToLogger(OptionTable* option, struct MuLogger* logger);
 void Option_Release(OptionTable* option);
+int Option_ApplyToLogger(OptionTable* option, struct MuLogger* logger);
 
 #endif

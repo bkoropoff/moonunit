@@ -30,7 +30,6 @@
 
 struct MuLogger;
 struct MuHarness;
-struct MuRunner;
 struct MuLoader;
 
 typedef struct MuPlugin
@@ -42,9 +41,6 @@ typedef struct MuPlugin
     void (*destroy_harness) (struct MuHarness*);
     struct MuLogger*  (*create_logger) ();
     void (*destroy_logger) (struct MuLogger*);
-    struct MuRunner*  (*create_runner) 
-        (const char* self, struct MuLoader*, struct MuHarness*, struct MuLogger*);
-    void (*destroy_runner) (struct MuRunner*);
 } MuPlugin;
 
 #define MU_PLUGIN_INIT \
@@ -56,10 +52,5 @@ struct MuHarness* Mu_Plugin_CreateHarness(const char *name);
 void Mu_Plugin_DestroyHarness(struct MuHarness*);
 struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
 void Mu_Plugin_DestroyLogger(struct MuLogger*);
-struct MuRunner* Mu_Plugin_CreateRunner(const char* name, const char* self,
-                                              struct MuLoader*, struct MuHarness*, struct MuLogger*);
-void Mu_Plugin_DestroyRunner(struct MuRunner*);
-struct MuRunner* Mu_CreateRunner(const char* name, const char* self, struct MuLogger* logger);
-
 
 #endif

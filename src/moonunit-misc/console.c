@@ -279,7 +279,6 @@ static MuPlugin plugin =
     .name = "console",
     .create_loader = NULL,
     .create_harness = NULL,
-    .create_runner = NULL,
     .create_logger = create_consolelogger
 };
 

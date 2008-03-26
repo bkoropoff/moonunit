@@ -225,7 +225,6 @@ static MuPlugin plugin =
     .name = "xml",
     .create_loader = NULL,
     .create_harness = NULL,
-    .create_runner = NULL,
     .create_logger = create_xmllogger,
     .destroy_logger = destroy_xmllogger
 };

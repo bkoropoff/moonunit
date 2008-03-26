@@ -1,5 +1,23 @@
 AC_INIT([moonunit],[0.3],[bkoropoff __at__ gmail_com])
 AC_CANONICAL_TARGET
+
+case "$target_os" in
+    solaris2.*)
+        CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500 -D__EXTENSIONS__"
+	moduleext=".so"
+	;;
+    aix5.*|aix6.*)
+	moduleext=".a"
+	memberext=".so"
+	;;
+    linux-gnu)
+        moduleext=".so"
+	;;
+    *)
+	AC_MSG_ERROR("Unsupported OS: $target_os")
+	;;
+esac
+
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_CONFIG_HEADERS(include/config.h)
@@ -63,17 +81,6 @@ plugindir="${libdir}/moonunit"
 AC_SUBST(plugindir)
 AC_SUBST(moduleext)
 AC_SUBST(memberext)
-
-case "$target_os" in
-    solaris2.*)
-        CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500 -D__EXTENSIONS__"
-	moduleext=".so"
-	;;
-    aix5.*)
-	moduleext=".a"
-	memberext=".so"
-	;;
-esac
 
 AM_CONDITIONAL([HAVE_MEMBEREXT], [test -n "$memberext"])
 

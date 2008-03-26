@@ -1,1 +1,1 @@
-SUBDIRS = libuipc libmoonunit moonunit moonunit-unix moonunit-misc
+SUBDIRS = libuipc libmoonunit plugins moonunit

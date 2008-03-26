@@ -32,9 +32,9 @@ example_mu.c: example.c moonunit-stub
 AM_CPPFLAGS = -I$(top_srcdir)/include @POPT_INCLUDES@
 
 CHECK_PLUGINS= \
-	--plugin $(top_builddir)/src/moonunit-unix/unix.la \
-	--plugin $(top_builddir)/src/moonunit-misc/console.la \
-	--plugin $(top_builddir)/src/moonunit-misc/xml.la	
+	--plugin $(top_builddir)/src/plugins/unix.la \
+	--plugin $(top_builddir)/src/plugins/console.la \
+	--plugin $(top_builddir)/src/plugins/xml.la	
 
 check-local: moonunit-lt libexample_mu.la
 	./moonunit-lt $(CHECK_ARGS) $(CHECK_PLUGINS) libexample_mu.la

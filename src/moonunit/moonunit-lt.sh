@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # Copyright (c) 2007-2008 Brian Koropoff
 # All rights reserved.
@@ -33,7 +33,13 @@ else
     moonunit="$dir/moonunit"
 fi
 
-tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX` || exit 1
+if type mktemp >/dev/null 2>&1
+then
+    tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX` || exit 1
+else
+    tempdir="/tmp/moonunit-lt.${PPID}"
+    mkdir -p "$tempdir"
+fi
 libtool --config > "$tempdir/ltconfig"
 objdir=`(source "$tempdir/ltconfig" && echo $objdir)`
 module_ext="so"

@@ -193,7 +193,14 @@ __PRE__
 
 function emit-stub()
 {
-    local TMPFILE=`mktemp /tmp/moonunit-stub.XXXXXXXXXX` || exit 1
+    local TMPFILE
+
+    if type mktemp >/dev/null 2>&1
+    then
+        TMPFILE=`mktemp /tmp/moonunit-stub.XXXXXXXXXX` || exit 1
+    else
+        TMPFILE="/tmp/moonunit-stub.${PPID}"
+    fi
 
     touch $TMPFILE
 

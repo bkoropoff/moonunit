@@ -59,19 +59,23 @@ AC_ARG_WITH([popt],
 
 
 plugindir="${libdir}/moonunit"
-pluginext=".so"
 
 AC_SUBST(plugindir)
-AC_SUBST(pluginext)
+AC_SUBST(moduleext)
+AC_SUBST(memberext)
 
 case "$target_os" in
     solaris2.*)
         CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500 -D__EXTENSIONS__"
+	moduleext=".so"
 	;;
     aix5.*)
-	pluginext=".a"
+	moduleext=".a"
+	memberext=".so"
 	;;
 esac
+
+AM_CONDITIONAL([HAVE_MEMBEREXT], [test -n "$memberext"])
 
 AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])
 AC_SUBST(LIB_socket)
@@ -164,9 +168,10 @@ AC_SUBST(DOCBOOK_XSL_DIR)
 AM_CONDITIONAL([HAVE_DOCBOOK], [test x"$XSLTPROC" != x"false" -a x"$DOCBOOK_XSL_DIR" != x && HAVE_DOCBOOK=yes])
 
 AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile
+                src/moonunit/moonunit-lt.sh
 		include/Makefile include/moonunit/Makefile src/libuipc/Makefile
 	  	src/plugins/Makefile include/uipc/Makefile doc/Makefile doc/Doxyfile
-		 doc/docbook-html.xsl doc/docbook-man.xsl extra/Makefile])
+		doc/docbook-html.xsl doc/docbook-man.xsl extra/Makefile])
 
 AC_OUTPUT
 

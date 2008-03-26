@@ -195,7 +195,7 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 	library->library_setup = NULL;
     library->library_teardown = NULL;
 	library->path = strdup(path);
-	library->dlhandle = dlopen(library->path, RTLD_LAZY);
+	library->dlhandle = mu_dlopen(library->path, RTLD_LAZY);
     library->stub = false;
 
     if (!library->dlhandle)

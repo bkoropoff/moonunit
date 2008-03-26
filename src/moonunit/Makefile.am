@@ -9,7 +9,7 @@ moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @POPT_LIBADD@
 libexample_la_SOURCES = example.c
 libexample_mu_la_SOURCES = example_mu.c
 libexample_mu_la_LIBADD = libexample.la
-libexample_mu_la_LDFLAGS = -module -rpath $(libdir)
+libexample_mu_la_LDFLAGS = -module -avoid-version -export-dynamic -rpath $(libdir)
 
 EXTRA_DIST = moonunit-lt.sh moonunit-strip.sh moonunit-stub.sh option.h run.h gdb.h
 BUILT_SOURCES = example_mu.c

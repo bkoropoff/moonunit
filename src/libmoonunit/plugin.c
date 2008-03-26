@@ -45,8 +45,8 @@ static array* plugin_list;
 static MuPlugin*
 load_plugin(const char* path)
 {
-    void* handle = dlopen(path, RTLD_LAZY);
-
+    void* handle = mu_dlopen(path, RTLD_LAZY);
+   
     MuPlugin* (*load)(void);
 
     if (!handle)
@@ -78,6 +78,7 @@ load_plugins_dir(const char* path)
             if (ends_with(entry->d_name, PLUGIN_EXTENSION))
             {
                 char* fullpath = format("%s/%s", path, entry->d_name);
+
                 plugin = load_plugin(fullpath);
                 free(fullpath);
                 

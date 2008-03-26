@@ -43,4 +43,6 @@ array* array_new(void);
 size_t array_size(array* a);
 array* array_append(array* a, void* e);
 
+void* mu_dlopen(const char* path, int flags);
+
 #endif

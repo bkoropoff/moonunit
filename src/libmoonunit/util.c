@@ -29,6 +29,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <dlfcn.h>
 
 #include <moonunit/util.h>
 
@@ -150,4 +151,26 @@ array_append(array* a, void* e)
     _a->elements[_a->size++] = e;
 
     return hide(_a);
+}
+
+
+void*
+mu_dlopen(const char* path, int flags)
+{
+    void* handle = dlopen(path, flags);
+
+#if defined(RTLD_MEMBER) && defined(PLUGIN_MEMBER_EXTENSION)
+    if (!handle && ends_with(path, PLUGIN_EXTENSION))
+    {
+        char* base = strdup(basename_pure(path));
+        if (strlen(base) > strlen(PLUGIN_EXTENSION))
+            base[strlen(base) - strlen(PLUGIN_EXTENSION)] = '\0';
+        char* newpath = format("%s(%s%s)", path, base, PLUGIN_MEMBER_EXTENSION);
+        handle = dlopen(newpath, flags | RTLD_MEMBER);
+        free(base);
+        free(newpath);
+    }
+#endif
+
+    return handle;
 }

@@ -1,4 +1,5 @@
 AC_INIT([moonunit],[0.3],[bkoropoff __at__ gmail_com])
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_CONFIG_HEADERS(include/config.h)
@@ -62,6 +63,15 @@ pluginext=".so"
 
 AC_SUBST(plugindir)
 AC_SUBST(pluginext)
+
+case "$target_os" in
+    solaris2.*)
+        CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500 -D__EXTENSIONS__"
+	;;
+esac
+
+AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])
+AC_SUBST(LIB_socket)
 
 saved_LDFLAGS=$LDFLAGS
 saved_CPPFLAGS=$CPPFLAGS

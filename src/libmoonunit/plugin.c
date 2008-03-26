@@ -37,23 +37,17 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <dirent.h>
 
-static MuPlugin** loaded_plugins = NULL;
-static unsigned int loaded_plugins_size = 0;
+static array* plugin_list;
 
 static MuPlugin*
-load_plugin_path(const char* prefix, const char* name)
+load_plugin(const char* path)
 {
-    const char* path = format("%s%s%s",
-                              prefix,
-                              name,
-                              PLUGIN_EXTENSION);
-    
     void* handle = dlopen(path, RTLD_LAZY);
 
     MuPlugin* (*load)(void);
-
-    free((void*) path);
 
     if (!handle)
     {
@@ -65,51 +59,88 @@ load_plugin_path(const char* prefix, const char* name)
     if (!load)
         return NULL;
 
-
     return load();
 }
 
-static MuPlugin*
-load_plugin(const char* name)
+static void
+load_plugins_dir(const char* path)
 {
+    DIR* dir;
+    struct dirent* entry;
     MuPlugin* plugin;
+
+    dir = opendir(path);
+    
+    if (dir)
+    {
+        while ((entry = readdir(dir)))
+        {
+            if (ends_with(entry->d_name, PLUGIN_EXTENSION))
+            {
+                char* fullpath = format("%s/%s", path, entry->d_name);
+                plugin = load_plugin(fullpath);
+                free(fullpath);
+                
+                if (plugin)
+                    plugin_list = array_append(plugin_list, plugin);
+            }
+        }
+    }
+    
+    closedir(dir);   
+}
+
+static void
+load_plugins(void)
+{
     char* pathenv;
+    char* extras;
+    MuPlugin* plugin;
 
     if ((pathenv = getenv("MU_PLUGIN_PATH")))
     {
-        pathenv = strdup(pathenv);
         char* path, *next;
+
+        pathenv = strdup(pathenv);
 
         for (path = pathenv; path; path = next)
         {
-            char* _path;
-
             next = strchr(path, ':');
             if (next)
             {
                 *(next++) = 0;
             }
             
-            _path = format("%s/", path);
+            load_plugins_dir(path);
+        }
 
-            if ((plugin = load_plugin_path(_path, name)))
+        free(pathenv);
+    }
+    else
+    {
+        load_plugins_dir(PLUGIN_PATH);
+    }
+
+    if ((extras = getenv("MU_EXTRA_PLUGINS")))
+    {
+        char *extra, *next;
+
+        extras = strdup(extras);
+
+        for (extra = extras; extra; extra = next)
+        {
+            next = strchr(extra, ' ');
+            if (next)
             {
-                free(_path);
-                free(pathenv);
-                return plugin;
+                *(next++) = 0;
             }
             
-            free(_path);
+            if ((plugin = load_plugin(extra)))
+                plugin_list = array_append(plugin_list, plugin);
         }
+
+        free(extras);
     }
-    
-
-    if ((plugin = load_plugin_path(PLUGIN_PATH "/", name)))
-        return plugin;
-    else if ((plugin = load_plugin_path("", name)))
-        return plugin;
-
-    return NULL;
 }
 
 static MuPlugin*
@@ -117,24 +148,28 @@ get_plugin(const char* name)
 {
     unsigned int index;
     MuPlugin* plugin;
+    size_t count;
 
-    for (index = 0; index < loaded_plugins_size; index++)
+    if (plugin_list == NULL)
     {
-        if (!strcmp(name, loaded_plugins[index]->name))
+        load_plugins();
+        if (plugin_list == NULL)
+            return NULL;
+    }
+
+    count = array_size(plugin_list);
+
+    for (index = 0; index < count; index++)
+    {
+        plugin = plugin_list[index];
+        
+        if (!strcmp(name, plugin->name))
         {
-            return loaded_plugins[index];
+            return plugin;
         }
     }
 
-    plugin = load_plugin(name);
-
-    if (plugin)
-    {
-        loaded_plugins = realloc(loaded_plugins, sizeof(*loaded_plugins) * ++loaded_plugins_size);
-        loaded_plugins[loaded_plugins_size-1] = plugin;
-    }
-
-    return plugin;
+    return NULL;
 }
 
 struct MuLoader*

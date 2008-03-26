@@ -68,6 +68,7 @@ __EOF__
             ;;
         --plugin)
             dlopens=("${dlopens[@]}" -dlopen "$1")
+	    extra_plugins="$extra_plugins $(basename "$1" | sed 's/\.la/.so/')"
             shift
             ;;
         *.la)
@@ -97,5 +98,5 @@ __EOF__
     arg=$1
 done   
 
-libtool --mode=execute "${dlopens[@]}" $wrap $moonunit "${command[@]}"
+MU_EXTRA_PLUGINS="$extra_plugins" libtool --mode=execute "${dlopens[@]}" $wrap $moonunit "${command[@]}"
 rm -rf ${tempdir}

@@ -33,7 +33,7 @@ function die()
 
 function tokenize()
 {
-    sed 's/[^a-zA-Z0-9_][^a-zA-Z0-9_]*/ /g' | awk 'BEGIN { RS=" \t\r\n"; } { print $1; }'
+    sed 's/[^a-zA-Z0-9_][^a-zA-Z0-9_]*/ /g' | xargs | awk 'BEGIN { RS=" "; } { print $1; }'
 }
 
 function filter_prefix()

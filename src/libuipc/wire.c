@@ -36,6 +36,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
+#include <string.h>
+#include <signal.h>
 
 UipcStatus
 uipc_packet_send(int socket, uipc_packet* packet)
@@ -46,7 +48,20 @@ uipc_packet_send(int socket, uipc_packet* packet)
 
     while (remaining)
     {
-        ssize_t sent = send(socket, buffer + (total - remaining), remaining, MSG_NOSIGNAL);
+	ssize_t sent;
+#ifdef MSG_NOSIGNAL
+	sent = send(socket, buffer + (total - remaining), remaining, MSG_NOSIGNAL);
+#else
+    /* Block SIGPIPE for the send */
+    struct sigaction blocked, original;
+
+    blocked.sa_handler = SIG_IGN;
+    sigemptyset(&blocked.sa_mask);
+
+    sigaction(SIGPIPE, &blocked, &original);
+    sent = send(socket, buffer + (total - remaining), remaining, 0);
+    sigaction(SIGPIPE, &original, &blocked);
+#endif
         
         if (sent < 0)
         {

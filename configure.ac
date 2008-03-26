@@ -68,6 +68,9 @@ case "$target_os" in
     solaris2.*)
         CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500 -D__EXTENSIONS__"
 	;;
+    aix5.*)
+	pluginext=".a"
+	;;
 esac
 
 AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])

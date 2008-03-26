@@ -30,6 +30,7 @@
 #include <moonunit/test.h>
 #include <moonunit/harness.h>
 #include <moonunit/loader.h>
+#include <moonunit/util.h>
 #include <uipc/ipc.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -38,6 +39,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <signal.h>
 
 static uipc_typeinfo testsummary_info =
 {
@@ -257,8 +259,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
             // Timed out waiting for response
             if (uipc_result == UIPC_TIMEOUT || uipc_result2 == UIPC_TIMEOUT)
             {
-                char* reason;
-                asprintf(&reason, "Test timed out after %li milliseconds", timeout);
+                char* reason = format("Test timed out after %li milliseconds", timeout);
 
                 summary->result = MOON_RESULT_TIMEOUT;
                 summary->reason = reason;

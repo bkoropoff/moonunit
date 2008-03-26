@@ -105,7 +105,7 @@
  */
 #define MU_TEST(suite, name)                                           \
     __MU_SECTION_TEXT__                                                \
-    __MU_HIDDEN__                                                      \
+    __MU_HIDDEN_TEST__                                                      \
     void __mu_f_##suite##_##name(MuTest*);                       \
     __MU_SECTION_DATA__                                                \
     __MU_HIDDEN_TEST__                                                 \

@@ -453,7 +453,8 @@ uipc_disconnect(uipc_handle* handle)
 uipc_message* 
 uipc_msg_new(uipc_handle* handle, UipcMessageType type, size_t max_size)
 {
-	uipc_message* message = malloc(sizeof (uipc_message));
+    char pathbuf[256];
+    uipc_message* message = malloc(sizeof (uipc_message));
 	
     if (!message)
         return NULL;
@@ -465,12 +466,13 @@ uipc_msg_new(uipc_handle* handle, UipcMessageType type, size_t max_size)
 	message->max_size = max_size;
     message->type = type;	
 
-    /* FIXME: don't use asprintf */
-    if (asprintf(
-            (char **) &message->shmem_path, 
-            "/uipc_%i_%i_%i", getpid(), 
-            handle->socket, 
-            handle->shmem_count++) < 0)
+    snprintf(pathbuf, sizeof(pathbuf)-1, 
+            "/uipc_%i_%i_%i",
+            (int) getpid(), 
+            (int) handle->socket, 
+            (int) handle->shmem_count++);
+    pathbuf[sizeof(pathbuf)-1] = '\0';
+    if (!(message->shmem_path = strdup(pathbuf)))
     {
         free(message);
         return NULL;

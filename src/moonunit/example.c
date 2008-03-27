@@ -34,7 +34,7 @@
 
 //#define MU_HIDE_TESTS
 
-#include <moonunit/test.h>
+#include <moonunit/interface.h>
 
 #include <string.h>
 #include <unistd.h>
@@ -51,7 +51,7 @@ MU_FIXTURE_SETUP(Arithmetic)
 
 MU_FIXTURE_TEARDOWN(Crash)
 {
-	if (!strcmp(MU_CURRENT_TEST->name, "segfault_teardown"))
+	if (!strcmp(MU_TOKEN->test->name, "segfault_teardown"))
 		*(int*)0 = 42;
 }
 

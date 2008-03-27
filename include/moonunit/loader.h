@@ -29,6 +29,7 @@
 #define __MU_LOADER_H__
 
 #include <moonunit/error.h>
+#include <moonunit/test.h>
 #include <stdbool.h>
 
 struct MuError;
@@ -37,9 +38,6 @@ struct MuLibrary;
 struct MuPlugin;
 
 typedef struct MuLibrary MuLibrary;
-
-typedef void (*MuThunk) (void);
-typedef void (*MuTestThunk) (struct MuTest*);
 
 typedef struct MuLoader
 {

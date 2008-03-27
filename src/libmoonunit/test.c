@@ -35,7 +35,7 @@
 #include <stdio.h>
 
 void
-__mu_event(MuTest* test, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
+__mu_event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
 {
     MuLogEvent event;
     va_list ap;
@@ -49,13 +49,13 @@ __mu_event(MuTest* test, MuLogLevel level, const char* file, unsigned int line, 
 
     va_end(ap);
 
-    test->harness->event(test->harness, test, &event);
+    token->event(token, &event);
 
     free((void*) event.message);
 }
 
 void
-__mu_assert(MuTest* test, int result, const char* expr,
+__mu_assert(MuTestToken* token, int result, const char* expr,
             const char* file, unsigned int line)
 {
 
@@ -70,7 +70,7 @@ __mu_assert(MuTest* test, int result, const char* expr,
         summary.reason = format("Assertion '%s' failed", expr);
         summary.line = line;
         
-        test->harness->result(test->harness, test, &summary);
+        token->result(token, &summary);
 
         free((void*) summary.reason);
     }
@@ -110,7 +110,7 @@ assert_equal_float(const char* expr, const char* expected, va_list ap, int* resu
 }
 
 void
-__mu_assert_equal(MuTest* test, const char* expr, const char* expected, 
+__mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, 
                   const char* file, unsigned int line, MuType type, ...)
 {
 	int result;
@@ -150,14 +150,14 @@ __mu_assert_equal(MuTest* test, const char* expr, const char* expected,
         summary.reason = reason;
         summary.line = line;
         
-        test->harness->result(test->harness, test, &summary);
+        token->result(token, &summary);
 
         free(reason);
     }
 }
 
 void
-__mu_success(MuTest* test)
+__mu_success(MuTestToken* token)
 {
     MuTestSummary summary;
 
@@ -166,11 +166,11 @@ __mu_success(MuTest* test)
     summary.reason = NULL;
     summary.line = 0;
 
-    test->harness->result(test->harness, test, &summary);
+    token->result(token, &summary);
 }
  
 void   
-__mu_failure(MuTest* test, const char* file, unsigned int line, const char* message, ...)
+__mu_failure(MuTestToken* token, const char* file, unsigned int line, const char* message, ...)
 {
     va_list ap;
     MuTestSummary summary;
@@ -181,12 +181,12 @@ __mu_failure(MuTest* test, const char* file, unsigned int line, const char* mess
     summary.reason = formatv(message, ap);
     summary.line = line;
 
-    test->harness->result(test->harness, test, &summary);
+    token->result(token, &summary);
 
     free((void*) summary.reason);
 }
 
-MuTestMethods Mu_TestMethods =
+static MuTestMethods generic_methods =
 {
     __mu_event,
 	__mu_assert,
@@ -194,3 +194,8 @@ MuTestMethods Mu_TestMethods =
 	__mu_success,
 	__mu_failure
 };
+
+void Mu_TestToken_FillMethods(MuTestToken* token)
+{
+    token->method = generic_methods;
+}

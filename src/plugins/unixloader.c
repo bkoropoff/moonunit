@@ -28,6 +28,7 @@
 #include <moonunit/loader.h>
 #include <moonunit/util.h>
 #include <moonunit/test.h>
+#include <moonunit/interface.h>
 #include <moonunit/error.h>
 
 #include <string.h>
@@ -94,7 +95,6 @@ test_init(MuTest* test, MuLibrary* library)
 {
     test->loader = library->loader;
     test->library = library;
-    test->methods = &Mu_TestMethods;
 }
 
 #ifdef HAVE_LIBELF
@@ -261,7 +261,7 @@ static MuThunk
 unixloader_library_setup (MuLoader* _self, MuLibrary* handle)
 {
     if (handle->library_setup)
-    	return handle->library_setup->function;
+    	return handle->library_setup->run;
     else
         return NULL;
 }
@@ -270,7 +270,7 @@ static MuThunk
 unixloader_library_teardown (MuLoader* _self, MuLibrary* handle)
 {
     if (handle->library_teardown)
-    	return handle->library_teardown->function;
+    	return handle->library_teardown->run;
     else
         return NULL;
 }
@@ -284,7 +284,7 @@ unixloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
 	{
 		if (!strcmp(name, handle->fixture_setups[i]->name))
         {
-			return handle->fixture_setups[i]->function;
+			return handle->fixture_setups[i]->run;
         }
 	}
     
@@ -300,7 +300,7 @@ unixloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handl
 	{
 		if (!strcmp(name, handle->fixture_teardowns[i]->name))
         {
-			return handle->fixture_teardowns[i]->function;
+			return handle->fixture_teardowns[i]->run;
         }
 	}
 	

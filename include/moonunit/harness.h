@@ -30,54 +30,7 @@
 
 #include <sys/types.h>
 #include <moonunit/test.h>
-
-struct MuTest;
-struct MuPlugin;
-
-typedef enum MuTestResult
-{
-    // Success
-    MOON_RESULT_SUCCESS = 0,
-    // Generic failure
-    MOON_RESULT_FAILURE = 1,
-    // Failure due to assertion
-    MOON_RESULT_ASSERTION = 2,
-    // Failure due to crash (segfault, usually)
-    MOON_RESULT_CRASH = 3,
-    // Failure due to timeout (infinite loop)
-    MOON_RESULT_TIMEOUT = 4
-} MuTestResult;
-
-typedef enum MuTestStage
-{
-    MOON_STAGE_SETUP = 0,
-    MOON_STAGE_TEST = 1,
-    MOON_STAGE_TEARDOWN = 2,
-    MOON_STAGE_UNKNOWN = 3
-} MuTestStage;
-
-typedef struct MuTestSummary
-{
-    MuTestResult result;
-    MuTestStage stage;
-    const char* reason;
-    // Note that we do not store
-    // the file since it should be the
-    // same as the test.
-    unsigned int line;
-} MuTestSummary;
-
-typedef struct MuLogEvent
-{
-    /* Stage at which event occurred */
-    MuTestStage stage;
-    /* File in which event occured */
-    const char* file;
-    /* Line on which event occured */
-    unsigned int line;
-    MuLogLevel level;
-    const char* message;
-} MuLogEvent;
+#include <moonunit/plugin.h>
 
 typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 
@@ -88,12 +41,6 @@ typedef struct MuHarness
     // structure is owned by the caller and must be copied if preservation
     // is required.
     void (*event)(struct MuHarness*, struct MuTest*, const MuLogEvent*);
-
-    // Called by a unit test when it determines its result
-    // early (through a failed assertion, etc.).  The structure
-    // passed in will be stack-allocated and should be copied if
-    // preservation is required
-    void (*result)(struct MuHarness*, struct MuTest*, const MuTestSummary*);
 
     // Called to run a single unit test.  Results should be stored
     // in the passed in MoonTestSummary structure.

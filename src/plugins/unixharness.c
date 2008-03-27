@@ -41,6 +41,16 @@
 #include <stdio.h>
 #include <signal.h>
 
+typedef struct
+{
+    MuTestToken base;
+    MuTestStage current_stage;
+    MuTest* current_test;
+    uipc_handle* ipc_handle;
+} UnixToken;
+
+static UnixToken* current_token;
+
 static uipc_typeinfo testsummary_info =
 {
 	1,
@@ -61,18 +71,16 @@ static uipc_typeinfo logevent_info =
 #define MSG_TYPE_RESULT 0
 #define MSG_TYPE_EVENT 1
 
-static MuTestStage current_stage;
-static MuTest* current_test;
-
-void unixharness_event(struct MuHarness* harness, struct MuTest* test, const MuLogEvent* _event)
+void unixtoken_event(MuTestToken* _token, const MuLogEvent* _event)
 {
-    uipc_handle* ipc_handle = test->data;
+    UnixToken* token = (UnixToken*) _token;
+    uipc_handle* ipc_handle = token->ipc_handle;
 
     if (!ipc_handle)
     {
         exit(0);
     }
-
+    
     uipc_message* message = uipc_msg_new(ipc_handle, MSG_TYPE_EVENT, 2048);
 
     MuLogEvent* event = uipc_msg_alloc(message, sizeof(MuLogEvent));
@@ -91,7 +99,7 @@ void unixharness_event(struct MuHarness* harness, struct MuTest* test, const MuL
 		strcpy((char*) event->message, _event->message);
     }
 
-    event->stage = current_stage;
+    event->stage = token->current_stage;
 
 	uipc_msg_payload_set(message, event, &logevent_info);
 	uipc_msg_send(message);
@@ -100,9 +108,10 @@ void unixharness_event(struct MuHarness* harness, struct MuTest* test, const MuL
     uipc_waitdone(ipc_handle, NULL);
 }
 
-void unixharness_result(MuHarness* _self, MuTest* test, const MuTestSummary* _summary)
+void unixtoken_result(MuTestToken* _token, const MuTestSummary* _summary)
 {	
-	uipc_handle* ipc_handle = test->data;
+    UnixToken* token = (UnixToken*) _token;
+	uipc_handle* ipc_handle = token->ipc_handle;
 
     if (!ipc_handle)
     {
@@ -137,17 +146,31 @@ signal_handler(int sig)
 	MuTestSummary summary;
 	
 	summary.result = MOON_RESULT_CRASH;
-	summary.stage = current_stage;
+	summary.stage = current_token->current_stage;
 	summary.reason = strdup(strsignal(sig));
 	summary.line = 0;
 	
-	current_test->harness->result(current_test->harness, current_test, &summary);
+	current_token->base.result((MuTestToken*) current_token, &summary);
+}
+
+static UnixToken*
+unixtoken_new(MuTest* test)
+{
+    UnixToken* token = calloc(1, sizeof(UnixToken));
+
+    Mu_TestToken_FillMethods((MuTestToken*) token);
+
+    token->base.result = unixtoken_result;
+    token->base.event = unixtoken_event;
+
+    return token;
 }
 
 void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary, MuLogCallback cb, void* data)
 {
 	int sockets[2];
 	pid_t pid;
+    UnixToken* token = current_token = unixtoken_new(test);
 	
 	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
 	
@@ -164,31 +187,29 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
 
 		close(sockets[0]);
 
-		current_test = test;
-        
-        test->harness = _self;
-		test->data = ipc_test;
+		token->base.test = test;
+        token->ipc_handle = ipc_test;
 		
 		signal(SIGSEGV, signal_handler);
 		signal(SIGPIPE, signal_handler);
 		signal(SIGFPE, signal_handler);
 		signal(SIGABRT, signal_handler);
 				
-		current_stage = MOON_STAGE_SETUP;
+		token->current_stage = MOON_STAGE_SETUP;
 		
-		if ((thunk = test->loader->fixture_setup(test->loader, test->suite, test->library)))
-			thunk(test);
+		if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
+			thunk((MuTestToken*) token);
 			
-		current_stage = MOON_STAGE_TEST;
+		token->current_stage = MOON_STAGE_TEST;
 		
-		test->function(test);
+		test->run((MuTestToken*) token);
 		
-		current_stage = MOON_STAGE_TEARDOWN;
+		token->current_stage = MOON_STAGE_TEARDOWN;
 		
-		if ((thunk = test->loader->fixture_teardown(test->loader, test->suite, test->library)))
-			thunk(test);
+		if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
+			thunk((MuTestToken*) token);
 		
-		test->methods->success(test);
+		token->base.method.success((MuTestToken*) token);
 	
         uipc_waitdone(ipc_test, NULL);
 
@@ -211,7 +232,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
         bool done = false;	
 
 		close(sockets[1]);
-	
+        
         while (!done)
         {	
     		uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
@@ -291,6 +312,7 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 {
 	int sockets[2];
 	pid_t pid;
+    UnixToken* token = current_token = unixtoken_new(test);
 	
 	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
 	
@@ -300,28 +322,24 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 
 		close(sockets[0]);
 
-		current_test = test;
-
-		test->harness = _self;
-		test->data = NULL;
-
+		token->base.test = test;
         select(0, NULL, NULL, NULL, NULL);
 		
-		current_stage = MOON_STAGE_SETUP;
+		token->current_stage = MOON_STAGE_SETUP;
 		
-		if ((thunk = test->loader->fixture_setup(test->loader, test->suite, test->library)))
-			thunk(test);
+		if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
+			thunk((MuTestToken*) test);
 			
-		current_stage = MOON_STAGE_TEST;
+		token->current_stage = MOON_STAGE_TEST;
 		
-		test->function(test);
+		test->run((MuTestToken*) token);
 		
-		current_stage = MOON_STAGE_TEARDOWN;
+		token-> current_stage = MOON_STAGE_TEARDOWN;
 		
-		if ((thunk = test->loader->fixture_teardown(test->loader, test->suite, test->library)))
-			thunk(test);
+		if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
+			thunk((MuTestToken*) token);
 		
-		test->methods->success(test);
+		token->base.method.success((MuTestToken*) token);
 	
 		exit(0);
 	}
@@ -339,8 +357,6 @@ void unixharness_cleanup (MuHarness* _self, MuTestSummary* summary)
 MuHarness mu_unixharness =
 {
     .plugin = NULL,
-    .event = unixharness_event,
-	.result = unixharness_result,
 	.dispatch = unixharness_dispatch,
     .debug = unixharness_debug,
 	.cleanup = unixharness_cleanup

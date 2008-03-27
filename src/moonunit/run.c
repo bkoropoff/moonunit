@@ -160,7 +160,8 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                 else if (summary.stage == MOON_STAGE_TEARDOWN)
                     breakpoint = format("*%p", Mu_Loader_FixtureTeardown(loader, library, test->suite));
                 else
-                    breakpoint = format("*%p", test->function);
+                    /* FIXME: this isn't guaranteed to be meaningful */
+                    breakpoint = format("*%p", test->run);
                 
                 gdb_attach_interactive(settings->self, pid, breakpoint);
             }

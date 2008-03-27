@@ -33,13 +33,9 @@ else
     moonunit="$dir/moonunit"
 fi
 
-if type mktemp >/dev/null 2>&1
-then
-    tempdir=`mktemp -d /tmp/moonunit-lt.XXXXXXXXXX` || exit 1
-else
-    tempdir="/tmp/moonunit-lt.${PPID}"
-    mkdir -p "$tempdir"
-fi
+tempdir="/tmp/moonunit-lt.${PPID}"
+mkdir -p "$tempdir"
+
 libtool --config > "$tempdir/ltconfig"
 objdir=`(source "$tempdir/ltconfig" && echo $objdir)`
 

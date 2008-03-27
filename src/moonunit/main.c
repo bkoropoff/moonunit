@@ -40,6 +40,7 @@
 
 #include "option.h"
 #include "run.h"
+#include "multilog.h"
 
 #define ALIGNMENT 60
 
@@ -55,18 +56,33 @@ int main (int argc, char** argv)
     unsigned int file_index;
     RunSettings settings;
     OptionTable option = {0};
+    array* loggers;
 
     if (Option_Parse(argc, argv, &option))
     {
         die("Error: %s", option.errormsg);
     }
 
+    loggers = Option_CreateLoggers(&option);
+
     settings.self = argv[0];
     settings.debug = option.gdb;
 
-    settings.logger = option.logger ?
-        Mu_Plugin_CreateLogger(option.logger) :
-        Mu_Plugin_CreateLogger("console");
+    if (array_size(loggers) == 0)
+    {
+        /* Create default console logger */
+        settings.logger = Mu_Plugin_CreateLogger("console");
+        
+        Mu_Logger_SetOption(settings.logger, "ansi", true);
+    }
+    else if (array_size(loggers) == 1)
+    {
+        settings.logger = loggers[0];
+    }
+    else
+    {
+        settings.logger = create_multilogger(loggers);
+    }
 
     if (!settings.logger)
     {
@@ -83,37 +99,17 @@ int main (int argc, char** argv)
         die("Error: Could not create loader 'unix'");
     }
 
-    if (Mu_Logger_OptionType(settings.logger, "fd") == MU_INTEGER)
+    for (file_index = 0; file_index < array_size(option.files); file_index++)
     {
-        Mu_Logger_SetOption(settings.logger, "fd", fileno(stdout));
-    }
-    
-    if (Mu_Logger_OptionType(settings.logger, "align") == MU_INTEGER)
-    {
-        Mu_Logger_SetOption(settings.logger, "align", ALIGNMENT);
-    }
-
-    if (Mu_Logger_OptionType(settings.logger, "ansi") == MU_BOOLEAN)
-    {
-        Mu_Logger_SetOption(settings.logger, "ansi", true);
-    }
-
-    if (Option_ApplyToLogger(&option, settings.logger))
-    {
-        die("Error: %s", option.errormsg);
-    }
-
-    for (file_index = 0; file_index < option.files.size; file_index++)
-    {
-        char* file = option.files.value[file_index];
+        char* file = option.files[file_index];
         
-        if (option.all || option.tests.size == 0)
+        if (option.all || array_size(option.tests) == 0)
         {
             run_all(&settings, file, &err);
         }
         else
         {
-            run_tests(&settings, file, option.tests.size, option.tests.value, &err);
+            run_tests(&settings, file, array_size(option.tests), (char**) option.tests, &err);
         }
 
         if (err)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008, Brian Koropoff
+ * Copyright (c) 2007, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __OPTION_H__
-#define __OPTION_H__
-
-#include <stdbool.h>
-#include <popt.h>
-
+#include <moonunit/logger.h>
 #include <moonunit/util.h>
 
-typedef struct
-{
-    bool gdb;
-    bool all;
-    char* logger;
-    array* tests, *files, *loggers;
-    char* errormsg;
-    poptContext context;
-} OptionTable;
-
-struct MuLogger;
-
-int Option_Parse(int argc, char** argv, OptionTable* option);
-void Option_Release(OptionTable* option);
-array* Option_CreateLoggers(OptionTable* option);
-
-#endif
+MuLogger* create_multilogger(array* loggers);

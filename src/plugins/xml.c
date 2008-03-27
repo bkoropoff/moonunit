@@ -40,6 +40,7 @@ typedef struct
 {
     MuLogger base;
     int fd;
+    char* file;
     FILE* out;
     MuTest* current_test;
 } XmlLogger;
@@ -148,8 +149,17 @@ static void option_set(void* _self, const char* name, void* data)
 
     if (!strcmp(name, "fd"))
     {
-        self->fd = dup(*(int*) data);
+        self->fd = dup(*(int*) data);        
+        if (self->out)
+            fclose(self->out);
         self->out = fdopen(self->fd, "w");
+    }
+    else if (!strcmp(name, "file"))
+    {
+        self->file = (char*) data;
+        if (self->out)
+            fclose(self->out);
+        self->out = fopen(self->file, "w");
     }
 }                       
 
@@ -160,6 +170,10 @@ static const void* option_get(void* _self, const char* name)
     if (!strcmp(name, "fd"))
     {
         return &self->fd;
+    }
+    else if (!strcmp(name, "file"))
+    {
+        return self->file;
     }
     else
     {
@@ -172,6 +186,10 @@ static MuType option_type(void* _self, const char* name)
     if (!strcmp(name, "fd"))
     {
         return MU_INTEGER;
+    }
+    else if (!strcmp(name, "file"))
+    {
+        return MU_STRING;
     }
     else
     {
@@ -197,7 +215,9 @@ static XmlLogger xmllogger =
             .type = option_type
         }
     },
-    .fd = -1
+    .fd = -1,
+    .file = NULL,
+    .out = NULL
 };
 
 static MuLogger*
@@ -207,6 +227,8 @@ create_xmllogger()
 
     *logger = xmllogger;
 
+    Mu_Logger_SetOption((MuLogger*) logger, "fd", fileno(stdout));
+   
     return (MuLogger*) logger;
 }
 

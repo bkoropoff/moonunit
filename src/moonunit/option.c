@@ -34,6 +34,7 @@
 
 #include <moonunit/util.h>
 #include <moonunit/logger.h>
+#include <moonunit/plugin.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,38 +45,6 @@
 #include <stdbool.h>
 
 #include "option.h"
-
-
-static void
-StringSet_Append(StringSet* set, const char* _str)
-{
-    char* str = strdup(_str);
-
-    if (set->size == set->capacity)
-    {
-        if (set->capacity)
-            set->capacity *= 2;
-        else
-            set->capacity = 16;
-        set->value = realloc(set->value, set->capacity);
-    }
-
-    set->value[set->size++] = str;
-}
-
-static void
-StringSet_Free(StringSet* set)
-{
-    if (set->value)
-    {
-        int i;
-        for (i = 0; i < set->size; i++)
-        {
-            free(set->value[i]);
-        }
-        free(set->value);
-    }
-}
 
 static int
 error(OptionTable* table, const char* fmt, ...)
@@ -138,15 +107,6 @@ static const struct poptOption options[] =
         .descrip = "Use a specific result logger (default: console)",
         .argDescrip = "name"
     },
-    {
-        .longName = "option",
-        .shortName = 'o',
-        .argInfo = POPT_ARG_STRING,
-        .arg = NULL,
-        .val = OPTION_OPTION,
-        .descrip = "Pass an option to a test component (logger or runner)",
-        .argDescrip = "comp.opt:value"
-    },
 /*
 Not presently implemented
     {
@@ -200,7 +160,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
                 break;
             }
 
-            StringSet_Append(&option->tests, entry);
+            option->tests = array_append(option->tests, (char*) entry);
             break;
         }
         case OPTION_ALL:
@@ -210,41 +170,15 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             option->gdb = true;
             break;
         case OPTION_LOGGER:
-            option->logger = strdup(poptGetOptArg(context));
+            option->loggers = array_append(option->loggers, strdup(poptGetOptArg(context)));
             break;
-        case OPTION_OPTION:
-        {
-            const char* opt = poptGetOptArg(context);
-            
-            char* dot = strchr(opt, '.');
-
-            if (!dot)
-            {
-                rc = error(option, "The argument to -o must be of the form component.key=value");
-                break;
-            }
-
-            *dot = '\0';
-
-            if (!strcmp(opt, "logger"))
-            {
-                StringSet_Append(&option->logger_options, dot+1);
-            }
-            else
-            {
-                rc = error(option, "Unknown component: %s", opt);               
-            }
-
-            *dot = '.';
-            break;
-        }
         case -1:
         {
             const char* file;
 
             while ((file = poptGetArg(context)))
             {
-                StringSet_Append(&option->files, file);
+                option->files = array_append(option->files, (char*) file);
             }
             break;
         }
@@ -257,7 +191,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
         }
     } while (rc > 0);
         
-    if (rc == -1 && !option->files.size)
+    if (rc == -1 && !array_size(option->files))
     {
         poptPrintUsage(context, stderr, 0);
         rc = error(option, "Please specify one or more library files");
@@ -266,37 +200,63 @@ Option_Parse(int argc, char** argv, OptionTable* option)
 	return rc != -1;
 }
 
-int 
-Option_ApplyToLogger(OptionTable* option, struct MuLogger* logger)
+array*
+Option_CreateLoggers(OptionTable* option)
 {
     unsigned int index;
+    array mu_loggers = NULL;
 
-    for (index = 0; index < option->logger_options.size; index++)
+    for (index = 0; index < array_size(option->loggers); index++)
     {
-        char* opt = option->logger_options.value[index];
-        char* eq = strchr(opt, ':');
+        char* logger_name = strdup((char*) option->loggers[index]);
+        char* colon = strchr(logger_name, ':');
+        char* options = NULL;
+        MuLogger* logger;
 
-        if (!eq)
-            return error(option, "Arguments to --option must be of the form component.key:value");
+        if (colon)
+        {
+            *colon = '\0';
+            options = colon+1;
+        }
 
-        *eq = '\0';
+        logger = Mu_Plugin_CreateLogger(logger_name);
 
-        Mu_Logger_SetOptionString(logger, opt, eq+1);
+        if (options)
+        {
+            char* o, *next;
+
+            for (o = options; o; o = next)
+            {
+                char* equal;
+                next = strchr(o, ',');
+                if (next)
+                {
+                    *(next++) = '\0';
+                }
+                
+                equal = strchr(o, '=');
+
+                if (equal)
+                {
+                    *equal = '\0';
+                    Mu_Logger_SetOptionString(logger, o, equal+1);
+                }
+                else if (Mu_Logger_OptionType(logger, o) == MU_BOOLEAN)
+                {
+                    Mu_Logger_SetOption(logger, o, true);
+                }
+            }
+        }
+
+        mu_loggers = array_append(mu_loggers, logger);
     }
 
-    return 0;
+    return mu_loggers;
 }
 
 void
 Option_Release(OptionTable* option)
 {
-    StringSet_Free(&option->tests);
-    StringSet_Free(&option->files);
-    StringSet_Free(&option->logger_options);
-
-    if (option->logger)
-        free(option->logger);
-
     if (option->errormsg)
         free(option->errormsg);
 

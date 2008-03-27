@@ -84,7 +84,7 @@ static void event_proxy_cb(MuLogEvent* event, void* data)
 {
     MuLogger* logger = (MuLogger*) data;
 
-    logger->test_log(logger, event);
+    Mu_Logger_TestLog(logger, event);
 }
 
 void
@@ -102,7 +102,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         MU_RERAISE_GOTO(error, _err, err);
     }
     
-    logger->library_enter(logger, basename_pure(path));
+    Mu_Logger_LibraryEnter(logger, basename_pure(path));
     
     MuTest** tests = Mu_Loader_Tests(loader, library);
     MuThunk thunk;
@@ -133,14 +133,14 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             if (current_suite == NULL || strcmp(current_suite, test->suite))
             {
                 if (current_suite)
-                    logger->suite_leave(logger);
+                    Mu_Logger_SuiteLeave(logger);
                 current_suite = test->suite;
-                logger->suite_enter(logger, test->suite);
+                Mu_Logger_SuiteEnter(logger, test->suite);
             }
             
-            logger->test_enter(logger, test);
+            Mu_Logger_TestEnter(logger, test);
             harness->dispatch(harness, test, &summary, event_proxy_cb, logger);
-            logger->test_leave(logger, test, &summary);
+            Mu_Logger_TestLeave(logger, test, &summary);
             
             if (summary.result != MOON_RESULT_SUCCESS && settings->debug)
             {
@@ -163,10 +163,10 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         }
         
         if (current_suite)
-            logger->suite_leave(logger);
+            Mu_Logger_SuiteLeave(logger);
     }
     
-    logger->library_leave(logger);
+    Mu_Logger_LibraryLeave(logger);
     
     if ((thunk = Mu_Loader_LibraryTeardown(loader, library)))
         thunk();

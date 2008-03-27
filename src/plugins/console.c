@@ -42,6 +42,7 @@ typedef struct
     MuLogger base;
 
     int fd;
+    char* file;
     FILE* out;
 
     int align;
@@ -183,7 +184,20 @@ option_set(void* _self, const char* name, void* data)
     if (!strcmp(name, "fd"))
     {
         self->fd = dup(*(int*) data);
+        
+        if (self->out)
+            fclose(self->out);
+
         self->out = fdopen(self->fd, "w");
+    }
+    else if (!strcmp(name, "file"))
+    {
+        if (self->file)
+            free(self->file);
+        self->file = strdup((char*) data);
+        if (self->out)
+            fclose(self->out);
+        self->out = fopen(self->file, "w");
     }
     else if (!strcmp(name, "ansi"))
     {
@@ -203,6 +217,10 @@ option_get(void* _self, const char* name)
     if (!strcmp(name, "fd"))
     {
         return &self->fd;
+    }
+    else if (!strcmp(name, "file"))
+    {
+        return self->file;
     }
     else if (!strcmp(name, "ansi"))
     {
@@ -225,6 +243,10 @@ option_type(void* _self, const char* name)
     if (!strcmp(name, "fd"))
     {
         return MU_INTEGER;
+    }
+    else if (!strcmp(name, "file"))
+    {
+        return MU_STRING;
     }
     else if (!strcmp(name, "ansi"))
     {
@@ -261,7 +283,7 @@ static ConsoleLogger consolelogger =
     .fd = -1,
     .out = NULL,
     .ansi = false,
-    .align = 80
+    .align = 60
 };
 
 static MuLogger*
@@ -270,6 +292,8 @@ create_consolelogger()
     ConsoleLogger* logger = malloc(sizeof(ConsoleLogger));
 
     *logger = consolelogger;
+
+    Mu_Logger_SetOption((MuLogger*) logger, "fd", fileno(stdout));
 
     return (MuLogger*) logger;
 }

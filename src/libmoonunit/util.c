@@ -61,7 +61,7 @@ char* formatv(const char* format, va_list ap)
 	    capacity *= 2;
 	    va_copy(mine, ap);
 	    result = realloc(result, capacity);
-	} while ((length = vsnprintf(result, capacity-1, format, mine)) == -1);
+	} while ((length = vsnprintf(result, capacity-1, format, mine)) == -1 || capacity <= length);
 	result[length] = '\0';
 
 	return result;

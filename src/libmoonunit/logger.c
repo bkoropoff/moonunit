@@ -59,3 +59,39 @@ Mu_Logger_OptionType(MuLogger* logger, const char *name)
 {
     return Mu_Option_Type(logger, &logger->option, name);
 }
+
+void Mu_Logger_LibraryEnter (struct MuLogger* logger, const char* name)
+{
+    logger->library_enter(logger, name);
+}
+
+void Mu_Logger_LibraryLeave (struct MuLogger* logger)
+{
+    logger->library_leave(logger);
+}
+
+void Mu_Logger_SuiteEnter (struct MuLogger* logger, const char* name)
+{
+    logger->suite_enter(logger, name);
+}
+
+void Mu_Logger_SuiteLeave (struct MuLogger* logger)
+{
+    logger->suite_leave(logger);
+}
+
+void Mu_Logger_TestEnter (struct MuLogger* logger, struct MuTest* test)
+{
+    logger->test_enter(logger, test);
+}
+
+void Mu_Logger_TestLog (struct MuLogger* logger, struct MuLogEvent* event)
+{
+    logger->test_log(logger, event);
+}
+
+void Mu_Logger_TestLeave (struct MuLogger* logger, 
+                          struct MuTest* test, struct MuTestSummary* summary)
+{
+    logger->test_leave(logger, test, summary);
+}

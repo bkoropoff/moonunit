@@ -53,4 +53,13 @@ void Mu_Logger_SetOption(MuLogger* logger, const char *name, ...);
 void Mu_Logger_SetOptionString(MuLogger* logger, const char *name, const char *value);
 MuType Mu_Logger_OptionType(MuLogger* logger, const char *name);
 
+void Mu_Logger_LibraryEnter (struct MuLogger*, const char*);
+void Mu_Logger_LibraryLeave (struct MuLogger*);
+void Mu_Logger_SuiteEnter (struct MuLogger*, const char*);
+void Mu_Logger_SuiteLeave (struct MuLogger*);
+void Mu_Logger_TestEnter (struct MuLogger*, struct MuTest* test);
+void Mu_Logger_TestLog (struct MuLogger*, struct MuLogEvent* event);
+void Mu_Logger_TestLeave (struct MuLogger*, 
+                          struct MuTest*, struct MuTestSummary*);
+
 #endif

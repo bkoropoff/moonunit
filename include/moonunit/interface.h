@@ -54,6 +54,7 @@
 #    define __MU_USED__ __attribute__((used))
 #    define __MU_SECTION__(name) __attribute__((section(name)))
 #    define __MU_HIDDEN__ __attribute__((visibility("hidden")))
+#    define __MU_WEAK__ __attribute__((weak))
 #else
 #    define __MU_USED__
 #    define __MU_SECTION__(name)
@@ -67,6 +68,25 @@
 #else
 #    define __MU_HIDDEN_TEST__
 #endif
+
+#define MU_LINK_NONE 0
+#define MU_LINK_WEAK 1
+#define MU_LINK_UNDEFINED 2
+#define MU_LINK_STRONG 3
+
+#ifndef MU_LINK_STYLE
+#define MU_LINK_STYLE MU_LINK_NONE
+#endif
+
+#if MU_LINK_STYLE == MU_LINK_WEAK
+#    define __MU_LINK__(proto) proto __MU_WEAK__
+#elif MU_LINK_STYLE == MU_LINK_UNDEFINED || MU_LINK_STYLE == MU_LINK_STRONG
+#    define __MU_LINK__(proto) proto
+#else
+#    define __MU_LINK__(proto)
+#endif
+
+__MU_LINK__(MuTestToken* __mu_current_token(void));
 
 #endif
 
@@ -119,7 +139,7 @@
         .line = __LINE__,                                               \
         .run = __mu_f_##_suite##_##_name                                \
     };                                                                  \
-    void __mu_f_##_suite##_##_name(MuTestToken* MU_TOKEN)
+    void __mu_f_##_suite##_##_name(MuTestToken* __mu_token__)
 
 /**
  * @brief Define library setup routine
@@ -221,20 +241,20 @@
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_SETUP(_name)                     \
-    __MU_USED__                                     \
-	__MU_HIDDEN_TEST__                              \
-    void __mu_f_fs_##_name(MuTestToken* MU_TOKEN);  \
-    __MU_USED__                                     \
-    __MU_HIDDEN_TEST__                              \
-    MuFixtureSetup __mu_fs_##_name =                \
-    {                                               \
-        .name = #_name,                             \
-        .file = __FILE__,                           \
-        .line = __LINE__,                           \
-        .run = __mu_f_fs_##_name                    \
-    };                                              \
-    void __mu_f_fs_##_name(MuTestToken* MU_TOKEN)
+#define MU_FIXTURE_SETUP(_name)                         \
+    __MU_USED__                                         \
+	__MU_HIDDEN_TEST__                                  \
+    void __mu_f_fs_##_name(MuTestToken* __mu_token__);  \
+    __MU_USED__                                         \
+    __MU_HIDDEN_TEST__                                  \
+    MuFixtureSetup __mu_fs_##_name =                    \
+    {                                                   \
+        .name = #_name,                                 \
+        .file = __FILE__,                               \
+        .line = __LINE__,                               \
+        .run = __mu_f_fs_##_name                        \
+    };                                                  \
+    void __mu_f_fs_##_name(MuTestToken* __mu_token__)
 
 /**
  * @brief Define test fixture teardown routine
@@ -274,20 +294,20 @@
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_TEARDOWN(_name)                 \
-    __MU_USED__                                    \
-	__MU_HIDDEN_TEST__                             \
-    void __mu_f_ft_##_name(MuTestToken* MU_TOKEN); \
-    __MU_USED__                                    \
-    __MU_HIDDEN_TEST__                             \
-    MuFixtureTeardown __mu_ft_##_name =            \
-    {                                              \
-        .name = #_name,                            \
-        .file = __FILE__,                          \
-        .line = __LINE__,                          \
-        .run = __mu_f_ft_##_name                   \
-    };                                             \
-    void __mu_f_ft_##_name(MuTestToken* MU_TOKEN)
+#define MU_FIXTURE_TEARDOWN(_name)                      \
+    __MU_USED__                                         \
+	__MU_HIDDEN_TEST__                                  \
+    void __mu_f_ft_##_name(MuTestToken* __mu__token__); \
+    __MU_USED__                                         \
+    __MU_HIDDEN_TEST__                                  \
+    MuFixtureTeardown __mu_ft_##_name =                 \
+    {                                                   \
+        .name = #_name,                                 \
+        .file = __FILE__,                               \
+        .line = __LINE__,                               \
+        .run = __mu_f_ft_##_name                        \
+    };                                                  \
+    void __mu_f_ft_##_name(MuTestToken* __mu_token__)
 
 /*@}*/
 
@@ -503,7 +523,11 @@
  * @endcode
  * @hideinitializer
  */
-#define MU_TOKEN (__mu_token__)
+#if MU_LINK_STYLE == MU_LINK_NONE
+#    define MU_TOKEN (__mu_token__)
+#else
+#    define MU_TOKEN (__mu_current_token())
+#endif
 
 /*@}*/
 
@@ -512,6 +536,8 @@
 #define MU_FUNC_PREFIX "__mu_f_"
 #define MU_FS_PREFIX "__mu_fs_"
 #define MU_FT_PREFIX "__mu_ft_"
+
+void Mu_Interface_SetCurrentToken(MuTestToken* token);
 #endif
 
 #endif

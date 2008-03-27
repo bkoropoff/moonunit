@@ -5,7 +5,8 @@ SUBDIRS=
 lib_LTLIBRARIES=libmoonunit.la
 
 libmoonunit_la_SOURCES = \
-	error.c util.c test.c harness.c logger.c loader.c plugin.c option.c
+	error.c util.c test.c harness.c logger.c loader.c plugin.c option.c \
+	interface.c
 
 libmoonunit_la_LIBADD = -ldl $(top_builddir)/src/libuipc/libuipc.la
 

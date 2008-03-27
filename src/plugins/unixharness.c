@@ -31,6 +31,7 @@
 #include <moonunit/harness.h>
 #include <moonunit/loader.h>
 #include <moonunit/util.h>
+#include <moonunit/interface.h>
 #include <uipc/ipc.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -190,6 +191,8 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
 		token->base.test = test;
         token->ipc_handle = ipc_test;
 		
+        Mu_Interface_SetCurrentToken((MuTestToken*) token);
+
 		signal(SIGSEGV, signal_handler);
 		signal(SIGPIPE, signal_handler);
 		signal(SIGFPE, signal_handler);
@@ -323,6 +326,8 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 		close(sockets[0]);
 
 		token->base.test = test;
+        Mu_Interface_SetCurrentToken((MuTestToken*) token);
+
         select(0, NULL, NULL, NULL, NULL);
 		
 		token->current_stage = MOON_STAGE_SETUP;

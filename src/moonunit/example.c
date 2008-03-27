@@ -90,6 +90,20 @@ MU_TEST(Arithmetic, crash)
 	MU_ASSERT(x / (y - 3) == x);
 }
 
+#if MU_LINK_STYLE != MU_LINK_NONE
+unsigned int divide(int a, int b)
+{
+    MU_ASSERT(b != 0);
+    
+    return a / b;
+}
+
+MU_TEST(Arithmetic, bad_link)
+{
+    divide(5, 0);
+}
+#endif
+
 MU_TEST(Crash, segfault)
 {
 	*(int*)0 = 42;

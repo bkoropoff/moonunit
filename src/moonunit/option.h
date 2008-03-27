@@ -37,6 +37,7 @@ typedef struct
 {
     bool gdb;
     bool all;
+    unsigned int iterations;
     char* logger;
     array* tests, *files, *loggers;
     char* errormsg;

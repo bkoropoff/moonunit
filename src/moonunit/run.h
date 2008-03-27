@@ -39,6 +39,7 @@ typedef struct
     MuHarness* harness;
     MuLogger* logger;
     bool debug;
+    unsigned int iterations;
 } RunSettings;
 
 void run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError** _err);

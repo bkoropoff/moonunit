@@ -67,6 +67,7 @@ int main (int argc, char** argv)
 
     settings.self = argv[0];
     settings.debug = option.gdb;
+    settings.iterations = option.iterations;
 
     if (array_size(loggers) == 0)
     {

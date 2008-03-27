@@ -31,6 +31,7 @@
 #define OPTION_GDB 4
 #define OPTION_LOGGER 5
 #define OPTION_OPTION 6
+#define OPTION_ITERATIONS 7
 
 #include <moonunit/util.h>
 #include <moonunit/logger.h>
@@ -107,18 +108,15 @@ static const struct poptOption options[] =
         .descrip = "Use a specific result logger (default: console)",
         .argDescrip = "name"
     },
-/*
-Not presently implemented
     {
-        .longName = "break",
-        .shortName = '\0',
-        .argInfo = POPT_ARG_STRING,
-        .arg = &option_gdb_break,
-        .val = 0,
-        .descrip = "Specify breakpoint to use for interactive gdb sessions",
-        .argDescrip = "< function | line >"
+        .longName = "iterations",
+        .shortName = 'n',
+        .argInfo = POPT_ARG_INT,
+        .arg = NULL,
+        .val = OPTION_ITERATIONS,
+        .descrip = "Run each test count iterations",
+        .argDescrip = "count"
     },
-*/
     POPT_AUTOHELP
     POPT_TABLEEND
 };
@@ -130,6 +128,10 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     int rc;
 
     option->context = context;
+
+    /* Set defaults */
+
+    option->iterations = 1;
 
     poptSetOtherOptionHelp(context, "<libraries...>");
 
@@ -171,6 +173,9 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             break;
         case OPTION_LOGGER:
             option->loggers = array_append(option->loggers, strdup(poptGetOptArg(context)));
+            break;
+        case OPTION_ITERATIONS:
+            option->iterations = atoi(poptGetOptArg(context));
             break;
         case -1:
         {

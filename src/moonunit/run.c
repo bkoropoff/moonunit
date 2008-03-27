@@ -126,7 +126,8 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         {
             MuTestSummary summary;
             MuTest* test = tests[index];
-            
+            unsigned int count;
+
             if (set != NULL && !in_set(test, setc, set))
                 continue;
             
@@ -139,7 +140,12 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             }
             
             Mu_Logger_TestEnter(logger, test);
-            harness->dispatch(harness, test, &summary, event_proxy_cb, logger);
+            for (count = 0; count < settings->iterations; count++)
+            {
+                harness->dispatch(harness, test, &summary, event_proxy_cb, logger);
+                if (summary.result != MOON_RESULT_SUCCESS)
+                    break;
+            }
             Mu_Logger_TestLeave(logger, test, &summary);
             
             if (summary.result != MOON_RESULT_SUCCESS && settings->debug)

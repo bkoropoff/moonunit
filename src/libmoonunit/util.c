@@ -51,6 +51,8 @@ char* formatv(const char* format, va_list ap)
     int length;
     char* result = NULL;
 
+    va_copy(mine, ap);
+
     length = vsnprintf(NULL, 0, format, mine);
 
     if (length == -1)
@@ -152,7 +154,7 @@ array_new(void)
 size_t
 array_size(array* a)
 {
-    return reveal(a)->size;
+    return a ? reveal(a)->size : 0;
 }
 
 array*

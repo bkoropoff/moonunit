@@ -29,6 +29,7 @@
 #define __MU_LOADER_H__
 
 #include <moonunit/error.h>
+#include <stdbool.h>
 
 struct MuError;
 struct MuTest;
@@ -43,6 +44,8 @@ typedef void (*MuTestThunk) (struct MuTest*);
 typedef struct MuLoader
 {
     struct MuPlugin* plugin;
+    // Determines if a library can be opened by this loader
+    bool (*can_open) (struct MuLoader*, const char* path);
     // Opens a library and returns a handle
     MuLibrary* (*open) (struct MuLoader*, const char* path, MuError** err);
     // Returns a null-terminated list of unit tests
@@ -63,6 +66,7 @@ typedef struct MuLoader
     const char * (*name) (struct MuLoader*, MuLibrary* handle);
 } MuLoader;
 
+bool Mu_Loader_CanOpen(struct MuLoader* loader, const char* path);
 MuLibrary* Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err);
 struct MuTest** Mu_Loader_Tests(struct MuLoader* loader, MuLibrary* handle);
 MuThunk Mu_Loader_LibrarySetup(struct MuLoader* loader, MuLibrary* handle);

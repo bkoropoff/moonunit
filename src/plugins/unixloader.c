@@ -171,6 +171,19 @@ error:
 
 #endif
 
+static bool
+unixloader_can_open(MuLoader* self, const char* path)
+{
+    bool result;
+    void* handle = mu_dlopen(path, RTLD_LAZY);
+
+    result = (handle != NULL);
+
+    dlclose(handle);
+
+    return result;
+}
+
 static MuLibrary*
 unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 {
@@ -317,7 +330,7 @@ unixloader_name (MuLoader* _self, MuLibrary* handle)
 
 MuLoader mu_unixloader =
 {
-    .plugin = NULL,
+    .can_open = unixloader_can_open,
 	.open = unixloader_open,
 	.tests = unixloader_tests,
 	.library_setup = unixloader_library_setup,

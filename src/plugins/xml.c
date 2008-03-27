@@ -156,6 +156,8 @@ static void option_set(void* _self, const char* name, void* data)
     }
     else if (!strcmp(name, "file"))
     {
+        if (self->file)
+            free(self->file);
         self->file = (char*) data;
         if (self->out)
             fclose(self->out);
@@ -245,8 +247,6 @@ destroy_xmllogger(MuLogger* _logger)
 static MuPlugin plugin =
 {
     .name = "xml",
-    .create_loader = NULL,
-    .create_harness = NULL,
     .create_logger = create_xmllogger,
     .destroy_logger = destroy_xmllogger
 };

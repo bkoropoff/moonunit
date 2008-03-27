@@ -28,6 +28,8 @@
 #ifndef __MU_PLUGIN_H__
 #define __MU_PLUGIN_H__
 
+#include <stdbool.h>
+
 struct MuLogger;
 struct MuHarness;
 struct MuLoader;
@@ -35,10 +37,9 @@ struct MuLoader;
 typedef struct MuPlugin
 {
     const char* name;
-    struct MuLoader*  (*create_loader) ();
-    void (*destroy_loader) (struct MuLoader*);
-    struct MuHarness* (*create_harness) ();
-    void (*destroy_harness) (struct MuHarness*);
+    
+    struct MuLoader*  (*loader) ();
+    struct MuHarness* (*harness) ();
     struct MuLogger*  (*create_logger) ();
     void (*destroy_logger) (struct MuLogger*);
 } MuPlugin;
@@ -46,10 +47,9 @@ typedef struct MuPlugin
 #define MU_PLUGIN_INIT \
     MuPlugin* __mu_p_init ()
 
-struct MuLoader* Mu_Plugin_CreateLoader(const char *name);
-void Mu_Plugin_DestroyLoader(struct MuLoader*);
-struct MuHarness* Mu_Plugin_CreateHarness(const char *name);
-void Mu_Plugin_DestroyHarness(struct MuHarness*);
+struct MuLoader* Mu_Plugin_GetLoaderWithName(const char *name);
+struct MuLoader* Mu_Plugin_GetLoaderForFile(const char *file);
+struct MuHarness* Mu_Plugin_GetHarness(const char *name);
 struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
 void Mu_Plugin_DestroyLogger(struct MuLogger*);
 

@@ -174,7 +174,7 @@ get_plugin(const char* name)
 }
 
 struct MuLoader*
-Mu_Plugin_CreateLoader(const char *name)
+Mu_Plugin_GetLoaderWithName(const char *name)
 {
     MuPlugin* plugin = get_plugin(name);
     MuLoader* loader;
@@ -182,10 +182,10 @@ Mu_Plugin_CreateLoader(const char *name)
     if (!plugin)
         return NULL;
 
-    if (!plugin->create_loader)
+    if (!plugin->loader)
         return NULL;
 
-    loader = plugin->create_loader();
+    loader = plugin->loader();
 
     if (!loader)
         return NULL;
@@ -195,14 +195,28 @@ Mu_Plugin_CreateLoader(const char *name)
     return loader;
 }
 
-void Mu_Plugin_DestroyLoader(MuLoader* loader)
+struct MuLoader*
+Mu_Plugin_GetLoaderForFile(const char* file)
 {
-    if (loader->plugin && loader->plugin->destroy_loader)
-        loader->plugin->destroy_loader(loader);
+    unsigned int index;
+
+    for (index = 0; index < array_size(plugin_list); index++)
+    {
+        MuPlugin* plugin = plugin_list[index];
+        if (plugin->loader)
+        {
+            MuLoader* loader = plugin->loader();
+
+            if (loader && Mu_Loader_CanOpen(loader, file))
+                return loader;
+        }
+    }
+
+    return NULL;
 }
 
 struct MuHarness*
-Mu_Plugin_CreateHarness(const char *name)
+Mu_Plugin_GetHarness(const char *name)
 {
     MuPlugin* plugin = get_plugin(name);
     MuHarness* harness;
@@ -210,10 +224,10 @@ Mu_Plugin_CreateHarness(const char *name)
     if (!plugin)
         return NULL;
 
-    if (!plugin->create_harness)
+    if (!plugin->harness)
         return NULL;
 
-    harness = plugin->create_harness();
+    harness = plugin->harness();
 
     if (!harness)
         return NULL;
@@ -221,12 +235,6 @@ Mu_Plugin_CreateHarness(const char *name)
     harness->plugin = plugin;
 
     return harness;
-}
-
-void Mu_Plugin_DestroyHarness(MuHarness* harness)
-{
-    if (harness->plugin && harness->plugin->destroy_harness)
-        harness->plugin->destroy_harness(harness);
 }
 
 struct MuLogger*

@@ -27,6 +27,12 @@
 
 #include <moonunit/loader.h>
 
+bool
+Mu_Loader_CanOpen(struct MuLoader* loader, const char* path)
+{
+    return loader->can_open(loader, path);
+}
+
 MuLibrary*
 Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err)
 {

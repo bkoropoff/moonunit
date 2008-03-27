@@ -72,6 +72,11 @@ int main (int argc, char** argv)
     {
         /* Create default console logger */
         settings.logger = Mu_Plugin_CreateLogger("console");
+
+        if (!settings.logger)
+        {
+            die("Error: Could not create logger 'console'");
+        }
         
         Mu_Logger_SetOption(settings.logger, "ansi", true);
     }
@@ -84,24 +89,21 @@ int main (int argc, char** argv)
         settings.logger = create_multilogger(loggers);
     }
 
-    if (!settings.logger)
-    {
-        die("Error: Could not create logger '%s'", option.logger);
-    }
-
-    if (!(settings.harness = Mu_Plugin_CreateHarness("unix")))
+    if (!(settings.harness = Mu_Plugin_GetHarness("unix")))
     {
         die("Error: Could not create harness 'unix'");
-    }
-
-    if (!(settings.loader = Mu_Plugin_CreateLoader("unix")))
-    {
-        die("Error: Could not create loader 'unix'");
     }
 
     for (file_index = 0; file_index < array_size(option.files); file_index++)
     {
         char* file = option.files[file_index];
+
+        settings.loader = Mu_Plugin_GetLoaderForFile(file);
+
+        if (!settings.loader)
+        {
+            die("Error: Could not find loader for file %s", basename_pure(file));
+        }
         
         if (option.all || array_size(option.tests) == 0)
         {
@@ -120,8 +122,6 @@ int main (int argc, char** argv)
 
     Option_Release(&option);
     Mu_Plugin_DestroyLogger(settings.logger);
-    Mu_Plugin_DestroyHarness(settings.harness);
-    Mu_Plugin_DestroyLoader(settings.loader);
 
 	return 0;
 }

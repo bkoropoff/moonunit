@@ -35,52 +35,22 @@ extern struct MuLoader mu_unixloader;
 extern struct MuHarness mu_unixharness;
 
 static struct MuLoader*
-create_unixloader()
+get_unixloader()
 {
-    MuLoader* loader = malloc(sizeof (*loader));
-
-    if (!loader)
-        return NULL;
-
-    *loader = mu_unixloader;
-
-    return loader;
-}
-
-static void
-destroy_unixloader(MuLoader* loader)
-{
-    free(loader);
+    return &mu_unixloader;
 }
 
 static struct MuHarness*
-create_unixharness()
+get_unixharness()
 {
-    MuHarness* harness = malloc(sizeof(*harness));
-
-    if (!harness)
-        return NULL;
-
-    *harness = mu_unixharness;
-
-    return harness;
-}
-
-static void
-destroy_unixharness(MuHarness* harness)
-{
-    free(harness);
+    return &mu_unixharness;
 }
 
 static MuPlugin plugin =
 {
     .name = "unix",
-    .create_loader = create_unixloader,
-    .destroy_loader = destroy_unixloader,
-    .create_harness = create_unixharness,
-    .destroy_harness = destroy_unixharness,
-    .create_logger = NULL,
-    .destroy_logger = NULL,
+    .loader = get_unixloader,
+    .harness = get_unixharness,
 };
 
 MU_PLUGIN_INIT

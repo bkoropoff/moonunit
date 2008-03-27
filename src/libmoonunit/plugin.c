@@ -86,9 +86,8 @@ load_plugins_dir(const char* path)
                     plugin_list = array_append(plugin_list, plugin);
             }
         }
+	closedir(dir);   
     }
-    
-    closedir(dir);   
 }
 
 static void

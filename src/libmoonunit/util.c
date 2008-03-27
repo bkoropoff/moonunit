@@ -49,20 +49,34 @@ char* formatv(const char* format, va_list ap)
 {
     va_list mine;
     int length;
-    char* result;
-
-    va_copy(mine, ap);
+    char* result = NULL;
 
     length = vsnprintf(NULL, 0, format, mine);
 
-    va_copy(mine, ap);
+    if (length == -1)
+    {
+	int capacity = 16;
+	do
+	{
+	    capacity *= 2;
+	    va_copy(mine, ap);
+	    result = realloc(result, capacity);
+	} while ((length = vsnprintf(result, capacity-1, format, mine)) == -1);
+	result[length] = '\0';
 
-    result = malloc(length+1);
-    
-    if (vsnprintf(result, length+1, format, mine) < length)
-        return NULL;
+	return result;
+    }
     else
-        return result;
+    {
+	va_copy(mine, ap);
+	
+	result = malloc(length+1);
+	
+	if (vsnprintf(result, length+1, format, mine) < length)
+	    return NULL;
+	else
+	    return result;
+    }
 }
 
 char* format(const char* format, ...)

@@ -49,11 +49,11 @@ char* formatv(const char* format, va_list ap)
 {
     va_list mine;
     int length;
-    char* result = NULL;
+    char* result = malloc(1);
 
     va_copy(mine, ap);
 
-    length = vsnprintf(NULL, 0, format, mine);
+    length = vsnprintf(result, 1, format, mine);
 
     if (length == -1)
     {

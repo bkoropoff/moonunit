@@ -36,7 +36,12 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <sys/wait.h>
-#include <sys/select.h>
+#ifdef HAVE_SYS_SELECT_H
+#    include <sys/select.h>
+#endif
+#ifdef HAVE_SELECT_H
+#    include <select.h>
+#endif
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
@@ -141,14 +146,24 @@ void unixtoken_result(MuTestToken* _token, const MuTestSummary* _summary)
 	exit(0);
 }
 
+static char*
+signal_description(int sig)
+{
+#ifdef HAVE_STRSIGNAL
+	return strdup(strsignal(sig));
+#else
+	return format("Signal %i", sig);
+#endif
+}
+
 static void
 signal_handler(int sig)
 {
 	MuTestSummary summary;
-	
+
 	summary.result = MOON_RESULT_CRASH;
 	summary.stage = current_token->current_stage;
-	summary.reason = strdup(strsignal(sig));
+	summary.reason = signal_description(sig);
 	summary.line = 0;
 	
 	current_token->base.result((MuTestToken*) current_token, &summary);
@@ -298,7 +313,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
 				summary->line = 0;
 				
 				if (WTERMSIG(status))
-					summary->reason = strdup(strsignal(WTERMSIG(status)));
+				    summary->reason = signal_description(WTERMSIG(status));
 			}
             else
             {

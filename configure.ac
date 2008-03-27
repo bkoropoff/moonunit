@@ -13,11 +13,22 @@ case "$target_os" in
     linux-gnu)
         moduleext=".so"
 	;;
+    hpux11.*)
+	case "$target_cpu" in
+	    hppa2.0*)
+	        moduleext=".sl"
+	        LDFLAGS="$LDFLAGS -Wl,+s"
+	        ;;
+	    *)
+	        AC_MSG_ERROR([Unsupported architecture: $target_cpu])
+		;;
+        esac
+	;;
     darwin8.*)
 	moduleext=".so"
 	;;
     *)
-	AC_MSG_ERROR("Unsupported OS: $target_os")
+	AC_MSG_ERROR([Unsupported OS: $target_os])
 	;;
 esac
 
@@ -86,12 +97,16 @@ AC_SUBST(moduleext)
 AC_SUBST(memberext)
 AC_SUBST(LIB_socket)
 AC_SUBST(LIB_rt)
+AC_SUBST(LIB_dl)
 
 AM_CONDITIONAL([HAVE_MEMBEREXT], [test -n "$memberext"])
 
+AC_CHECK_HEADERS([select.h sys/select.h])
+
 AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])
 AC_CHECK_LIB(rt, shm_open, [LIB_rt="-lrt"])
-
+AC_CHECK_LIB(dl, dlopen, [LIB_dl="-ldl"])
+AC_CHECK_FUNCS([strsignal])
 
 saved_LDFLAGS=$LDFLAGS
 saved_CPPFLAGS=$CPPFLAGS

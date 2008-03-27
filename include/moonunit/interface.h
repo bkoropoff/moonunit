@@ -52,7 +52,7 @@
 
 #ifdef __GNUC__
 #    define __MU_USED__ __attribute__((used))
-#    ifdef __APPLE__
+#    if defined(__APPLE__) || (defined(__hpux__) && defined(__hppa__))
 #        define __MU_SECTION__(name)
 #    else
 #        define __MU_SECTION__(name) __attribute__((section(name)))

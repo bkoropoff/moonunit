@@ -52,7 +52,11 @@
 
 #ifdef __GNUC__
 #    define __MU_USED__ __attribute__((used))
-#    define __MU_SECTION__(name) __attribute__((section(name)))
+#    ifdef __APPLE__
+#        define __MU_SECTION__(name)
+#    else
+#        define __MU_SECTION__(name) __attribute__((section(name)))
+#    endif
 #    define __MU_HIDDEN__ __attribute__((visibility("hidden")))
 #    define __MU_WEAK__ __attribute__((weak))
 #else
@@ -60,6 +64,7 @@
 #    define __MU_SECTION__(name)
 #    define __MU_HIDDEN__
 #endif
+
 #define __MU_SECTION_TEXT__ __MU_SECTION__(".moonunit_text")
 #define __MU_SECTION_DATA__ __MU_SECTION__(".moonunit_data")
 

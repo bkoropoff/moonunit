@@ -402,7 +402,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_SUCCESS \
-    MU_TOKEN->methods.success(MU_TOKEN)
+    MU_TOKEN->method.success(MU_TOKEN)
 
 /**
  * @brief Causes immediate failure
@@ -428,7 +428,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_FAILURE(...) \
-    MU_TOKEN->methods.failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__)
+    MU_TOKEN->method.failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__)
 
 /**
  * @brief Logs non-fatal messages

@@ -84,11 +84,14 @@ plugindir="${libdir}/moonunit"
 AC_SUBST(plugindir)
 AC_SUBST(moduleext)
 AC_SUBST(memberext)
+AC_SUBST(LIB_socket)
+AC_SUBST(LIB_rt)
 
 AM_CONDITIONAL([HAVE_MEMBEREXT], [test -n "$memberext"])
 
 AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])
-AC_SUBST(LIB_socket)
+AC_CHECK_LIB(rt, shm_open, [LIB_rt="-lrt"])
+
 
 saved_LDFLAGS=$LDFLAGS
 saved_CPPFLAGS=$CPPFLAGS

@@ -32,7 +32,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-const char const Mu_ErrorDomain_General[] = "general";
+const char Mu_ErrorDomain_General[] = "general";
 
 static MuError error_mem =
 {

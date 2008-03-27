@@ -31,7 +31,7 @@ AC_CHECK_SIZEOF(void*)
 WANT_LIBELF=yes
 
 AC_ARG_ENABLE([debug],
-	[AS_HELP_STRING([--enable-debug],
+	[AC_HELP_STRING([--enable-debug],
 		[enable debugging])],
 	[
 		AC_DEFINE([DEBUG], [], [Debugging enabled])
@@ -40,7 +40,7 @@ AC_ARG_ENABLE([debug],
 	[])
 
 AC_ARG_WITH([libelf],
-	[AS_HELP_STRING([--with-libelf=<dir>],
+	[AC_HELP_STRING([--with-libelf=<dir>],
 		[use libelf located in <dir> to scan libraries for unit tests, or 'no' to disable])],
 	[
 		if test x"$withval" = x"no"
@@ -64,7 +64,7 @@ AC_ARG_WITH([libelf],
 	])
 
 AC_ARG_WITH([popt],
-	[AS_HELP_STRING([--with-libelf=<dir>],
+	[AC_HELP_STRING([--with-libelf=<dir>],
 		[use popt located in <dir> to parse command line arguments])],
 	[
 		POPT_INCLUDES="-I$withval/include"

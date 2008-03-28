@@ -31,6 +31,7 @@
 #include <sys/types.h>
 #include <moonunit/test.h>
 #include <moonunit/plugin.h>
+#include <moonunit/option.h>
 
 typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 
@@ -54,9 +55,14 @@ typedef struct MuHarness
     // Clean up any memory in a MoonTestSummary filled in by
     // a call to dispatch
     void (*cleanup)(struct MuHarness*, MuTestSummary*);
+    MuOption option;
 } MuHarness;
 
 const char* Mu_TestResultToString(MuTestResult result);
 const char* Mu_TestStageToString(MuTestStage stage);
+
+void Mu_Harness_SetOption(MuHarness* harness, const char *name, ...);
+void Mu_Harness_SetOptionString(MuHarness* harness, const char *name, const char *value);
+MuType Mu_Harness_OptionType(MuHarness* harness, const char *name);
 
 #endif

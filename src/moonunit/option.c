@@ -32,6 +32,7 @@
 #define OPTION_LOGGER 5
 #define OPTION_OPTION 6
 #define OPTION_ITERATIONS 7
+#define OPTION_TIMEOUT 8
 
 #include <moonunit/util.h>
 #include <moonunit/logger.h>
@@ -117,6 +118,15 @@ static const struct poptOption options[] =
         .descrip = "Run each test count iterations",
         .argDescrip = "count"
     },
+    {
+        .longName = "timeout",
+        .shortName = '\0',
+        .argInfo = POPT_ARG_INT,
+        .arg = NULL,
+        .val = OPTION_TIMEOUT,
+        .descrip = "Terminate unresponsive tests after t milliseconds",
+        .argDescrip = "t"
+    },
     POPT_AUTOHELP
     POPT_TABLEEND
 };
@@ -132,6 +142,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     /* Set defaults */
 
     option->iterations = 1;
+    option->timeout = 2000;
 
     poptSetOtherOptionHelp(context, "<libraries...>");
 
@@ -176,6 +187,9 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             break;
         case OPTION_ITERATIONS:
             option->iterations = atoi(poptGetOptArg(context));
+            break;
+        case OPTION_TIMEOUT:
+            option->timeout = atoi(poptGetOptArg(context));
             break;
         case -1:
         {

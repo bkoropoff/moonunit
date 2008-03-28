@@ -35,7 +35,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-
 void
 Mu_Logger_SetOption(MuLogger* logger, const char *name, ...)
 {

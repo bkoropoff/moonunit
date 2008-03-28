@@ -275,7 +275,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
             // Timed out waiting for response
             if (uipc_result == UIPC_TIMEOUT)
             {
-                char* reason = format("Test timed out after %li milliseconds", timeout);
+                char* reason = format("Test timed out after %li milliseconds", default_timeout);
 
                 summary->result = MOON_RESULT_TIMEOUT;
                 summary->reason = reason;
@@ -380,8 +380,6 @@ option_get(void* _self, const char* name)
 static MuType
 option_type(void* _self, const char* name)
 {
-    UnixHarness* self = (UnixHarness*) _self;
-
     if (!strcmp(name, "timeout"))
     {
         return MU_INTEGER;

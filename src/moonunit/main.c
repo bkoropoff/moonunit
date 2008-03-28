@@ -95,6 +95,11 @@ int main (int argc, char** argv)
         die("Error: Could not create harness 'unix'");
     }
 
+    if (Mu_Harness_OptionType(settings.harness, "timeout") == MU_INTEGER)
+    {
+        Mu_Harness_SetOption(settings.harness, "timeout", (int) option.timeout);
+    }
+
     for (file_index = 0; file_index < array_size(option.files); file_index++)
     {
         char* file = option.files[file_index];

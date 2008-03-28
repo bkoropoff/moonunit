@@ -38,6 +38,7 @@ typedef struct
     bool gdb;
     bool all;
     unsigned int iterations;
+    long timeout;
     char* logger;
     array* tests, *files, *loggers;
     char* errormsg;

@@ -115,7 +115,7 @@ static void test_leave(MuLogger* _self,
 	switch (summary->result)
 	{
 		case MOON_RESULT_SUCCESS:
-            fprintf(out, "      <result status=\"pass\" />\n");
+            fprintf(out, "      <result status=\"pass\"/>\n");
 			break;
 		case MOON_RESULT_FAILURE:
 		case MOON_RESULT_ASSERTION:
@@ -140,7 +140,7 @@ static void test_leave(MuLogger* _self,
                 fprintf(out, "/>\n");
             }
 	}
-    fprintf(out, "      </test>\n");
+    fprintf(out, "    </test>\n");
 }
 
 static void option_set(void* _self, const char* name, void* data)

@@ -40,7 +40,7 @@ typedef struct __uipc_typeinfo
 #define UIPC_OFFSET(type, field) ((unsigned long) &((type*)0)->field)
 #define UIPC_POINTER(type, field, info) {UIPC_OFFSET(type, field), info}
 
-void uipc_marshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type);
-void uipc_unmarshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type);
+void uipc_marshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type);
+void uipc_unmarshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type);
 
 #endif

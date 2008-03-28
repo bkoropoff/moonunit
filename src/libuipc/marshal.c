@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 void
-uipc_marshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type)
+uipc_marshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type)
 {
 	int i;
 	
@@ -50,7 +50,7 @@ uipc_marshal_payload(void* membase, unsigned int memsize, void* payload, uipc_ty
 }
 
 void 
-uipc_unmarshal_payload(void* membase, unsigned int memsize, void* payload, uipc_typeinfo* payload_type)
+uipc_unmarshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type)
 {
 	int i;
 	

@@ -30,7 +30,12 @@
 #include <stdlib.h>
 #include <poll.h>
 #include <unistd.h>
-#include <sys/select.h>
+#ifdef HAVE_SYS_SELECT_H
+#    include <sys/select.h>
+#endif
+#ifdef HAVE_SELECT_H
+#    include <select.h>
+#endif
 #include <sys/time.h>
 #include <time.h>
 #include <sys/types.h>

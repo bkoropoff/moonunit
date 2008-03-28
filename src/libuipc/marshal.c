@@ -74,8 +74,8 @@ uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc
 
     REDUCE(size, type->size);
 
-	for (i = 0; type->members[i].kind != UIPC_KIND_NONE; i++)
-	{
+    for (i = 0; type->members[i].kind != UIPC_KIND_NONE; i++)
+    {
         switch (type->members[i].kind)
         {
         case UIPC_KIND_STRING:
@@ -88,7 +88,7 @@ uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc
             ;
         }
     }
-
+    
     return written;
 }
 
@@ -103,10 +103,11 @@ unmarshal_string(void** out, const void* payload)
 unsigned long
 uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
 {
-	int i;
+    int i;
     void* object;
     unsigned long delta;
     unsigned long read = 0;
+    void* member;
 
     object = malloc(type->size);
     memcpy(object, payload, type->size);
@@ -119,7 +120,9 @@ uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
         switch (type->members[i].kind)
         {
         case UIPC_KIND_STRING:
-            if (*(void**) (payload + type->members[i].offset))
+	    /* Structures in payload may be unaligned, so access with memcpy */
+	    memcpy(&member, payload + type->members[i].offset, sizeof(member));
+            if (member)
             {
                 delta = unmarshal_string(object + type->members[i].offset, payload);
                 payload += delta;
@@ -133,7 +136,7 @@ uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
             ;
         }
     }
-
+    
     *out = object;
 
     return read;

@@ -28,19 +28,42 @@
 #ifndef __UIPC_MARSHAL_H__
 #define __UIPC_MARSHAL_H__
 
+typedef enum
+{
+    UIPC_KIND_NONE,
+    UIPC_KIND_STRING,
+    UIPC_KIND_POINTER
+} uipc_kind;
+
 typedef struct __uipc_typeinfo
 {
-	unsigned int num_pointers;
-	struct { 
-		unsigned long offset; 
-		struct __uipc_typeinfo* info;
-	} pointers[];
+    unsigned long size;
+    struct
+    {
+        unsigned long offset;
+        uipc_kind kind;
+        struct __uipc_typeinfo* pointee_type;
+    } members[];
 } uipc_typeinfo;
 
 #define UIPC_OFFSET(type, field) ((unsigned long) &((type*)0)->field)
-#define UIPC_POINTER(type, field, info) {UIPC_OFFSET(type, field), info}
+#define UIPC_POINTER(type, field, info)     \
+    {                                       \
+        .offset = UIPC_OFFSET(type, field), \
+        .kind = UIPC_KIND_POINTER,          \
+        .pointee_type = info                \
+    }                                       \
 
-void uipc_marshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type);
-void uipc_unmarshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type);
+#define UIPC_STRING(type, field)                \
+    {                                           \
+        .offset = UIPC_OFFSET(type, field),     \
+        .kind = UIPC_KIND_STRING,               \
+    }                                           \
+
+#define UIPC_END { .kind = UIPC_KIND_NONE }
+
+unsigned long uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc_typeinfo* type);
+unsigned long uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type);
+void uipc_free_object(void* object, uipc_typeinfo* type);
 
 #endif

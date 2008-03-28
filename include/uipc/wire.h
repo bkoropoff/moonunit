@@ -37,22 +37,15 @@ typedef struct uipc_packet_header
 	{
 		PACKET_MESSAGE, PACKET_ACK
 	} type;
-	unsigned int length;
+	unsigned long length;
 } uipc_packet_header;
 
 typedef struct uipc_packet_message
 {
-	unsigned int id;
-	UipcMessageType type;
-    void* payload;
-	unsigned int length;
-	char path[];
+	uipc_message_type type;
+	unsigned long length;
+    char payload[];
 } uipc_packet_message;
-
-typedef struct uipc_packet_ack
-{
-	unsigned int message_id;
-} uipc_packet_ack;
 
 typedef struct uipc_packet
 {
@@ -60,13 +53,12 @@ typedef struct uipc_packet
 	union
 	{
 		uipc_packet_message message;
-		uipc_packet_ack ack;
 	};
 } uipc_packet;
 
-UipcStatus uipc_packet_send(int socket, uipc_packet* packet);
-UipcStatus uipc_packet_recv(int socket, uipc_packet** packet);
-UipcStatus uipc_packet_available(int socket, long* timeout);
-UipcStatus uipc_packet_sendable(int socket, long* timeout);
+uipc_status uipc_packet_send(int socket, uipc_packet* packet);
+uipc_status uipc_packet_recv(int socket, uipc_packet** packet);
+uipc_status uipc_packet_available(int socket, long* timeout);
+uipc_status uipc_packet_sendable(int socket, long* timeout);
 
 #endif

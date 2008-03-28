@@ -27,46 +27,133 @@
 
 #include "marshal.h"
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-void
-uipc_marshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type)
+#define REDUCE(lvalue, delta) (reduce(&lvalue, delta))
+
+static inline void
+reduce(unsigned long* size, unsigned long delta)
 {
-	int i;
-	
-	if (!payload_type)
-		return;
-	
-	for (i = 0; i < payload_type->num_pointers; i++)
-	{
-		void** ppointer = (void**) (payload + payload_type->pointers[i].offset);
-		void* pointer = *ppointer;
-		
-		if (pointer && pointer > membase && pointer < membase + memsize)
-		{
-			*ppointer -= (unsigned long) membase;
-			uipc_marshal_payload(membase, memsize, pointer, payload_type->pointers[i].info);
-		}
-	}
+    if (*size > delta)
+        (*size) -= delta;
+    else
+        *size = 0;
 }
 
-void 
-uipc_unmarshal_payload(void* membase, unsigned long memsize, void* payload, uipc_typeinfo* payload_type)
+static unsigned long
+marshal_string(void* buffer, unsigned long size, const void* payload)
+{
+    if (payload)
+    {
+        unsigned long length = strlen((const char*) payload);
+        
+        if (size >= length + 1)
+            memcpy(buffer, payload, length+1);
+        return (length + 1);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+unsigned long
+uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc_typeinfo* type)
 {
 	int i;
-	
-	if (!payload_type)
-		return;
-	
-	for (i = 0; i < payload_type->num_pointers; i++)
+    unsigned long delta;
+    unsigned long written = 0;
+    void* base = buffer;
+
+    if (size >= type->size)
+        memcpy(buffer, payload, type->size);
+
+    buffer += type->size;
+    written += type->size;
+
+    REDUCE(size, type->size);
+
+	for (i = 0; type->members[i].kind != UIPC_KIND_NONE; i++)
 	{
-		void** ppointer = (void**) (payload + payload_type->pointers[i].offset);
-		void* pointer = *ppointer;
-		
-		if (pointer && pointer < (void*) memsize)
-		{
-			*ppointer += (unsigned long) membase;
-			pointer = *ppointer;
-			uipc_marshal_payload(membase, memsize, pointer, payload_type->pointers[i].info);
-		}
-	}
+        switch (type->members[i].kind)
+        {
+        case UIPC_KIND_STRING:
+            delta = marshal_string(buffer, size, *(void **)(payload + type->members[i].offset));
+            *(void**) (base + type->members[i].offset) = delta ? (void*) 0x1 : NULL;
+            buffer += delta;
+            written += delta;
+            REDUCE(size, delta);
+        default:
+            ;
+        }
+    }
+
+    return written;
+}
+
+unsigned long
+unmarshal_string(void** out, const void* payload)
+{
+    *out = strdup((const char*) payload);    
+    
+    return strlen((const char*) payload) + 1;
+}
+
+unsigned long
+uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
+{
+	int i;
+    void* object;
+    unsigned long delta;
+    unsigned long read = 0;
+
+    object = malloc(type->size);
+    memcpy(object, payload, type->size);
+
+    payload += type->size;
+    read += type->size;
+
+    for (i = 0; type->members[i].kind != UIPC_KIND_NONE; i++)
+    {
+        switch (type->members[i].kind)
+        {
+        case UIPC_KIND_STRING:
+            if (*(void**) (payload + type->members[i].offset))
+            {
+                delta = unmarshal_string(object + type->members[i].offset, payload);
+                payload += delta;
+                read += delta;
+            }
+            else
+            {
+                *(void**) (object + type->members[i].offset) = NULL;
+            }
+        default:
+            ;
+        }
+    }
+
+    *out = object;
+
+    return read;
+}
+
+void
+uipc_free_object(void* object, uipc_typeinfo* type)
+{
+    int i;
+    
+    for (i = 0; type->members[i].kind != UIPC_KIND_NONE; i++)
+    {
+        switch (type->members[i].kind)
+        {
+        case UIPC_KIND_STRING:
+            free(*(void**) (object + type->members[i].offset));
+        default:
+            ;
+        }
+    }
+
+    free(object);
 }

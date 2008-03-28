@@ -42,6 +42,6 @@ typedef enum
     UIPC_NOMEM,
     // Timed out
     UIPC_TIMEOUT
-} UipcStatus;
+} uipc_status;
 
 #endif

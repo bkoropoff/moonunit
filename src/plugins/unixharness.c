@@ -51,6 +51,8 @@
 #    include <config.h>
 #endif
 
+static long default_timeout;
+
 typedef struct
 {
     MuTestToken base;
@@ -63,25 +65,29 @@ static UnixToken* current_token;
 
 static uipc_typeinfo testsummary_info =
 {
-	1,
+    .size = sizeof(MuTestSummary),
+    .members =
 	{
-		UIPC_POINTER(MuTestSummary, reason, NULL)
+		UIPC_STRING(MuTestSummary, reason),
+        UIPC_END
 	}
 };
 
 static uipc_typeinfo logevent_info =
 {
-    2,
+    .size = sizeof(MuLogEvent),
+    .members =
     {
-        UIPC_POINTER(MuLogEvent, file, NULL),
-        UIPC_POINTER(MuLogEvent, message, NULL)
+        UIPC_STRING(MuLogEvent, file),
+        UIPC_STRING(MuLogEvent, message),
+        UIPC_END
     }
 };
 
 #define MSG_TYPE_RESULT 0
 #define MSG_TYPE_EVENT 1
 
-void unixtoken_event(MuTestToken* _token, const MuLogEvent* _event)
+void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
 {
     UnixToken* token = (UnixToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
@@ -91,34 +97,16 @@ void unixtoken_event(MuTestToken* _token, const MuLogEvent* _event)
         exit(0);
     }
     
-    uipc_message* message = uipc_msg_new(ipc_handle, MSG_TYPE_EVENT, 2048);
+    uipc_message* message = uipc_msg_new(MSG_TYPE_EVENT);
 
-    MuLogEvent* event = uipc_msg_alloc(message, sizeof(MuLogEvent));
+    ((MuLogEvent*) event)->stage = token->current_stage;
 
-    *event = *_event;
-
-    if (event->file)
-    {
-        event->file = uipc_msg_alloc(message, strlen(_event->file) + 1);
-		strcpy((char*) event->file, _event->file);
-    }
-
-    if (event->message)
-    {
-        event->message = uipc_msg_alloc(message, strlen(_event->message) + 1);
-		strcpy((char*) event->message, _event->message);
-    }
-
-    event->stage = token->current_stage;
-
-	uipc_msg_payload_set(message, event, &logevent_info);
-	uipc_msg_send(message);
+	uipc_msg_set_payload(message, event, &logevent_info);
+	uipc_waitwrite(ipc_handle, message, NULL);
 	uipc_msg_free(message);
-
-    uipc_waitdone(ipc_handle, NULL);
 }
 
-void unixtoken_result(MuTestToken* _token, const MuTestSummary* _summary)
+void unixtoken_result(MuTestToken* _token, const MuTestSummary* summary)
 {	
     UnixToken* token = (UnixToken*) _token;
 	uipc_handle* ipc_handle = token->ipc_handle;
@@ -128,24 +116,12 @@ void unixtoken_result(MuTestToken* _token, const MuTestSummary* _summary)
         exit(0);
     }
 
-	uipc_message* message = uipc_msg_new(ipc_handle, MSG_TYPE_RESULT, 2048);
-	
-	MuTestSummary* summary = uipc_msg_alloc(message, sizeof(MuTestSummary));
-	
-	*summary = *_summary;
-	
-	if (summary->reason)
-	{
-		summary->reason = uipc_msg_alloc(message, strlen(_summary->reason) + 1);
-		strcpy((char*) summary->reason, _summary->reason);
-	}
-	
-	uipc_msg_payload_set(message, summary, &testsummary_info);
-	uipc_msg_send(message);
+    uipc_message* message = uipc_msg_new(MSG_TYPE_RESULT);
+	uipc_msg_set_payload(message, summary, &testsummary_info);
+    uipc_waitwrite(ipc_handle, message, NULL);
 	uipc_msg_free(message);
 
-    uipc_waitdone(ipc_handle, NULL);
-    uipc_disconnect(ipc_handle);
+    uipc_detach(ipc_handle);
 	
 	exit(0);
 }
@@ -203,7 +179,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
 	if (!(pid = fork()))
 	{
 		MuTestThunk thunk;
-		uipc_handle* ipc_test = uipc_connect(sockets[1]);
+		uipc_handle* ipc_test = uipc_attach(sockets[1]);
 
 		close(sockets[0]);
 
@@ -233,9 +209,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
 		
 		token->base.method.success((MuTestToken*) token);
 	
-        uipc_waitdone(ipc_test, NULL);
-
-        uipc_disconnect(ipc_test);
+        uipc_detach(ipc_test);
 
         close(sockets[1]);
 
@@ -243,14 +217,12 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
 	}
 	else
 	{
-		uipc_handle* ipc_harness = uipc_connect(sockets[0]);
+		uipc_handle* ipc_harness = uipc_attach(sockets[0]);
 		MuTestSummary *_summary;
 		uipc_message* message = NULL;
 		int status;
-        UipcStatus uipc_result, uipc_result2;
-        // FIXME: make configurable
-        long timeout = 2000;
-        long timeleft = timeout;
+        uipc_status uipc_result;
+        long timeleft = default_timeout;
         bool done = false;	
 
 		close(sockets[1]);
@@ -264,16 +236,18 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
                 switch (uipc_msg_get_type(message))
                 {
                     case MSG_TYPE_RESULT:
-                        _summary = uipc_msg_payload_get(message, &testsummary_info);
+                        _summary = uipc_msg_get_payload(message, &testsummary_info);
                         *summary = *_summary;
                         if (summary->reason)
                             summary->reason = strdup(_summary->reason);
                         done = true;
+                        uipc_msg_free_payload(_summary, &testsummary_info);
                         break;
                     case MSG_TYPE_EVENT:
                     {
-                        MuLogEvent* event = uipc_msg_payload_get(message, &logevent_info);
+                        MuLogEvent* event = uipc_msg_get_payload(message, &logevent_info);
                         cb(event, data);
+                        uipc_msg_free_payload(event, &logevent_info);
                         uipc_msg_free(message);
                         message = NULL;
                         break;
@@ -286,11 +260,10 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
             }
         }
 
-        uipc_result2 = uipc_waitdone(ipc_harness, &timeleft);
-        uipc_disconnect(ipc_harness);	
+        uipc_detach(ipc_harness);	
 		close(sockets[0]);
 
-        if (uipc_result == UIPC_TIMEOUT || uipc_result2 == UIPC_TIMEOUT)
+        if (uipc_result == UIPC_TIMEOUT)
         {
              kill(pid, SIGKILL);
         }
@@ -300,7 +273,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
         if (!message)
 		{
             // Timed out waiting for response
-            if (uipc_result == UIPC_TIMEOUT || uipc_result2 == UIPC_TIMEOUT)
+            if (uipc_result == UIPC_TIMEOUT)
             {
                 char* reason = format("Test timed out after %li milliseconds", timeout);
 
@@ -327,6 +300,10 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
                 summary->reason = strdup("Unexpected termination");
             }
 		}
+        else
+        {
+            uipc_msg_free(message);
+        }        
 	}
 }
 
@@ -378,10 +355,53 @@ void unixharness_cleanup (MuHarness* _self, MuTestSummary* summary)
 	free((void*) summary->reason);
 }
 
+static void
+option_set(void* _self, const char* name, void* data)
+{
+    if (!strcmp(name, "timeout"))
+    {
+        default_timeout = *(int*) data;
+    }
+}
+
+static const void*
+option_get(void* _self, const char* name)
+{
+    if (!strcmp(name, "timeout"))
+    {
+        return &default_timeout;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+static MuType
+option_type(void* _self, const char* name)
+{
+    UnixHarness* self = (UnixHarness*) _self;
+
+    if (!strcmp(name, "timeout"))
+    {
+        return MU_INTEGER;
+    }
+    else
+    {
+        return MU_UNKNOWN_TYPE;
+    }
+}
+
 MuHarness mu_unixharness =
 {
     .plugin = NULL,
 	.dispatch = unixharness_dispatch,
     .debug = unixharness_debug,
-	.cleanup = unixharness_cleanup
+	.cleanup = unixharness_cleanup,
+    .option =
+    {
+        .set = option_set,
+        .get = option_get,
+        .type = option_type
+    }
 };

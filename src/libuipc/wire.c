@@ -39,7 +39,7 @@
 #include <string.h>
 #include <signal.h>
 
-UipcStatus
+uipc_status
 uipc_packet_send(int socket, uipc_packet* packet)
 {
     char* buffer = (char*) packet;
@@ -98,7 +98,7 @@ uipc_packet_send(int socket, uipc_packet* packet)
     return UIPC_SUCCESS;
 }
 
-UipcStatus
+uipc_status
 uipc_packet_recv(int socket, uipc_packet** packet)
 {
 	uipc_packet_header header;
@@ -165,7 +165,7 @@ uipc_packet_recv(int socket, uipc_packet** packet)
     return UIPC_SUCCESS;
 }
 
-UipcStatus
+uipc_status
 uipc_packet_available(int socket, long* _timeout)
 {
 	fd_set readset;
@@ -210,7 +210,7 @@ uipc_packet_available(int socket, long* _timeout)
 	return UIPC_RETRY;
 }
 
-UipcStatus
+uipc_status
 uipc_packet_sendable(int socket, long* _timeout)
 {
 	fd_set writeset;

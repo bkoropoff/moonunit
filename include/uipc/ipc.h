@@ -39,22 +39,20 @@ typedef struct __uipc_handle uipc_handle;
 struct __uipc_message;
 typedef struct __uipc_message uipc_message;
 
-typedef unsigned int UipcMessageType;
+typedef unsigned int uipc_message_type;
 
-uipc_handle* uipc_connect(int socket);
-UipcStatus uipc_process(uipc_handle* handle);
-UipcStatus uipc_read(uipc_handle* handle, uipc_message** message);
-UipcStatus uipc_waitread(uipc_handle* handle, uipc_message** message, long* timeout);
-UipcStatus uipc_waitdone(uipc_handle* handle, long* timeout);
-void uipc_disconnect(uipc_handle* handle);
-uipc_message* uipc_msg_new(uipc_handle* handle, UipcMessageType type, size_t max_size);
-void* uipc_msg_alloc(uipc_message* message, size_t size);
-UipcStatus uipc_msg_send(uipc_message* message);
+uipc_handle* uipc_attach(int socket);
+uipc_status uipc_read(uipc_handle* handle, uipc_message** message);
+uipc_status uipc_waitread(uipc_handle* handle, uipc_message** message, long* timeout);
+uipc_status uipc_write(uipc_handle* handle, uipc_message* message);
+uipc_status uipc_waitwrite(uipc_handle* handle, uipc_message* message, long* timeout);
+uipc_status uipc_detach(uipc_handle* handle);
+
+uipc_message* uipc_msg_new(uipc_message_type type);
 void uipc_msg_free(uipc_message* message);
-void* uipc_msg_pointer(uipc_message* message, void* offset);
-void* uipc_msg_offset(uipc_message* message, void* pointer);
-UipcMessageType uipc_msg_get_type(uipc_message* message);
-void* uipc_msg_payload_get(uipc_message* message, uipc_typeinfo* info);
-void uipc_msg_payload_set(uipc_message* message, void* payload, uipc_typeinfo* info);
+uipc_message_type uipc_msg_get_type(uipc_message* message);
+void* uipc_msg_get_payload(uipc_message* message, uipc_typeinfo* info);
+void uipc_msg_set_payload(uipc_message* message, const void* payload, uipc_typeinfo* info);
+void uipc_msg_free_payload(void* payload, uipc_typeinfo* info);
 
 #endif

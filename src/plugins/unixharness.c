@@ -47,6 +47,10 @@
 #include <stdio.h>
 #include <signal.h>
 
+#ifdef HAVE_CONFIG_H
+#    include <config.h>
+#endif
+
 typedef struct
 {
     MuTestToken base;

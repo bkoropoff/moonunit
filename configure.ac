@@ -7,8 +7,8 @@ case "$target_os" in
 	moduleext=".so"
 	;;
     aix5.*|aix6.*)
-	moduleext=".a"
-	memberext=".so"
+	moduleext=".so"
+	LDFLAGS="$LDFLAGS -Wl,-brtl"
 	;;
     linux-gnu)
         moduleext=".so"

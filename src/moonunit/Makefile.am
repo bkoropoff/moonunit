@@ -4,7 +4,7 @@ bin_SCRIPTS = moonunit-lt moonunit-strip moonunit-stub
 check_LTLIBRARIES = libexample.la libexample_mu.la
 
 moonunit_SOURCES = main.c option.c run.c gdb.c multilog.c
-moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @POPT_LIBADD@
+moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @POPT_LIBADD@ @LIB_pthread@
 
 LINKSTYLE = -DMU_LINK_STYLE=MU_LINK_WEAK
 

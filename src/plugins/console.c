@@ -52,6 +52,16 @@ typedef struct
 } ConsoleLogger;
 
 static void
+enter(MuLogger* _self)
+{
+}
+
+static void
+leave(MuLogger* _self)
+{
+}
+
+static void
 library_enter(MuLogger* _self, const char* name)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
@@ -266,6 +276,8 @@ static ConsoleLogger consolelogger =
 {
     .base = 
     {
+        .enter = enter,
+        .leave = leave,
         .library_enter = library_enter,
         .library_leave = library_leave,
         .suite_enter = suite_enter,

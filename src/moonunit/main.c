@@ -100,6 +100,8 @@ int main (int argc, char** argv)
         Mu_Harness_SetOption(settings.harness, "timeout", (int) option.timeout);
     }
 
+    Mu_Logger_Enter(settings.logger);
+
     for (file_index = 0; file_index < array_size(option.files); file_index++)
     {
         char* file = option.files[file_index];
@@ -125,6 +127,8 @@ int main (int argc, char** argv)
             die("Error: %s", err->message);
         }
     }
+
+    Mu_Logger_Leave(settings.logger);
 
     Option_Release(&option);
     Mu_Plugin_DestroyLogger(settings.logger);

@@ -43,34 +43,54 @@ typedef struct
     char* file;
     FILE* out;
     MuTest* current_test;
+    char* name;
 } XmlLogger;
+
+static void
+enter(MuLogger* _self)
+{
+    XmlLogger* self = (XmlLogger*) _self;
+    
+    if (self->name)
+        fprintf(self->out, "<libraries name=\"%s\">\n", self->name);
+    else
+        fprintf(self->out, "<libraries>\n");
+}
+
+static void
+leave(MuLogger* _self)
+{
+    XmlLogger* self = (XmlLogger*) _self;
+    
+    fprintf(self->out, "</libraries>\n");
+}
 
 static void library_enter(MuLogger* _self, const char* name)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-    fprintf(self->out, "<library name=\"%s\">\n", name);
+    fprintf(self->out, "  <library name=\"%s\">\n", name);
 }
 
 static void library_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-	fprintf(self->out, "</library>\n");
+	fprintf(self->out, "  </library>\n");
 }
 
 static void suite_enter(MuLogger* _self, const char* name)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-	fprintf(self->out, "  <suite name=\"%s\">\n", name);
+	fprintf(self->out, "    <suite name=\"%s\">\n", name);
 }
 
 static void suite_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-	fprintf(self->out, "  </suite>\n");
+	fprintf(self->out, "    </suite>\n");
 }
 
 static void test_enter(MuLogger* _self, MuTest* test)
@@ -79,7 +99,7 @@ static void test_enter(MuLogger* _self, MuTest* test)
 
     self->current_test = test;
 
-    fprintf(self->out, "    <test name=\"%s\">\n", test->name);
+    fprintf(self->out, "      <test name=\"%s\">\n", test->name);
 }
 
 static void test_log(MuLogger* _self, MuLogEvent* event)
@@ -98,11 +118,11 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
         case MU_LOG_TRACE:
             level_str = "trace"; break;
     }
-    fprintf(self->out, "      <event level=\"%s\" file=\"%s\" line=\"%u\" stage=\"%s\">\n",
+    fprintf(self->out, "        <event level=\"%s\" file=\"%s\" line=\"%u\" stage=\"%s\">\n",
             level_str, basename_pure(event->file), event->line,
             Mu_TestStageToString(event->stage));
-    fprintf(self->out, "        <![CDATA[%s]]>\n", event->message);
-    fprintf(self->out, "      </event>\n");
+    fprintf(self->out, "          <![CDATA[%s]]>\n", event->message);
+    fprintf(self->out, "        </event>\n");
 }
 
 static void test_leave(MuLogger* _self, 
@@ -115,7 +135,7 @@ static void test_leave(MuLogger* _self,
 	switch (summary->result)
 	{
 		case MOON_RESULT_SUCCESS:
-            fprintf(out, "      <result status=\"pass\"/>\n");
+            fprintf(out, "        <result status=\"pass\"/>\n");
 			break;
 		case MOON_RESULT_FAILURE:
 		case MOON_RESULT_ASSERTION:
@@ -125,22 +145,22 @@ static void test_leave(MuLogger* _self,
 
             if (summary->reason)
             {
-                fprintf(out, "      <result status=\"fail\" stage=\"%s\"", stage);
+                fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
                 if (summary->line)
                     fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
                 fprintf(out, ">\n");
-                fprintf(out, "        <![CDATA[%s]]>\n", summary->reason);
-                fprintf(out, "      </result>\n");
+                fprintf(out, "          <![CDATA[%s]]>\n", summary->reason);
+                fprintf(out, "        </result>\n");
             }
             else
             {
-                fprintf(out, "      <result status=\"fail\" stage=\"%s\"", stage);
+                fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
                 if (summary->line)
                     fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
                 fprintf(out, "/>\n");
             }
 	}
-    fprintf(out, "    </test>\n");
+    fprintf(out, "      </test>\n");
 }
 
 static void option_set(void* _self, const char* name, void* data)
@@ -158,10 +178,16 @@ static void option_set(void* _self, const char* name, void* data)
     {
         if (self->file)
             free(self->file);
-        self->file = (char*) data;
+        self->file = strdup((char*) data);
         if (self->out)
             fclose(self->out);
         self->out = fopen(self->file, "w");
+    }
+    else if (!strcmp(name, "name"))
+    {
+        if (self->name)
+            free(self->name);
+        self->name = strdup((char*) data);
     }
 }                       
 
@@ -176,6 +202,10 @@ static const void* option_get(void* _self, const char* name)
     else if (!strcmp(name, "file"))
     {
         return self->file;
+    }
+    else if (!strcmp(name, "name"))
+    {
+        return self->name;
     }
     else
     {
@@ -193,6 +223,10 @@ static MuType option_type(void* _self, const char* name)
     {
         return MU_STRING;
     }
+    else if (!strcmp(name, "name"))
+    {
+        return MU_STRING;
+    }
     else
     {
         return MU_UNKNOWN_TYPE;
@@ -203,6 +237,8 @@ static XmlLogger xmllogger =
 {
     .base = 
     {
+        .enter = enter,
+        .leave = leave,
         .library_enter = library_enter,
         .library_leave = library_leave,
         .suite_enter = suite_enter,
@@ -219,7 +255,8 @@ static XmlLogger xmllogger =
     },
     .fd = -1,
     .file = NULL,
-    .out = NULL
+    .out = NULL,
+    .name = NULL
 };
 
 static MuLogger*
@@ -238,8 +275,14 @@ static void
 destroy_xmllogger(MuLogger* _logger)
 {
     XmlLogger* logger = (XmlLogger*) _logger;
+    
+    if (logger->out)
+        fclose(logger->out);
+    if (logger->name)
+        free(logger->name);
+    if (logger->file)
+        free(logger->file);
 
-    fclose(logger->out);
     free(logger);
 }
 

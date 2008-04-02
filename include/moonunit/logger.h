@@ -38,6 +38,8 @@ struct MuLogEvent;
 typedef struct MuLogger
 {
     struct MuPlugin* plugin;
+    void (*enter) (struct MuLogger*);
+    void (*leave) (struct MuLogger*);
     void (*library_enter) (struct MuLogger*, const char*);
     void (*library_leave) (struct MuLogger*);
     void (*suite_enter) (struct MuLogger*, const char*);
@@ -53,6 +55,8 @@ void Mu_Logger_SetOption(MuLogger* logger, const char *name, ...);
 void Mu_Logger_SetOptionString(MuLogger* logger, const char *name, const char *value);
 MuType Mu_Logger_OptionType(MuLogger* logger, const char *name);
 
+void Mu_Logger_Enter(struct MuLogger*);
+void Mu_Logger_Leave(struct MuLogger*);
 void Mu_Logger_LibraryEnter (struct MuLogger*, const char*);
 void Mu_Logger_LibraryLeave (struct MuLogger*);
 void Mu_Logger_SuiteEnter (struct MuLogger*, const char*);

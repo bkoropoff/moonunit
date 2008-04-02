@@ -179,7 +179,8 @@ unixloader_can_open(MuLoader* self, const char* path)
 
     result = (handle != NULL);
 
-    dlclose(handle);
+    if (handle)
+	dlclose(handle);
 
     return result;
 }

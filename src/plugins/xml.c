@@ -233,6 +233,21 @@ static MuType option_type(void* _self, const char* name)
     }
 }
 
+static void
+destroy(MuLogger* _logger)
+{
+    XmlLogger* logger = (XmlLogger*) _logger;
+    
+    if (logger->out)
+        fclose(logger->out);
+    if (logger->name)
+        free(logger->name);
+    if (logger->file)
+        free(logger->file);
+
+    free(logger);
+}
+
 static XmlLogger xmllogger =
 {
     .base = 
@@ -246,6 +261,7 @@ static XmlLogger xmllogger =
         .test_enter = test_enter,
         .test_log = test_log,
         .test_leave = test_leave,
+        .destroy = destroy,
         .option =
         {
             .set = option_set,
@@ -271,27 +287,10 @@ create_xmllogger()
     return (MuLogger*) logger;
 }
 
-static void
-destroy_xmllogger(MuLogger* _logger)
-{
-    XmlLogger* logger = (XmlLogger*) _logger;
-    
-    if (logger->out)
-        fclose(logger->out);
-    if (logger->name)
-        free(logger->name);
-    if (logger->file)
-        free(logger->file);
-
-    free(logger);
-}
-
-
 static MuPlugin plugin =
 {
     .name = "xml",
     .create_logger = create_xmllogger,
-    .destroy_logger = destroy_xmllogger
 };
 
 MU_PLUGIN_INIT

@@ -48,6 +48,7 @@ typedef struct MuLogger
     void (*test_log) (struct MuLogger*, struct MuLogEvent* event);
     void (*test_leave) (struct MuLogger*, 
                     struct MuTest*, struct MuTestSummary*);
+    void (*destroy) (struct MuLogger*);
     MuOption option;
 } MuLogger;
 
@@ -65,5 +66,7 @@ void Mu_Logger_TestEnter (struct MuLogger*, struct MuTest* test);
 void Mu_Logger_TestLog (struct MuLogger*, struct MuLogEvent* event);
 void Mu_Logger_TestLeave (struct MuLogger*, 
                           struct MuTest*, struct MuTestSummary*);
+void Mu_Logger_Destroy(MuLogger* logger);
+
 
 #endif

@@ -38,6 +38,30 @@ typedef struct
 } MultiLogger;
 
 static void
+enter(MuLogger* _self)
+{
+    MultiLogger* self = (MultiLogger*) _self;
+    unsigned int index;
+
+    for (index = 0; index < array_size(self->loggers); index++)
+    {
+        Mu_Logger_Enter(self->loggers[index]);
+    }
+}
+
+static void
+leave(MuLogger* _self)
+{
+    MultiLogger* self = (MultiLogger*) _self;
+    unsigned int index;
+
+    for (index = 0; index < array_size(self->loggers); index++)
+    {
+        Mu_Logger_Leave(self->loggers[index]);
+    }
+}
+
+static void
 library_enter(MuLogger* _self, const char* name)
 {
     MultiLogger* self = (MultiLogger*) _self;
@@ -138,10 +162,27 @@ option_type(void* _self, const char* name)
     return MU_UNKNOWN_TYPE;
 }
 
+static void
+destroy(MuLogger* _self)
+{
+    MultiLogger* self = (MultiLogger*) _self;
+    unsigned int index;
+
+    for (index = 0; index < array_size(self->loggers); index++)
+    {
+        Mu_Logger_Destroy(self->loggers[index]);
+    }
+
+    array_free(self->loggers);
+    free(self);
+}
+
 static MultiLogger multilogger =
 {
     .base = 
     {
+        .enter = enter,
+        .leave = leave,
         .library_enter = library_enter,
         .library_leave = library_leave,
         .suite_enter = suite_enter,
@@ -149,6 +190,7 @@ static MultiLogger multilogger =
         .test_enter = test_enter,
         .test_log = test_log,
         .test_leave = test_leave,
+        .destroy = destroy,
         .option = 
         {
             .get = option_get,

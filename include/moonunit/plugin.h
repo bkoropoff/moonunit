@@ -41,7 +41,6 @@ typedef struct MuPlugin
     struct MuLoader*  (*loader) ();
     struct MuHarness* (*harness) ();
     struct MuLogger*  (*create_logger) ();
-    void (*destroy_logger) (struct MuLogger*);
 } MuPlugin;
 
 #define MU_PLUGIN_INIT \
@@ -51,6 +50,5 @@ struct MuLoader* Mu_Plugin_GetLoaderWithName(const char *name);
 struct MuLoader* Mu_Plugin_GetLoaderForFile(const char *file);
 struct MuHarness* Mu_Plugin_GetHarness(const char *name);
 struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
-void Mu_Plugin_DestroyLogger(struct MuLogger*);
 
 #endif

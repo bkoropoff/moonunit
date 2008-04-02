@@ -129,9 +129,9 @@ int main (int argc, char** argv)
     }
 
     Mu_Logger_Leave(settings.logger);
+    Mu_Logger_Destroy(settings.logger);
 
     Option_Release(&option);
-    Mu_Plugin_DestroyLogger(settings.logger);
 
 	return 0;
 }

@@ -183,7 +183,8 @@ test_leave(MuLogger* _self, MuTest* test, MuTestSummary* summary)
 	}
 
     fprintf(out, "%s", self->test_log);
-    free(self->test_log);    
+    free(self->test_log);
+    self->test_log = NULL;
 }
 
 static void
@@ -272,6 +273,21 @@ option_type(void* _self, const char* name)
     }
 }
 
+static void
+destroy(MuLogger* _self)
+{
+    ConsoleLogger* self = (ConsoleLogger*) _self;
+
+    if (self->out)
+        fclose(self->out);
+    if (self->file)
+        free(self->file);
+    if (self->test_log)
+        free(self->test_log);
+
+    free(self);
+}
+
 static ConsoleLogger consolelogger =
 {
     .base = 
@@ -285,6 +301,7 @@ static ConsoleLogger consolelogger =
         .test_enter = test_enter,
         .test_log = test_log,
         .test_leave = test_leave,
+        .destroy = destroy,
         .option = 
         {
             .get = option_get,

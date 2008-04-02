@@ -259,8 +259,3 @@ Mu_Plugin_CreateLogger(const char* name)
     return logger;
 }
 
-void Mu_Plugin_DestroyLogger(MuLogger* logger)
-{
-    if (logger->plugin && logger->plugin->destroy_logger)
-        logger->plugin->destroy_logger(logger);
-}

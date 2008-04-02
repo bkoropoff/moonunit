@@ -112,3 +112,9 @@ Mu_Logger_TestLeave (struct MuLogger* logger,
 {
     logger->test_leave(logger, test, summary);
 }
+
+void
+Mu_Logger_Destroy(MuLogger* logger)
+{
+    logger->destroy(logger);
+}

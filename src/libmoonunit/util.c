@@ -169,6 +169,14 @@ array_append(array* a, void* e)
     return hide(_a);
 }
 
+void
+array_free(array* a)
+{
+    if (a)
+    {
+        free(reveal(a));
+    }
+}
 
 void*
 mu_dlopen(const char* path, int flags)

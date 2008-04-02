@@ -59,6 +59,7 @@ typedef struct
     MuTestStage current_stage;
     MuTest* current_test;
     uipc_handle* ipc_handle;
+    pid_t child;
 } UnixToken;
 
 static UnixToken* current_token;
@@ -139,14 +140,22 @@ signal_description(int sig)
 static void
 signal_handler(int sig)
 {
-	MuTestSummary summary;
-
-	summary.result = MOON_RESULT_CRASH;
-	summary.stage = current_token->current_stage;
-	summary.reason = signal_description(sig);
-	summary.line = 0;
+    if (getpid() == current_token->child)
+    {
+        MuTestSummary summary;
 	
-	current_token->base.result((MuTestToken*) current_token, &summary);
+        summary.result = MOON_RESULT_CRASH;
+        summary.stage = current_token->current_stage;
+        summary.reason = signal_description(sig);
+        summary.line = 0;
+	
+        current_token->base.result((MuTestToken*) current_token, &summary);
+    }
+    else
+    {
+        signal(sig, SIG_DFL);
+        raise(sig);
+    }
 }
 
 static UnixToken*
@@ -164,94 +173,95 @@ unixtoken_new(MuTest* test)
 
 void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary, MuLogCallback cb, void* data)
 {
-	int sockets[2];
-	pid_t pid;
+    int sockets[2];
+    pid_t pid;
     UnixToken* token = current_token = unixtoken_new(test);
-	
-	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
-	
+    
+    socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
+    
     // We must force a flush of all open output streams or the child
     // will end up flushing non-empty buffers on exit, resulting in
     // bizarre duplicate output
     
     fflush(NULL);
-
-	if (!(pid = fork()))
-	{
-		MuTestThunk thunk;
-		uipc_handle* ipc_test = uipc_attach(sockets[1]);
-
-		close(sockets[0]);
-
-		token->base.test = test;
+    
+    if (!(pid = fork()))
+    {
+        MuTestThunk thunk;
+        uipc_handle* ipc_test = uipc_attach(sockets[1]);
+        token->child = getpid();
+        
+        close(sockets[0]);
+        
+        token->base.test = test;
         token->ipc_handle = ipc_test;
-		
+	
         Mu_Interface_SetCurrentToken((MuTestToken*) token);
-
-		signal(SIGSEGV, signal_handler);
-		signal(SIGPIPE, signal_handler);
-		signal(SIGFPE, signal_handler);
-		signal(SIGABRT, signal_handler);
-				
-		token->current_stage = MOON_STAGE_SETUP;
-		
-		if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
-			thunk((MuTestToken*) token);
-			
-		token->current_stage = MOON_STAGE_TEST;
-		
-		test->run((MuTestToken*) token);
-		
-		token->current_stage = MOON_STAGE_TEARDOWN;
-		
-		if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
-			thunk((MuTestToken*) token);
-		
-		token->base.method.success((MuTestToken*) token);
+        
+        signal(SIGSEGV, signal_handler);
+        signal(SIGPIPE, signal_handler);
+        signal(SIGFPE, signal_handler);
+        signal(SIGABRT, signal_handler);
+	
+        token->current_stage = MOON_STAGE_SETUP;
+	
+        if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
+            thunk((MuTestToken*) token);
+	
+        token->current_stage = MOON_STAGE_TEST;
+	
+        test->run((MuTestToken*) token);
+	
+        token->current_stage = MOON_STAGE_TEARDOWN;
+	
+        if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
+            thunk((MuTestToken*) token);
+	
+        token->base.method.success((MuTestToken*) token);
 	
         uipc_detach(ipc_test);
-
+        
         close(sockets[1]);
-
-		exit(0);
-	}
-	else
-	{
-		uipc_handle* ipc_harness = uipc_attach(sockets[0]);
-		MuTestSummary *_summary;
-		uipc_message* message = NULL;
-		int status;
+        
+        exit(0);
+    }
+    else
+    {
+        uipc_handle* ipc_harness = uipc_attach(sockets[0]);
+        MuTestSummary *_summary;
+        uipc_message* message = NULL;
+        int status;
         uipc_status uipc_result;
         long timeleft = default_timeout;
         bool done = false;	
-
-		close(sockets[1]);
+        
+        close(sockets[1]);
         
         while (!done)
         {	
-    		uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
-
-	    	if (uipc_result == UIPC_SUCCESS)
-		    {
+            uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
+            
+            if (uipc_result == UIPC_SUCCESS)
+            {
                 switch (uipc_msg_get_type(message))
                 {
-                    case MSG_TYPE_RESULT:
-                        _summary = uipc_msg_get_payload(message, &testsummary_info);
-                        *summary = *_summary;
-                        if (summary->reason)
-                            summary->reason = strdup(_summary->reason);
-                        done = true;
-                        uipc_msg_free_payload(_summary, &testsummary_info);
-                        break;
-                    case MSG_TYPE_EVENT:
-                    {
-                        MuLogEvent* event = uipc_msg_get_payload(message, &logevent_info);
-                        cb(event, data);
-                        uipc_msg_free_payload(event, &logevent_info);
-                        uipc_msg_free(message);
-                        message = NULL;
-                        break;
-                    } 
+                case MSG_TYPE_RESULT:
+                    _summary = uipc_msg_get_payload(message, &testsummary_info);
+                    *summary = *_summary;
+                    if (summary->reason)
+                        summary->reason = strdup(_summary->reason);
+                    done = true;
+                    uipc_msg_free_payload(_summary, &testsummary_info);
+                    break;
+                case MSG_TYPE_EVENT:
+                {
+                    MuLogEvent* event = uipc_msg_get_payload(message, &logevent_info);
+                    cb(event, data);
+                    uipc_msg_free_payload(event, &logevent_info);
+                    uipc_msg_free(message);
+                    message = NULL;
+                    break;
+                } 
                 }
             }
             else
@@ -259,52 +269,52 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
                 done = true;
             }
         }
-
+        
         uipc_detach(ipc_harness);	
-		close(sockets[0]);
-
+        close(sockets[0]);
+        
         if (uipc_result == UIPC_TIMEOUT)
         {
-             kill(pid, SIGKILL);
+            kill(pid, SIGKILL);
         }
-
-		waitpid(pid, &status, 0);
-
+        
+        waitpid(pid, &status, 0);
+        
         if (!message)
-		{
+        {
             // Timed out waiting for response
             if (uipc_result == UIPC_TIMEOUT)
             {
                 char* reason = format("Test timed out after %li milliseconds", default_timeout);
-
+                
                 summary->result = MOON_RESULT_TIMEOUT;
                 summary->reason = reason;
                 summary->stage = MOON_STAGE_UNKNOWN;
                 summary->line = 0;
             }
-			// Couldn't get message or an error occurred, try to figure out what happend
+            // Couldn't get message or an error occurred, try to figure out what happend
             else if (WIFSIGNALED(status))
-			{
-				summary->result = MOON_RESULT_CRASH;
-				summary->stage = MOON_STAGE_UNKNOWN;
-				summary->line = 0;
-				
-				if (WTERMSIG(status))
-				    summary->reason = signal_description(WTERMSIG(status));
-			}
+            {
+                summary->result = MOON_RESULT_CRASH;
+                summary->stage = MOON_STAGE_UNKNOWN;
+                summary->line = 0;
+		
+                if (WTERMSIG(status))
+                    summary->reason = signal_description(WTERMSIG(status));
+            }
             else
             {
                 summary->result = MOON_RESULT_FAILURE;
-				summary->stage = MOON_STAGE_UNKNOWN;
-				summary->line = 0;
+                summary->stage = MOON_STAGE_UNKNOWN;
+                summary->line = 0;
                 summary->reason = strdup("Unexpected termination");
             }
-		}
+        }
         else
         {
             uipc_msg_free(message);
         }        
-	}
+    }
 }
 
 pid_t unixharness_debug(MuHarness* _self, MuTest* test)

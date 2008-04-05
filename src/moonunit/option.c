@@ -260,7 +260,7 @@ Option_CreateLoggers(OptionTable* option)
                     *equal = '\0';
                     Mu_Logger_SetOptionString(logger, o, equal+1);
                 }
-                else if (Mu_Logger_OptionType(logger, o) == MU_BOOLEAN)
+                else if (Mu_Logger_OptionType(logger, o) == MU_TYPE_BOOLEAN)
                 {
                     Mu_Logger_SetOption(logger, o, true);
                 }

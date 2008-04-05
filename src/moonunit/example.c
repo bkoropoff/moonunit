@@ -57,27 +57,27 @@ MU_FIXTURE_TEARDOWN(Crash)
 
 MU_TEST(Arithmetic, add)
 {
-	MU_ASSERT_EQUAL(MU_INTEGER, x + y, 5);
+	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x + y, 5);
 }
 
 MU_TEST(Arithmetic, subtract)
 {
-	MU_ASSERT_EQUAL(MU_INTEGER, x - y, -1);
+	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x - y, -1);
 }
 
 MU_TEST(Arithmetic, multiply)
 {
-	MU_ASSERT_EQUAL(MU_INTEGER, x * y, 6);
+	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x * y, 6);
 }
 
 MU_TEST(Arithmetic, divide)
 {
-	MU_ASSERT_EQUAL(MU_INTEGER, y / x, 1);
+	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, y / x, 1);
 }
 
 MU_TEST(Arithmetic, bad)
 {
-	MU_ASSERT_EQUAL(MU_INTEGER, x + y, 4);	
+	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x + y, 4);	
 }
 
 MU_TEST(Arithmetic, bad2)

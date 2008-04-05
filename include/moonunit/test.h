@@ -34,56 +34,61 @@
 struct MuTestToken;
 struct MuTest;
 
-typedef enum MuTestResult
+typedef enum MuTestStatus
 {
     // Success
-    MOON_RESULT_SUCCESS = 0,
+    MU_STATUS_SUCCESS = 0,
     // Generic failure
-    MOON_RESULT_FAILURE = 1,
+    MU_STATUS_FAILURE = 1,
     // Failure due to assertion
-    MOON_RESULT_ASSERTION = 2,
+    MU_STATUS_ASSERTION = 2,
     // Failure due to crash (segfault, usually)
-    MOON_RESULT_CRASH = 3,
-    // Failure due to timeout (infinite loop)
-    MOON_RESULT_TIMEOUT = 4
-} MuTestResult;
+    MU_STATUS_CRASH = 3,
+    // Failure due to timeout (infinite loop, etc.)
+    MU_STATUS_TIMEOUT = 4
+} MuTestStatus;
 
 typedef enum MuTestStage
 {
-    MOON_STAGE_SETUP = 0,
-    MOON_STAGE_TEST = 1,
-    MOON_STAGE_TEARDOWN = 2,
-    MOON_STAGE_UNKNOWN = 3
+    MU_STAGE_SETUP = 0,
+    MU_STAGE_TEST = 1,
+    MU_STAGE_TEARDOWN = 2,
+    MU_STAGE_UNKNOWN = 3
 } MuTestStage;
 
-typedef struct MuTestSummary
+typedef struct MuTestResult
 {
-    MuTestResult result;
+    /** Status of the test (pass/fail) */
+    MuTestStatus status;
+    /** If test failed, the stage at which the failure occured */
     MuTestStage stage;
+    /** Human-readable reason why the test failed */
     const char* reason;
-    // Note that we do not store
-    // the file since it should be the
-    // same as the test.
+    /** File in which the failure occured */
+    const char* file;
+    /** Line on which the failure occured */
     unsigned int line;
-} MuTestSummary;
+} MuTestResult;
 
 typedef enum
 {
-    MU_LOG_WARNING,
-    MU_LOG_INFO,
-    MU_LOG_VERBOSE,
-    MU_LOG_TRACE
+    MU_LEVEL_WARNING,
+    MU_LEVEL_INFO,
+    MU_LEVEL_VERBOSE,
+    MU_LEVEL_TRACE
 } MuLogLevel;
 
 typedef struct MuLogEvent
 {
-    /* Stage at which event occurred */
+    /** Stage at which event occurred */
     MuTestStage stage;
-    /* File in which event occured */
+    /** File in which event occured */
     const char* file;
-    /* Line on which event occured */
+    /** Line on which event occured */
     unsigned int line;
+    /** Severity of event */
     MuLogLevel level;
+    /** Logged message */
     const char* message;
 } MuLogEvent;
 
@@ -100,7 +105,7 @@ typedef struct MuTestMethods
 typedef struct MuTestToken
 {
     /* Basic operations */
-    void (*result)(struct MuTestToken*, const MuTestSummary*);
+    void (*result)(struct MuTestToken*, const MuTestResult*);
     void (*event)(struct MuTestToken*, const MuLogEvent* event);
     /* Generic operations */
     MuTestMethods method;
@@ -121,6 +126,7 @@ typedef struct MuTest
     struct MuLoader* loader;
     /** Library which contains this test */
     struct MuLibrary* library;
+    /** Function to run the test */
     void (*run) (MuTestToken* token);
 } MuTest;
 

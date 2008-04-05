@@ -30,12 +30,12 @@
 
 typedef enum MuType
 {
-    MU_INTEGER,
-    MU_STRING,
-    MU_FLOAT,
-    MU_BOOLEAN,
-    MU_POINTER,
-    MU_UNKNOWN_TYPE    
-}MuType;
+    MU_TYPE_INTEGER,
+    MU_TYPE_STRING,
+    MU_TYPE_FLOAT,
+    MU_TYPE_BOOLEAN,
+    MU_TYPE_POINTER,
+    MU_TYPE_UNKNOWN
+} MuType;
 
 #endif

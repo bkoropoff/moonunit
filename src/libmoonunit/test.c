@@ -63,10 +63,10 @@ __mu_assert(MuTestToken* token, int result, const char* expr,
         return;
     else
     {
-        MuTestSummary summary;
+        MuTestResult summary;
         
-        summary.result = MOON_RESULT_ASSERTION;
-        summary.stage = MOON_STAGE_TEST;
+        summary.status = MU_STATUS_ASSERTION;
+        summary.stage = MU_STAGE_TEST;
         summary.reason = format("Assertion '%s' failed", expr);
         summary.line = line;
         
@@ -122,17 +122,17 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected,
 	
 	switch (type)
 	{
-    case MU_INTEGER:
+    case MU_TYPE_INTEGER:
         assert_equal_integer(expr, expected, ap, &result, &reason);
         break;
-    case MU_STRING:
+    case MU_TYPE_STRING:
         assert_equal_string(expr, expected, ap, &result, &reason);
         break;
-    case MU_FLOAT:
+    case MU_TYPE_FLOAT:
         assert_equal_float(expr, expected, ap, &result, &reason);
-    case MU_POINTER:
-    case MU_BOOLEAN:
-    case MU_UNKNOWN_TYPE:
+    case MU_TYPE_POINTER:
+    case MU_TYPE_BOOLEAN:
+    case MU_TYPE_UNKNOWN:
     default:
         result = 0;
         reason = format("Unsupported type in equality assertion");
@@ -143,10 +143,10 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected,
         return;
     else
     {
-        MuTestSummary summary;
+        MuTestResult summary;
         
-        summary.result = MOON_RESULT_ASSERTION;
-        summary.stage = MOON_STAGE_TEST;
+        summary.status = MU_STATUS_ASSERTION;
+        summary.stage = MU_STAGE_TEST;
         summary.reason = reason;
         summary.line = line;
         
@@ -159,10 +159,10 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected,
 void
 __mu_success(MuTestToken* token)
 {
-    MuTestSummary summary;
+    MuTestResult summary;
 
-    summary.result = MOON_RESULT_SUCCESS;
-    summary.stage = MOON_STAGE_TEST;
+    summary.status = MU_STATUS_SUCCESS;
+    summary.stage = MU_STAGE_TEST;
     summary.reason = NULL;
     summary.line = 0;
 
@@ -173,11 +173,11 @@ void
 __mu_failure(MuTestToken* token, const char* file, unsigned int line, const char* message, ...)
 {
     va_list ap;
-    MuTestSummary summary;
+    MuTestResult summary;
 
     va_start(ap, message);
-    summary.result = MOON_RESULT_FAILURE;
-    summary.stage = MOON_STAGE_TEST;
+    summary.status = MU_STATUS_FAILURE;
+    summary.stage = MU_STAGE_TEST;
     summary.reason = formatv(message, ap);
     summary.line = line;
 

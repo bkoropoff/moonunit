@@ -128,7 +128,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         
         for (index = 0; tests[index]; index++)
         {
-            MuTestSummary summary;
+            MuTestResult summary;
             MuTest* test = tests[index];
             unsigned int count;
 
@@ -147,21 +147,21 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             for (count = 0; count < settings->iterations; count++)
             {
                 harness->dispatch(harness, test, &summary, event_proxy_cb, logger);
-                if (summary.result != MOON_RESULT_SUCCESS)
+                if (summary.status != MU_STATUS_SUCCESS)
                     break;
             }
             Mu_Logger_TestLeave(logger, test, &summary);
             
-            if (summary.result != MOON_RESULT_SUCCESS && settings->debug)
+            if (summary.status != MU_STATUS_SUCCESS && settings->debug)
             {
                 pid_t pid = harness->debug(harness, test);
                 char* breakpoint;
                 
                 if (summary.line)
                     breakpoint = format("%s:%u", test->file, summary.line);
-                else if (summary.stage == MOON_STAGE_SETUP)
+                else if (summary.stage == MU_STAGE_SETUP)
                     breakpoint = format("*%p", Mu_Loader_FixtureSetup(loader, library, test->suite));
-                else if (summary.stage == MOON_STAGE_TEARDOWN)
+                else if (summary.stage == MU_STAGE_TEARDOWN)
                     breakpoint = format("*%p", Mu_Loader_FixtureTeardown(loader, library, test->suite));
                 else
                     /* FIXME: this isn't guaranteed to be meaningful */
@@ -170,7 +170,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                 gdb_attach_interactive(settings->self, pid, breakpoint);
             }
             
-            if (summary.result != MOON_RESULT_SUCCESS)
+            if (summary.status != MU_STATUS_SUCCESS)
                 failed++;
 
             harness->cleanup(harness, &summary);

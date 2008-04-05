@@ -42,23 +42,23 @@ Mu_Option_SetString(void* obj, MuOption* option, const char *name, const char* v
 
     switch (option->type(obj, name))
     {
-    case MU_BOOLEAN:
+    case MU_TYPE_BOOLEAN:
         boolean = !strcmp(value, "true");
         data = &boolean;
         break;
-    case MU_INTEGER:
+    case MU_TYPE_INTEGER:
         integer = atoi(value);
         data = &integer;
         break;
-    case MU_STRING:
+    case MU_TYPE_STRING:
         string = (char*) value;
         data = string;
         break;
-    case MU_FLOAT:
+    case MU_TYPE_FLOAT:
         fpoint = atof(value);
         data = &fpoint;
         break;
-    case MU_POINTER:
+    case MU_TYPE_POINTER:
         pointer = (void*) value;
         data = pointer;
         break;
@@ -83,23 +83,23 @@ Mu_Option_Setv(void* obj, MuOption* option, const char *name, va_list ap)
 
     switch (option->type(obj, name))
     {
-    case MU_BOOLEAN:
+    case MU_TYPE_BOOLEAN:
         boolean = va_arg(ap, int);
         data = &boolean;
         break;
-    case MU_INTEGER:
+    case MU_TYPE_INTEGER:
         integer = va_arg(ap, int);
         data = &integer;
         break;
-    case MU_STRING:
+    case MU_TYPE_STRING:
         string = va_arg(ap, char*);
         data = string;
         break;
-    case MU_FLOAT:
+    case MU_TYPE_FLOAT:
         fpoint = va_arg(ap, double);
         data = &fpoint;
         break;
-    case MU_POINTER:
+    case MU_TYPE_POINTER:
         pointer = va_arg(ap, void*);
         data = pointer;
         break;

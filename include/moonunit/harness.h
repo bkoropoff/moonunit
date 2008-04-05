@@ -38,14 +38,10 @@ typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 typedef struct MuHarness
 {
     struct MuPlugin* plugin;
-    // Called by a unit test to log a non-failing event.  The passed
-    // structure is owned by the caller and must be copied if preservation
-    // is required.
-    void (*event)(struct MuHarness*, struct MuTest*, const MuLogEvent*);
 
     // Called to run a single unit test.  Results should be stored
-    // in the passed in MoonTestSummary structure.
-    void (*dispatch)(struct MuHarness*, struct MuTest*, MuTestSummary*, MuLogCallback, void*);
+    // in the passed in MuTestResult structure.
+    void (*dispatch)(struct MuHarness*, struct MuTest*, MuTestResult*, MuLogCallback, void*);
 
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by
@@ -54,11 +50,11 @@ typedef struct MuHarness
 
     // Clean up any memory in a MoonTestSummary filled in by
     // a call to dispatch
-    void (*cleanup)(struct MuHarness*, MuTestSummary*);
+    void (*cleanup)(struct MuHarness*, MuTestResult*);
     MuOption option;
 } MuHarness;
 
-const char* Mu_TestResultToString(MuTestResult result);
+const char* Mu_TestStatusToString(MuTestStatus status);
 const char* Mu_TestStageToString(MuTestStage stage);
 
 void Mu_Harness_SetOption(MuHarness* harness, const char *name, ...);

@@ -97,7 +97,7 @@ main (int argc, char** argv)
         die("Error: Could not create harness 'unix'");
     }
 
-    if (Mu_Harness_OptionType(settings.harness, "timeout") == MU_INTEGER)
+    if (Mu_Harness_OptionType(settings.harness, "timeout") == MU_TYPE_INTEGER)
     {
         Mu_Harness_SetOption(settings.harness, "timeout", (int) option.timeout);
     }

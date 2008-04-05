@@ -28,12 +28,8 @@
 #ifndef __MU_LOGGER_H__
 #define __MU_LOGGER_H__
 
-struct MuTestSummary;
-struct MuTest;
-struct MuPlugin;
-struct MuLogEvent;
-
 #include <moonunit/option.h>
+#include <moonunit/test.h>
 
 typedef struct MuLogger
 {
@@ -47,7 +43,7 @@ typedef struct MuLogger
     void (*test_enter) (struct MuLogger*, struct MuTest* test);
     void (*test_log) (struct MuLogger*, struct MuLogEvent* event);
     void (*test_leave) (struct MuLogger*, 
-                    struct MuTest*, struct MuTestSummary*);
+                    struct MuTest*, struct MuTestResult*);
     void (*destroy) (struct MuLogger*);
     MuOption option;
 } MuLogger;
@@ -65,7 +61,7 @@ void Mu_Logger_SuiteLeave (struct MuLogger*);
 void Mu_Logger_TestEnter (struct MuLogger*, struct MuTest* test);
 void Mu_Logger_TestLog (struct MuLogger*, struct MuLogEvent* event);
 void Mu_Logger_TestLeave (struct MuLogger*, 
-                          struct MuTest*, struct MuTestSummary*);
+                          struct MuTest*, struct MuTestResult*);
 void Mu_Logger_Destroy(MuLogger* logger);
 
 

@@ -134,7 +134,7 @@ test_log(MuLogger* _self, MuLogEvent* event)
 }
 
 static void
-test_leave(MuLogger* _self, MuTest* test, MuTestSummary* summary)
+test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 {
     MultiLogger* self = (MultiLogger*) _self;
     unsigned int index;
@@ -159,7 +159,7 @@ option_get(void* _self, const char* name)
 static MuType
 option_type(void* _self, const char* name)
 {
-    return MU_UNKNOWN_TYPE;
+    return MU_TYPE_UNKNOWN;
 }
 
 static void

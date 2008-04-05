@@ -109,13 +109,13 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
 
     switch (event->level)
     {
-        case MU_LOG_WARNING:
+        case MU_LEVEL_WARNING:
             level_str = "warning"; break;
-        case MU_LOG_INFO:
+        case MU_LEVEL_INFO:
             level_str = "info"; break;
-        case MU_LOG_VERBOSE:
+        case MU_LEVEL_VERBOSE:
             level_str = "verbose"; break;
-        case MU_LOG_TRACE:
+        case MU_LEVEL_TRACE:
             level_str = "trace"; break;
     }
     fprintf(self->out, "        <event level=\"%s\" file=\"%s\" line=\"%u\" stage=\"%s\">\n",
@@ -126,21 +126,21 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
 }
 
 static void test_leave(MuLogger* _self, 
-                       MuTest* test, MuTestSummary* summary)
+                       MuTest* test, MuTestResult* summary)
 {
     XmlLogger* self = (XmlLogger*) _self;
     const char* stage;
     FILE* out = self->out;
    
-	switch (summary->result)
+	switch (summary->status)
 	{
-		case MOON_RESULT_SUCCESS:
+		case MU_STATUS_SUCCESS:
             fprintf(out, "        <result status=\"pass\"/>\n");
 			break;
-		case MOON_RESULT_FAILURE:
-		case MOON_RESULT_ASSERTION:
-		case MOON_RESULT_CRASH:
-        case MOON_RESULT_TIMEOUT:
+		case MU_STATUS_FAILURE:
+		case MU_STATUS_ASSERTION:
+		case MU_STATUS_CRASH:
+        case MU_STATUS_TIMEOUT:
 			stage = Mu_TestStageToString(summary->stage);
 
             if (summary->reason)
@@ -217,19 +217,19 @@ static MuType option_type(void* _self, const char* name)
 {
     if (!strcmp(name, "fd"))
     {
-        return MU_INTEGER;
+        return MU_TYPE_INTEGER;
     }
     else if (!strcmp(name, "file"))
     {
-        return MU_STRING;
+        return MU_TYPE_STRING;
     }
     else if (!strcmp(name, "name"))
     {
-        return MU_STRING;
+        return MU_TYPE_STRING;
     }
     else
     {
-        return MU_UNKNOWN_TYPE;
+        return MU_TYPE_UNKNOWN;
     }
 }
 

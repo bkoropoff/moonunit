@@ -367,9 +367,9 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * must have the same type. The following are legal
  * values of the type argument:
  * <ul>
- * <li>MU_INTEGER</li>
- * <li>MU_FLOAT</li>
- * <li>MU_STRING</li>
+ * <li>MU_TYPE_INTEGER</li>
+ * <li>MU_TYPE_FLOAT</li>
+ * <li>MU_TYPE_STRING</li>
  * </ul>
  *
  * This macro may only be used in the body of a test,
@@ -377,7 +377,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  *
  * <b>Example:</b>
  * @code
- * MU_ASSERT_EQUAL(MU_INTEGER, 2 * 2, 2 + 2);
+ * MU_ASSERT_EQUAL(MU_TYPE_INTEGER, 2 * 2, 2 + 2);
  * @endcode
  *
  * @param type the type of the two expressions
@@ -472,28 +472,28 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * Equivalent to MU_LOG(MU_LOG_WARNING, ...)
  * @hideinitializer
  */
-#define MU_WARNING(...) (MU_LOG(MU_LOG_WARNING, __VA_ARGS__))
+#define MU_WARNING(...) (MU_LOG(MU_LEVEL_WARNING, __VA_ARGS__))
 /**
  * @brief Log an informational message
  *
  * Equivalent to MU_LOG(MU_LOG_INFO, ...)
  * @hideinitializer
  */
-#define MU_INFO(...) (MU_LOG(MU_LOG_INFO, __VA_ARGS__))
+#define MU_INFO(...) (MU_LOG(MU_LEVEL_INFO, __VA_ARGS__))
 /**
  * @brief Log a verbose message
  *
  * Equivalent to MU_LOG(MU_LOG_VERBOSE, ...)
  * @hideinitializer
  */
-#define MU_VERBOSE(...) (MU_LOG(MU_LOG_VERBOSE, __VA_ARGS__))
+#define MU_VERBOSE(...) (MU_LOG(MU_LEVEL_VERBOSE, __VA_ARGS__))
 /**
  * @brief Log a trace message
  *
  * Equivalent to MU_LOG(MU_LOG_TRACE, ...)
  * @hideinitializer
  */
-#define MU_TRACE(...) (MU_LOG(MU_LOG_TRACE, __VA_ARGS__))
+#define MU_TRACE(...) (MU_LOG(MU_LEVEL_TRACE, __VA_ARGS__))
 
 /*@}*/
 

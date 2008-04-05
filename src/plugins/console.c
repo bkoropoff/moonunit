@@ -111,13 +111,13 @@ test_log(MuLogger* _self, MuLogEvent* event)
 
     switch (event->level)
     {
-        case MU_LOG_WARNING:
+        case MU_LEVEL_WARNING:
             level_str = "warning"; level_code = 31; break;
-        case MU_LOG_INFO:
+        case MU_LEVEL_INFO:
             level_str = "info"; level_code = 33; break;
-        case MU_LOG_VERBOSE:
+        case MU_LEVEL_VERBOSE:
             level_str = "verbose"; level_code = 34; break;
-        case MU_LOG_TRACE:
+        case MU_LEVEL_TRACE:
             level_str = "trace"; level_code = 35; break;
     }
 
@@ -136,7 +136,7 @@ test_log(MuLogger* _self, MuLogEvent* event)
 }
 
 static void
-test_leave(MuLogger* _self, MuTest* test, MuTestSummary* summary)
+test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
     FILE* out = self->out;
@@ -146,9 +146,9 @@ test_leave(MuLogger* _self, MuTest* test, MuTestSummary* summary)
 
 	fprintf(out, "    %s:", test->name);
 	
-	switch (summary->result)
+	switch (summary->status)
 	{
-		case MOON_RESULT_SUCCESS:
+		case MU_STATUS_SUCCESS:
 			for (i = self->align - strlen(test->name) - 5 - 4; i > 0; i--)
 				fprintf(out, " ");
             if (self->ansi)
@@ -156,10 +156,10 @@ test_leave(MuLogger* _self, MuTest* test, MuTestSummary* summary)
             else
                 fprintf(out, "PASS\n");
 			break;
-		case MOON_RESULT_FAILURE:
-		case MOON_RESULT_ASSERTION:
-		case MOON_RESULT_CRASH:
-        case MOON_RESULT_TIMEOUT:
+		case MU_STATUS_FAILURE:
+		case MU_STATUS_ASSERTION:
+		case MU_STATUS_CRASH:
+        case MU_STATUS_TIMEOUT:
 			stage = Mu_TestStageToString(summary->stage);
 			
 			for (i = self->align - strlen(test->name) - strlen(stage) - 3 - 5 - 4; i > 0; i--)
@@ -253,23 +253,23 @@ option_type(void* _self, const char* name)
 {
     if (!strcmp(name, "fd"))
     {
-        return MU_INTEGER;
+        return MU_TYPE_INTEGER;
     }
     else if (!strcmp(name, "file"))
     {
-        return MU_STRING;
+        return MU_TYPE_STRING;
     }
     else if (!strcmp(name, "ansi"))
     {
-        return MU_BOOLEAN;
+        return MU_TYPE_BOOLEAN;
     }
     else if (!strcmp(name, "align"))
     {
-        return MU_INTEGER;
+        return MU_TYPE_INTEGER;
     }
     else
     {
-        return MU_UNKNOWN_TYPE;
+        return MU_TYPE_UNKNOWN;
     }
 }
 

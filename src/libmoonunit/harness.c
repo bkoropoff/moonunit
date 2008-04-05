@@ -28,17 +28,17 @@
 #include <moonunit/harness.h>
 
 const char*
-Mu_TestResultToString(MuTestResult result)
+Mu_TestStatusToString(MuTestStatus result)
 {
 	switch (result)
 	{
-		case MOON_RESULT_SUCCESS:
+		case MU_STATUS_SUCCESS:
 			return "success";
-		case MOON_RESULT_FAILURE:
+		case MU_STATUS_FAILURE:
 			return "failure";
-    	case MOON_RESULT_ASSERTION:
+    	case MU_STATUS_ASSERTION:
     		return "assertion failure";
-    	case MOON_RESULT_CRASH:
+    	case MU_STATUS_CRASH:
     		return "crash";
     	default:
     		return "unknown";
@@ -50,13 +50,13 @@ Mu_TestStageToString(MuTestStage stage)
 {
 	switch (stage)
 	{
-		case MOON_STAGE_SETUP:
+		case MU_STAGE_SETUP:
 			return "setup";
-		case MOON_STAGE_TEST:
+		case MU_STAGE_TEST:
 			return "test";
-		case MOON_STAGE_TEARDOWN:
+		case MU_STAGE_TEARDOWN:
 			return "teardown";
-		case MOON_STAGE_UNKNOWN:	
+		case MU_STAGE_UNKNOWN:	
 		default:
 			return "unknown stage";
 	}

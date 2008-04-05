@@ -108,7 +108,7 @@ Mu_Logger_TestLog (struct MuLogger* logger, struct MuLogEvent* event)
 
 void
 Mu_Logger_TestLeave (struct MuLogger* logger, 
-                     struct MuTest* test, struct MuTestSummary* summary)
+                     struct MuTest* test, struct MuTestResult* summary)
 {
     logger->test_leave(logger, test, summary);
 }

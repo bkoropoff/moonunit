@@ -66,10 +66,10 @@ static UnixToken* current_token;
 
 static uipc_typeinfo testsummary_info =
 {
-    .size = sizeof(MuTestSummary),
+    .size = sizeof(MuTestResult),
     .members =
 	{
-		UIPC_STRING(MuTestSummary, reason),
+		UIPC_STRING(MuTestResult, reason),
         UIPC_END
 	}
 };
@@ -107,7 +107,7 @@ void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
 	uipc_msg_free(message);
 }
 
-void unixtoken_result(MuTestToken* _token, const MuTestSummary* summary)
+void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
 {	
     UnixToken* token = (UnixToken*) _token;
 	uipc_handle* ipc_handle = token->ipc_handle;
@@ -142,9 +142,9 @@ signal_handler(int sig)
 {
     if (getpid() == current_token->child)
     {
-        MuTestSummary summary;
+        MuTestResult summary;
 	
-        summary.result = MOON_RESULT_CRASH;
+        summary.status = MU_STATUS_CRASH;
         summary.stage = current_token->current_stage;
         summary.reason = signal_description(sig);
         summary.line = 0;
@@ -171,7 +171,7 @@ unixtoken_new(MuTest* test)
     return token;
 }
 
-void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary, MuLogCallback cb, void* data)
+void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary, MuLogCallback cb, void* data)
 {
     int sockets[2];
     pid_t pid;
@@ -203,16 +203,16 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
         signal(SIGFPE, signal_handler);
         signal(SIGABRT, signal_handler);
 	
-        token->current_stage = MOON_STAGE_SETUP;
+        token->current_stage = MU_STAGE_SETUP;
 	
         if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
             thunk((MuTestToken*) token);
 	
-        token->current_stage = MOON_STAGE_TEST;
+        token->current_stage = MU_STAGE_TEST;
 	
         test->run((MuTestToken*) token);
 	
-        token->current_stage = MOON_STAGE_TEARDOWN;
+        token->current_stage = MU_STAGE_TEARDOWN;
 	
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
             thunk((MuTestToken*) token);
@@ -228,7 +228,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
     else
     {
         uipc_handle* ipc_harness = uipc_attach(sockets[0]);
-        MuTestSummary *_summary;
+        MuTestResult *_summary;
         uipc_message* message = NULL;
         int status;
         uipc_status uipc_result;
@@ -287,16 +287,16 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
             {
                 char* reason = format("Test timed out after %li milliseconds", default_timeout);
                 
-                summary->result = MOON_RESULT_TIMEOUT;
+                summary->status = MU_STATUS_TIMEOUT;
                 summary->reason = reason;
-                summary->stage = MOON_STAGE_UNKNOWN;
+                summary->stage = MU_STAGE_UNKNOWN;
                 summary->line = 0;
             }
             // Couldn't get message or an error occurred, try to figure out what happend
             else if (WIFSIGNALED(status))
             {
-                summary->result = MOON_RESULT_CRASH;
-                summary->stage = MOON_STAGE_UNKNOWN;
+                summary->status = MU_STATUS_CRASH;
+                summary->stage = MU_STAGE_UNKNOWN;
                 summary->line = 0;
 		
                 if (WTERMSIG(status))
@@ -304,8 +304,8 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestSummary* summary
             }
             else
             {
-                summary->result = MOON_RESULT_FAILURE;
-                summary->stage = MOON_STAGE_UNKNOWN;
+                summary->status = MU_STATUS_FAILURE;
+                summary->stage = MU_STAGE_UNKNOWN;
                 summary->line = 0;
                 summary->reason = strdup("Unexpected termination");
             }
@@ -336,16 +336,16 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 
         select(0, NULL, NULL, NULL, NULL);
 		
-		token->current_stage = MOON_STAGE_SETUP;
+		token->current_stage = MU_STAGE_SETUP;
 		
 		if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
 			thunk((MuTestToken*) test);
 			
-		token->current_stage = MOON_STAGE_TEST;
+		token->current_stage = MU_STAGE_TEST;
 		
 		test->run((MuTestToken*) token);
 		
-		token-> current_stage = MOON_STAGE_TEARDOWN;
+		token-> current_stage = MU_STAGE_TEARDOWN;
 		
 		if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
 			thunk((MuTestToken*) token);
@@ -360,7 +360,7 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 	}
 }
   
-void unixharness_cleanup (MuHarness* _self, MuTestSummary* summary)
+void unixharness_cleanup (MuHarness* _self, MuTestResult* summary)
 {
 	free((void*) summary->reason);
 }
@@ -392,11 +392,11 @@ option_type(void* _self, const char* name)
 {
     if (!strcmp(name, "timeout"))
     {
-        return MU_INTEGER;
+        return MU_TYPE_INTEGER;
     }
     else
     {
-        return MU_UNKNOWN_TYPE;
+        return MU_TYPE_UNKNOWN;
     }
 }
 

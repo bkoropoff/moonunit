@@ -68,11 +68,11 @@ static uipc_typeinfo testsummary_info =
 {
     .size = sizeof(MuTestResult),
     .members =
-	{
-		UIPC_STRING(MuTestResult, file),
-		UIPC_STRING(MuTestResult, reason),
+    {
+        UIPC_STRING(MuTestResult, file),
+        UIPC_STRING(MuTestResult, reason),
         UIPC_END
-	}
+    }
 };
 
 static uipc_typeinfo logevent_info =
@@ -102,15 +102,15 @@ void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
     ((MuLogEvent*) event)->stage = token->current_stage;    
 
     uipc_message* message = uipc_msg_new(MSG_TYPE_EVENT);
-	uipc_msg_set_payload(message, event, &logevent_info);
-	uipc_waitwrite(ipc_handle, message, NULL);
-	uipc_msg_free(message);
+    uipc_msg_set_payload(message, event, &logevent_info);
+    uipc_waitwrite(ipc_handle, message, NULL);
+    uipc_msg_free(message);
 }
 
 void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
-{	
+{    
     UnixToken* token = (UnixToken*) _token;
-	uipc_handle* ipc_handle = token->ipc_handle;
+    uipc_handle* ipc_handle = token->ipc_handle;
 
     if (!ipc_handle)
     {
@@ -120,22 +120,22 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     ((MuTestResult*) summary)->stage = token->current_stage;
 
     uipc_message* message = uipc_msg_new(MSG_TYPE_RESULT);
-	uipc_msg_set_payload(message, summary, &testsummary_info);
+    uipc_msg_set_payload(message, summary, &testsummary_info);
     uipc_waitwrite(ipc_handle, message, NULL);
-	uipc_msg_free(message);
+    uipc_msg_free(message);
 
     uipc_detach(ipc_handle);
-	
-	exit(0);
+    
+    exit(0);
 }
 
 static char*
 signal_description(int sig)
 {
 #ifdef HAVE_STRSIGNAL
-	return strdup(strsignal(sig));
+    return strdup(strsignal(sig));
 #else
-	return format("Signal %i", sig);
+    return format("Signal %i", sig);
 #endif
 }
 
@@ -145,12 +145,12 @@ signal_handler(int sig)
     if (getpid() == current_token->child)
     {
         MuTestResult summary;
-	
+    
         summary.status = MU_STATUS_CRASH;
         summary.stage = current_token->current_stage;
         summary.reason = signal_description(sig);
         summary.line = 0;
-	
+    
         current_token->base.result((MuTestToken*) current_token, &summary);
     }
     else
@@ -197,30 +197,30 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
         
         token->base.test = test;
         token->ipc_handle = ipc_test;
-	
+    
         Mu_Interface_SetCurrentToken((MuTestToken*) token);
         
         signal(SIGSEGV, signal_handler);
         signal(SIGPIPE, signal_handler);
         signal(SIGFPE, signal_handler);
         signal(SIGABRT, signal_handler);
-	
+    
         token->current_stage = MU_STAGE_SETUP;
-	
+    
         if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
             thunk((MuTestToken*) token);
-	
+    
         token->current_stage = MU_STAGE_TEST;
-	
+    
         test->run((MuTestToken*) token);
-	
+    
         token->current_stage = MU_STAGE_TEARDOWN;
-	
+    
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
             thunk((MuTestToken*) token);
-	
+    
         token->base.method.success((MuTestToken*) token);
-	
+    
         uipc_detach(ipc_test);
         
         close(sockets[1]);
@@ -235,12 +235,12 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
         int status;
         uipc_status uipc_result;
         long timeleft = default_timeout;
-        bool done = false;	
+        bool done = false;    
         
         close(sockets[1]);
         
         while (!done)
-        {	
+        {    
             uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
             
             if (uipc_result == UIPC_SUCCESS)
@@ -272,7 +272,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
             }
         }
         
-        uipc_detach(ipc_harness);	
+        uipc_detach(ipc_harness);    
         close(sockets[0]);
         
         if (uipc_result == UIPC_TIMEOUT)
@@ -300,7 +300,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
                 summary->status = MU_STATUS_CRASH;
                 summary->stage = MU_STAGE_UNKNOWN;
                 summary->line = 0;
-		
+        
                 if (WTERMSIG(status))
                     summary->reason = signal_description(WTERMSIG(status));
             }
@@ -321,50 +321,50 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
 
 pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 {
-	int sockets[2];
-	pid_t pid;
+    int sockets[2];
+    pid_t pid;
     UnixToken* token = current_token = unixtoken_new(test);
-	
-	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
-	
-	if (!(pid = fork()))
-	{
-		MuTestThunk thunk;
+    
+    socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
+    
+    if (!(pid = fork()))
+    {
+        MuTestThunk thunk;
 
-		close(sockets[0]);
+        close(sockets[0]);
 
-		token->base.test = test;
+        token->base.test = test;
         Mu_Interface_SetCurrentToken((MuTestToken*) token);
 
         select(0, NULL, NULL, NULL, NULL);
-		
-		token->current_stage = MU_STAGE_SETUP;
-		
-		if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
-			thunk((MuTestToken*) test);
-			
-		token->current_stage = MU_STAGE_TEST;
-		
-		test->run((MuTestToken*) token);
-		
-		token-> current_stage = MU_STAGE_TEARDOWN;
-		
-		if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
-			thunk((MuTestToken*) token);
-		
-		token->base.method.success((MuTestToken*) token);
-	
-		exit(0);
-	}
-	else
-	{
+        
+        token->current_stage = MU_STAGE_SETUP;
+        
+        if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
+            thunk((MuTestToken*) test);
+            
+        token->current_stage = MU_STAGE_TEST;
+        
+        test->run((MuTestToken*) token);
+        
+        token-> current_stage = MU_STAGE_TEARDOWN;
+        
+        if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
+            thunk((MuTestToken*) token);
+        
+        token->base.method.success((MuTestToken*) token);
+    
+        exit(0);
+    }
+    else
+    {
         return pid;
-	}
+    }
 }
   
 void unixharness_cleanup (MuHarness* _self, MuTestResult* summary)
 {
-	free((void*) summary->reason);
+    free((void*) summary->reason);
 }
 
 static void
@@ -405,9 +405,9 @@ option_type(void* _self, const char* name)
 MuHarness mu_unixharness =
 {
     .plugin = NULL,
-	.dispatch = unixharness_dispatch,
+    .dispatch = unixharness_dispatch,
     .debug = unixharness_debug,
-	.cleanup = unixharness_cleanup,
+    .cleanup = unixharness_cleanup,
     .option =
     {
         .set = option_set,

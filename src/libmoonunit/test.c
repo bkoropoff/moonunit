@@ -66,7 +66,6 @@ __mu_assert(MuTestToken* token, int result, const char* expr,
         MuTestResult summary;
         
         summary.status = MU_STATUS_ASSERTION;
-        summary.stage = MU_STAGE_TEST;
         summary.reason = format("Assertion '%s' failed", expr);
         summary.line = line;
         
@@ -146,7 +145,6 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected,
         MuTestResult summary;
         
         summary.status = MU_STATUS_ASSERTION;
-        summary.stage = MU_STAGE_TEST;
         summary.reason = reason;
         summary.line = line;
         
@@ -162,7 +160,6 @@ __mu_success(MuTestToken* token)
     MuTestResult summary;
 
     summary.status = MU_STATUS_SUCCESS;
-    summary.stage = MU_STAGE_TEST;
     summary.reason = NULL;
     summary.line = 0;
 
@@ -177,9 +174,9 @@ __mu_failure(MuTestToken* token, const char* file, unsigned int line, const char
 
     va_start(ap, message);
     summary.status = MU_STATUS_FAILURE;
-    summary.stage = MU_STAGE_TEST;
     summary.reason = formatv(message, ap);
     summary.line = line;
+    summary.file = file;
 
     token->result(token, &summary);
 

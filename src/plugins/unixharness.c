@@ -69,6 +69,7 @@ static uipc_typeinfo testsummary_info =
     .size = sizeof(MuTestResult),
     .members =
 	{
+		UIPC_STRING(MuTestResult, file),
 		UIPC_STRING(MuTestResult, reason),
         UIPC_END
 	}
@@ -97,11 +98,10 @@ void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
     {
         exit(0);
     }
-    
+
+    ((MuLogEvent*) event)->stage = token->current_stage;    
+
     uipc_message* message = uipc_msg_new(MSG_TYPE_EVENT);
-
-    ((MuLogEvent*) event)->stage = token->current_stage;
-
 	uipc_msg_set_payload(message, event, &logevent_info);
 	uipc_waitwrite(ipc_handle, message, NULL);
 	uipc_msg_free(message);
@@ -116,6 +116,8 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     {
         exit(0);
     }
+
+    ((MuTestResult*) summary)->stage = token->current_stage;
 
     uipc_message* message = uipc_msg_new(MSG_TYPE_RESULT);
 	uipc_msg_set_payload(message, summary, &testsummary_info);

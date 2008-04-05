@@ -131,34 +131,61 @@ static void test_leave(MuLogger* _self,
     XmlLogger* self = (XmlLogger*) _self;
     const char* stage;
     FILE* out = self->out;
-   
-	switch (summary->status)
-	{
-		case MU_STATUS_SUCCESS:
-            fprintf(out, "        <result status=\"pass\"/>\n");
-			break;
-		case MU_STATUS_FAILURE:
-		case MU_STATUS_ASSERTION:
-		case MU_STATUS_CRASH:
-        case MU_STATUS_TIMEOUT:
-			stage = Mu_TestStageToString(summary->stage);
+    bool result = summary->status == summary->expected;
+    const char* result_str;
 
-            if (summary->reason)
-            {
-                fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
-                if (summary->line)
-                    fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
-                fprintf(out, ">\n");
-                fprintf(out, "          <![CDATA[%s]]>\n", summary->reason);
-                fprintf(out, "        </result>\n");
-            }
-            else
-            {
-                fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
-                if (summary->line)
-                    fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
-                fprintf(out, "/>\n");
-            }
+    if (result)
+    {
+        switch (summary->status)
+        {		
+        case MU_STATUS_SUCCESS:
+            result_str = "pass";
+            break;
+        case MU_STATUS_SKIPPED:
+            result_str = "skip";
+            break;
+        default:
+            result_str = "xfail";
+            break;
+        }
+    }
+    else
+    {
+        switch (summary->status)
+        {		
+        case MU_STATUS_SUCCESS:
+            result_str = "xpass";
+            break;
+        default:
+            result_str = "fail";
+            break;
+        }
+    }
+        
+    if (summary->status == MU_STATUS_SUCCESS)
+	{
+        fprintf(out, "        <result status=\"%s\"/>\n", result_str);
+    }
+    else
+    {
+        stage = Mu_TestStageToString(summary->stage);
+        
+        if (summary->reason)
+        {
+            fprintf(out, "        <result status=\"%s\" stage=\"%s\"", result_str, stage);
+            if (summary->line)
+                fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
+            fprintf(out, ">\n");
+            fprintf(out, "          <![CDATA[%s]]>\n", summary->reason);
+            fprintf(out, "        </result>\n");
+        }
+        else
+        {
+            fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
+            if (summary->line)
+                fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
+            fprintf(out, "/>\n");
+        }
 	}
     fprintf(out, "      </test>\n");
 }

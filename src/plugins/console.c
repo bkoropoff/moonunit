@@ -143,45 +143,89 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 	int i;
 	const char* reason, * stage;
 	char* failure_message;
+    bool result = summary->status == summary->expected;
+    const char* result_str;
+    unsigned int result_code;
 
 	fprintf(out, "    %s:", test->name);
 	
-	switch (summary->status)
-	{
-		case MU_STATUS_SUCCESS:
-			for (i = self->align - strlen(test->name) - 5 - 4; i > 0; i--)
-				fprintf(out, " ");
-            if (self->ansi)
-                fprintf(out, "\e[32m\e[1mPASS\e[22m\e[0m\n");
-            else
-                fprintf(out, "PASS\n");
-			break;
+    
+    if (result)
+    {
+        result_code = 32;
+
+        switch (summary->status)
+        {
+        case MU_STATUS_SUCCESS:
+            result_str = "PASS";
+            break;
 		case MU_STATUS_FAILURE:
 		case MU_STATUS_ASSERTION:
 		case MU_STATUS_CRASH:
         case MU_STATUS_TIMEOUT:
-			stage = Mu_TestStageToString(summary->stage);
-			
-			for (i = self->align - strlen(test->name) - strlen(stage) - 3 - 5 - 4; i > 0; i--)
-				fprintf(out, " ");
-			
-			reason = summary->reason ? summary->reason : "unknown";
-            if (self->ansi)
-                fprintf(out, "(%s) \e[31m\e[1mFAIL\e[22m\e[0m\n", stage);
-            else
-                fprintf(out, "(%s) FAIL\n", stage);
-			
-			failure_message = summary->line != 0 
-				? format("%s:%i: %s", basename_pure(test->file), summary->line, reason)
-				: format("%s", reason);
-			
-			for (i = self->align - strlen(failure_message); i > 0; i--)
-				fprintf(out, " ");
-			fprintf(out, "%s\n", failure_message);
+            result_str = "XFAIL";
+            break;
+        case MU_STATUS_SKIPPED:
+            result_str = "SKIP";
+            result_code = 33;
+            break;
+        }
+    }
+    else
+    {
+        result_code = 31;
+    
+        switch (summary->status)
+        {
+        case MU_STATUS_SUCCESS:
+            result_str = "XPASS";
+            break;
+		case MU_STATUS_FAILURE:
+		case MU_STATUS_ASSERTION:
+		case MU_STATUS_CRASH:
+        case MU_STATUS_TIMEOUT:
+            result_str = "FAIL";
+            break;
+        case MU_STATUS_SKIPPED:
+            result_str = "SKIP";
+            result_code = 33;
+            break;
+        }
+    }
 
-            free(failure_message);
+    if (summary->status == MU_STATUS_SUCCESS)
+    {
+        for (i = self->align - strlen(test->name) - 5 - strlen(result_str); i > 0; i--)
+            fprintf(out, " ");
+        if (self->ansi)
+            fprintf(out, "\e[%um\e[1m%s\e[22m\e[0m\n", result_code, result_str);
+        else
+            fprintf(out, "%s\n", result_str);
+    }
+    else
+    {
+        stage = Mu_TestStageToString(summary->stage);
+		
+        for (i = self->align - strlen(test->name) - strlen(stage) - 3 - 5 - strlen(result_str); i > 0; i--)
+            fprintf(out, " ");
+        
+        reason = summary->reason ? summary->reason : "unknown";
+        if (self->ansi)
+            fprintf(out, "(%s) \e[%um\e[1m%s\e[22m\e[0m\n", stage, result_code, result_str);
+        else
+            fprintf(out, "(%s) %s\n", stage, result_str);
+        
+        failure_message = summary->line != 0 
+            ? format("%s:%i: %s", basename_pure(test->file), summary->line, reason)
+            : format("%s", reason);
+        
+        for (i = self->align - strlen(failure_message); i > 0; i--)
+            fprintf(out, " ");
+        fprintf(out, "%s\n", failure_message);
+        
+        free(failure_message);
 	}
-
+    
     fprintf(out, "%s", self->test_log);
     free(self->test_log);
     self->test_log = NULL;

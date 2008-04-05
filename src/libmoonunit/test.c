@@ -35,6 +35,12 @@
 #include <stdio.h>
 
 void
+__mu_expect(MuTestToken* token, MuTestStatus status)
+{
+    token->meta(token, MU_META_EXPECT, status);
+}
+
+void
 __mu_event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
 {
     MuLogEvent event;
@@ -55,18 +61,28 @@ __mu_event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int 
 }
 
 void
-__mu_assert(MuTestToken* token, int result, const char* expr,
+__mu_assert(MuTestToken* token, int result, int sense, const char* expr,
             const char* file, unsigned int line)
 {
-
-    if (result)
+    result = result ? 1 : 0;
+    sense = sense ? 1 : 0;
+    
+    if (result == sense)
+    {
         return;
+    }
     else
     {
         MuTestResult summary;
         
+        /* Normalize booleans */
+        result = result ? 1 : 0;
+        sense = sense ? 1 : 0;
+            
         summary.status = MU_STATUS_ASSERTION;
-        summary.reason = format("Assertion '%s' failed", expr);
+        summary.reason = sense ? format("Assertion %s failed", expr)
+                               : format("Assertion (not) %s failed", expr);
+        summary.file = file;
         summary.line = line;
         
         token->result(token, &summary);
@@ -76,40 +92,55 @@ __mu_assert(MuTestToken* token, int result, const char* expr,
 }
 
 static void
-assert_equal_integer(const char* expr, const char* expected, va_list ap, int* result, char** reason)
+assert_equal_integer(const char* expr, const char* expected, va_list ap, int* result, int sense, char** reason)
 {
 	int a = va_arg(ap, int);
 	int b = va_arg(ap, int);
 	
 	*result = a == b;
-	if (!*result)
-		*reason = format("Assertion '%s == %s' failed (%i != %i)", expr, expected, a, b);
+	if (*result != sense)
+    {
+        if (sense)
+            *reason = format("Assertion %s == %s failed (%i != %i)", expr, expected, a, b);
+        else
+            *reason = format("Assertion %s != %s failed (both %i)", expr, expected, a);
+    }
 }
 
 static void
-assert_equal_string(const char* expr, const char* expected, va_list ap, int* result, char** reason)
+assert_equal_string(const char* expr, const char* expected, va_list ap, int* result, int sense, char** reason)
 {
 	const char* a = va_arg(ap, char*);
 	const char* b = va_arg(ap, char*);
 	
 	*result = !strcmp(a,b);
-	if (!*result)
-		*reason = format("Assertion '\"%s\" == \"%s\"' failed (\"%s\" != \"%s\")", expr, expected, a, b);
+	if (*result != sense)
+    {
+        if (sense)
+            *reason = format("Assertion %s == %s failed (%s != %s)", expr, expected, a, b);
+        else
+            *reason = format("Assertion %s != %s failed (both %s)", expr, expected, a);
+    }        
 }
 
 static void
-assert_equal_float(const char* expr, const char* expected, va_list ap, int* result, char** reason)
+assert_equal_float(const char* expr, const char* expected, va_list ap, int* result, int sense, char** reason)
 {
 	double a = va_arg(ap, double);
 	double b = va_arg(ap, double);
 	
 	*result = a == b;
-	if (!*result)
-		*reason = format("Assertion '%s == %s' failed (%f != %f)", expr, expected, a, b);
+	if (*result != sense)
+    {
+        if (sense)
+            *reason = format("Assertion '%s == %s' failed (%f != %f)", expr, expected, a, b);
+        else
+            *reason = format("Assertion '%s != %s' failed (both %f)", expr, expected, a);
+    }
 }
 
 void
-__mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, 
+__mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, int sense,
                   const char* file, unsigned int line, MuType type, ...)
 {
 	int result;
@@ -122,24 +153,26 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected,
 	switch (type)
 	{
     case MU_TYPE_INTEGER:
-        assert_equal_integer(expr, expected, ap, &result, &reason);
+        assert_equal_integer(expr, expected, ap, &result, sense, &reason);
         break;
     case MU_TYPE_STRING:
-        assert_equal_string(expr, expected, ap, &result, &reason);
+        assert_equal_string(expr, expected, ap, &result, sense, &reason);
         break;
     case MU_TYPE_FLOAT:
-        assert_equal_float(expr, expected, ap, &result, &reason);
+        assert_equal_float(expr, expected, ap, &result, sense, &reason);
     case MU_TYPE_POINTER:
     case MU_TYPE_BOOLEAN:
     case MU_TYPE_UNKNOWN:
     default:
-        result = 0;
+        result = !sense;
         reason = format("Unsupported type in equality assertion");
         break;
 	}
 	
-    if (result)
+    if (result == sense)
+    {
         return;
+    }
     else
     {
         MuTestResult summary;
@@ -147,7 +180,8 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected,
         summary.status = MU_STATUS_ASSERTION;
         summary.reason = reason;
         summary.line = line;
-        
+        summary.file = file;
+
         token->result(token, &summary);
 
         free(reason);
@@ -161,6 +195,7 @@ __mu_success(MuTestToken* token)
 
     summary.status = MU_STATUS_SUCCESS;
     summary.reason = NULL;
+    summary.file = NULL;
     summary.line = 0;
 
     token->result(token, &summary);
@@ -179,20 +214,64 @@ __mu_failure(MuTestToken* token, const char* file, unsigned int line, const char
     summary.file = file;
 
     token->result(token, &summary);
+    free((void*) summary.reason);
+    va_end(ap);
+}
+
+void   
+__mu_skip(MuTestToken* token, const char* file, unsigned int line, const char* message, ...)
+{
+    va_list ap;
+    MuTestResult summary;
+
+    va_start(ap, message);
+    summary.status = MU_STATUS_SKIPPED;
+    summary.reason = formatv(message, ap);
+    summary.line = line;
+    summary.file = file;
+
+    token->meta(token, MU_META_EXPECT, MU_STATUS_SKIPPED);
+    token->result(token, &summary);
 
     free((void*) summary.reason);
+    va_end(ap);
 }
 
 static MuTestMethods generic_methods =
 {
-    __mu_event,
-	__mu_assert,
-	__mu_assert_equal,
-	__mu_success,
-	__mu_failure
+    .expect = __mu_expect,
+    .event = __mu_event,
+	.assert = __mu_assert,
+	.assert_equal = __mu_assert_equal,
+	.success = __mu_success,
+	.failure = __mu_failure,
+    .skip = __mu_skip
 };
 
 void Mu_TestToken_FillMethods(MuTestToken* token)
 {
     token->method = generic_methods;
+}
+
+
+const char*
+Mu_TestStatus_ToString(MuTestStatus status)
+{
+    switch (status)
+    {
+    case MU_STATUS_SUCCESS:
+        return "success";
+    case MU_STATUS_ASSERTION:
+        return "failed assertion";
+    case MU_STATUS_FAILURE:
+        return "generic failure";
+    case MU_STATUS_TIMEOUT:
+        return "timeout";
+    case MU_STATUS_CRASH:
+        return "crash";
+    case MU_STATUS_SKIPPED:
+        return "skipped test";
+    }
+
+    return "unknown";
 }

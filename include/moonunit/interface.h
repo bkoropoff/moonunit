@@ -130,6 +130,34 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_TEST(_suite, _name)                                          \
+    MU_TEST_EX(_suite, _name, MU_STATUS_SUCCESS)                        \
+
+/**
+ * @brief Defines a unit test (extended options)
+ *
+ * This macro expands to the definition of several global
+ * structures and functions which can be detected and
+ * extracted by the Moonunit test loader; it must be
+ * followed by the test body enclosed in curly braces.
+ * It should only be used at the top level of a C file.
+ * In order to preserve expected symbol names, C++ code
+ * must wrap all unit test definitions with extern "C" { ... }
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_TEST_EX(Arithmetic, fail, MU_STATUS_ASSERTION)
+ * {
+ *     MU_ASSERT(2 + 2 == 5);
+ * }
+ * @endcode
+ *
+ * @param suite the (unquoted) name of the test suite which
+ * this test should be part of
+ * @param name the (unquoted) name of this test
+ * @param expected the expected result of this test (MuTestStatus)
+ * @hideinitializer
+ */
+#define MU_TEST_EX(_suite, _name, _expected)                            \
     __MU_SECTION_TEXT__                                                 \
     __MU_HIDDEN_TEST__                                                  \
     void __mu_f_##_suite##_##_name(MuTestToken*);                       \
@@ -142,6 +170,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
         .name = #_name,                                                 \
         .file = __FILE__,                                               \
         .line = __LINE__,                                               \
+        .expected = _expected,                                          \
         .run = __mu_f_##_suite##_##_name                                \
     };                                                                  \
     void __mu_f_##_suite##_##_name(MuTestToken* __mu_token__)
@@ -349,7 +378,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_ASSERT(expr) \
-    MU_TOKEN->method.assert(MU_TOKEN, expr, #expr, __FILE__, __LINE__)
+    MU_TOKEN->method.assert(MU_TOKEN, expr, 1, #expr, __FILE__, __LINE__)
 
 /**
  * @brief Confirm equality of values or fail
@@ -385,11 +414,11 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expected the second expression
  * @hideinitializer
  */
-#define MU_ASSERT_EQUAL(type, expr, expected) \
-	MU_TOKEN->method.assert_equal(MU_TOKEN, \
-        #expr, #expected, \
-        __FILE__, __LINE__, \
-        type, (expr), (expected))
+#define MU_ASSERT_EQUAL(type, expr, expected)               \
+	MU_TOKEN->method.assert_equal(MU_TOKEN,                 \
+                                  #expr, #expected, 1,      \
+                                  __FILE__, __LINE__,       \
+                                  type, (expr), (expected)) \
 
 /**
  * @brief Causes immediate success
@@ -433,7 +462,13 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_FAILURE(...) \
-    MU_TOKEN->method.failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__)
+    (MU_TOKEN->method.failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+
+#define MU_SKIP(...) \
+    (MU_TOKEN->method.skip(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+
+#define MU_EXPECT(result) \
+    (MU_TOKEN->method.expect(MU_TOKEN, result))
 
 /**
  * @brief Logs non-fatal messages

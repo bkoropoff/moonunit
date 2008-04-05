@@ -45,7 +45,9 @@ typedef enum MuTestStatus
     // Failure due to crash (segfault, usually)
     MU_STATUS_CRASH = 3,
     // Failure due to timeout (infinite loop, etc.)
-    MU_STATUS_TIMEOUT = 4
+    MU_STATUS_TIMEOUT = 4,
+    // Skipped test
+    MU_STATUS_SKIPPED = 5
 } MuTestStatus;
 
 typedef enum MuTestStage
@@ -60,6 +62,8 @@ typedef struct MuTestResult
 {
     /** Status of the test (pass/fail) */
     MuTestStatus status;
+    /** Expected status of the test */
+    MuTestStatus expected;
     /** If test failed, the stage at which the failure occured */
     MuTestStage stage;
     /** Human-readable reason why the test failed */
@@ -94,19 +98,27 @@ typedef struct MuLogEvent
 
 typedef struct MuTestMethods
 {
+    void (*expect)(struct MuTestToken*, MuTestStatus status);
     void (*event)(struct MuTestToken*, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
-    void (*assert)(struct MuTestToken*, int result, const char* expr, const char* file, unsigned int line);
-    void (*assert_equal)(struct MuTestToken*, const char* expr, const char* expected,
+    void (*assert)(struct MuTestToken*, int result, int sense, const char* expr, const char* file, unsigned int line);
+    void (*assert_equal)(struct MuTestToken*, const char* expr, const char* expected, int sense,
                          const char* file, unsigned int line, MuType type, ...);
     void (*success)(struct MuTestToken*);
-    void (*failure)(struct MuTestToken*, const char* file, unsigned int line, const char* message, ...);    
+    void (*failure)(struct MuTestToken*, const char* file, unsigned int line, const char* message, ...);
+    void (*skip)(struct MuTestToken*, const char* file, unsigned int line, const char* message, ...);
 } MuTestMethods;
+
+typedef enum MuTestMeta
+{
+    MU_META_EXPECT
+} MuTestMeta;
 
 typedef struct MuTestToken
 {
     /* Basic operations */
     void (*result)(struct MuTestToken*, const MuTestResult*);
     void (*event)(struct MuTestToken*, const MuLogEvent* event);
+    void (*meta)(struct MuTestToken*, MuTestMeta type, ...);
     /* Generic operations */
     MuTestMethods method;
     struct MuTest* test;
@@ -122,6 +134,8 @@ typedef struct MuTest
     const char* file;
     /** First line of test definition */
     unsigned int line;
+    /** Expected result of test */
+    MuTestStatus expected;
 	/** Loader which loaded this test */
     struct MuLoader* loader;
     /** Library which contains this test */
@@ -164,5 +178,7 @@ typedef void (*MuThunk) (void);
 typedef void (*MuTestThunk) (MuTestToken*);
 
 void Mu_TestToken_FillMethods(MuTestToken* token);
+
+const char* Mu_TestStatus_ToString(MuTestStatus status);
 
 #endif

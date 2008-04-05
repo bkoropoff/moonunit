@@ -147,7 +147,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             }
             Mu_Logger_TestLeave(logger, test, summary);
             
-            if (summary->status != MU_STATUS_SUCCESS && settings->debug)
+            if (summary->status != summary->expected && settings->debug)
             {
                 pid_t pid = harness->debug(harness, test);
                 char* breakpoint;
@@ -165,7 +165,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                 gdb_attach_interactive(settings->self, pid, breakpoint);
             }
             
-            if (summary->status != MU_STATUS_SUCCESS)
+            if (summary->status != summary->expected)
                 failed++;
 
             harness->free_result(harness, summary);

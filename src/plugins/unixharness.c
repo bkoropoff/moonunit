@@ -27,29 +27,24 @@
 
 #define _GNU_SOURCE
 
+#ifdef HAVE_CONFIG_H
+#    include <config.h>
+#endif
+
 #include <moonunit/test.h>
 #include <moonunit/harness.h>
 #include <moonunit/loader.h>
 #include <moonunit/util.h>
 #include <moonunit/interface.h>
 #include <uipc/ipc.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <sys/wait.h>
-#ifdef HAVE_SYS_SELECT_H
-#    include <sys/select.h>
-#endif
-#ifdef HAVE_SELECT_H
-#    include <select.h>
-#endif
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
 #include <signal.h>
-
-#ifdef HAVE_CONFIG_H
-#    include <config.h>
-#endif
+#include <stdarg.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
 
 static long default_timeout;
 
@@ -57,6 +52,7 @@ typedef struct
 {
     MuTestToken base;
     MuTestStage current_stage;
+    MuTestStatus expected;
     MuTest* current_test;
     uipc_handle* ipc_handle;
     pid_t child;
@@ -118,7 +114,7 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     }
 
     ((MuTestResult*) summary)->stage = token->current_stage;
-
+    ((MuTestResult*) summary)->expected = token->expected;
     uipc_message* message = uipc_msg_new(MSG_TYPE_RESULT);
     uipc_msg_set_payload(message, summary, &testsummary_info);
     uipc_waitwrite(ipc_handle, message, NULL);
@@ -127,6 +123,24 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     uipc_detach(ipc_handle);
     
     exit(0);
+}
+
+void
+unixtoken_meta(MuTestToken* _token, MuTestMeta type, ...)
+{
+    UnixToken* token = (UnixToken*) _token;
+    va_list ap;
+    
+    va_start(ap, type);
+
+    switch (type)
+    {
+    case MU_META_EXPECT:
+        token->expected = va_arg(ap, MuTestStatus);
+        break;
+    }
+
+    va_end(ap);
 }
 
 static char*
@@ -147,8 +161,10 @@ signal_handler(int sig)
         MuTestResult summary;
     
         summary.status = MU_STATUS_CRASH;
+        summary.expected = current_token->expected;
         summary.stage = current_token->current_stage;
         summary.reason = signal_description(sig);
+        summary.file = NULL;
         summary.line = 0;
     
         current_token->base.result((MuTestToken*) current_token, &summary);
@@ -167,8 +183,10 @@ unixtoken_new(MuTest* test)
 
     Mu_TestToken_FillMethods((MuTestToken*) token);
 
+    token->base.meta = unixtoken_meta;
     token->base.result = unixtoken_result;
     token->base.event = unixtoken_event;
+    token->expected = test->expected;
 
     return token;
 }
@@ -287,6 +305,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
             {
                 char* reason = format("Test timed out after %li milliseconds", default_timeout);
                 
+                summary->expected = token->expected;
                 summary->status = MU_STATUS_TIMEOUT;
                 summary->reason = reason;
                 summary->stage = MU_STAGE_UNKNOWN;

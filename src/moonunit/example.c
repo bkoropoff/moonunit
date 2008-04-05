@@ -75,17 +75,22 @@ MU_TEST(Arithmetic, divide)
 	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, y / x, 1);
 }
 
-MU_TEST(Arithmetic, bad)
+MU_TEST(Arithmetic, skip)
+{
+    MU_SKIP("This test is skipped");
+}
+
+MU_TEST_EX(Arithmetic, bad, MU_STATUS_ASSERTION)
 {
 	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x + y, 4);	
 }
 
-MU_TEST(Arithmetic, bad2)
+MU_TEST_EX(Arithmetic, bad2, MU_STATUS_ASSERTION)
 {
 	MU_ASSERT(x > y);
 }
 
-MU_TEST(Arithmetic, crash)
+MU_TEST_EX(Arithmetic, crash, MU_STATUS_CRASH)
 {
 	MU_ASSERT(x / (y - 3) == x);
 }
@@ -98,24 +103,24 @@ unsigned int divide(int a, int b)
     return a / b;
 }
 
-MU_TEST(Arithmetic, bad_link)
+MU_TEST_EX(Arithmetic, bad_link, MU_STATUS_ASSERTION)
 {
     divide(5, 0);
 }
 #endif
 
-MU_TEST(Crash, segfault)
+MU_TEST_EX(Crash, segfault, MU_STATUS_CRASH)
 {
 	*(int*)0 = 42;
 }
 
-MU_TEST(Crash, segfault_teardown)
+MU_TEST_EX(Crash, segfault_teardown, MU_STATUS_CRASH)
 {
 	// The teardown function for this harness will crash
 	// when this test is run
 }
 
-MU_TEST(Crash, pipe)
+MU_TEST_EX(Crash, pipe, MU_STATUS_CRASH)
 {
 	int fd[2];
 	
@@ -126,12 +131,12 @@ MU_TEST(Crash, pipe)
 	write(fd[1], fd, sizeof(int)*2);
 }
 
-MU_TEST(Crash, abort)
+MU_TEST_EX(Crash, abort, MU_STATUS_CRASH)
 {
 	abort();
 }
 
-MU_TEST(Crash, timeout)
+MU_TEST_EX(Crash, timeout, MU_STATUS_TIMEOUT)
 {
     pause();
 }

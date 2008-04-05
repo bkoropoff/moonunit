@@ -113,11 +113,6 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     
     if (tests)
     {
-		/* FIXME: it's probably not ok to sort this array in place since
-         * it's owned by the loader.  It might be worthwhile to change the
-         * semantics of the loader->tests method to return something that
-         * should be freed
-         */
         qsort(tests, test_count(tests), sizeof(*tests), test_compare);
         
         unsigned int index;

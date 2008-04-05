@@ -42,7 +42,7 @@ typedef struct
     unsigned int iterations;
 } RunSettings;
 
-void run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError** _err);
-void run_all(RunSettings* settings, const char* path, MuError** _err);
+unsigned int run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError** _err);
+unsigned int run_all(RunSettings* settings, const char* path, MuError** _err);
 
 #endif

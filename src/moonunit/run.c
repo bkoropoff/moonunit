@@ -33,7 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int test_compare(const void* _a, const void* _b)
+static int
+test_compare(const void* _a, const void* _b)
 {
 	MuTest* a = *(MuTest**) _a;
 	MuTest* b = *(MuTest**) _b;
@@ -45,7 +46,8 @@ static int test_compare(const void* _a, const void* _b)
 		return (a == b) ? 0 : ((a < b) ? -1 : 1);
 }
 
-static unsigned int test_count(MuTest** tests)
+static unsigned int
+test_count(MuTest** tests)
 {
 	unsigned int result;
 	
@@ -54,7 +56,8 @@ static unsigned int test_count(MuTest** tests)
 	return result;
 }
 
-static bool in_set(MuTest* test, int setc, char** set)
+static bool
+in_set(MuTest* test, int setc, char** set)
 {
     unsigned int i;
 
@@ -80,21 +83,22 @@ static bool in_set(MuTest* test, int setc, char** set)
     return false;
 }
 
-static void event_proxy_cb(MuLogEvent* event, void* data)
+static void
+event_proxy_cb(MuLogEvent* event, void* data)
 {
     MuLogger* logger = (MuLogger*) data;
 
     Mu_Logger_TestLog(logger, event);
 }
 
-void
+unsigned int
 run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError** _err)
 {
     MuError* err = NULL;
+    unsigned int failed = 0;
     MuLogger* logger = settings->logger;
     MuLoader* loader = settings->loader;
     MuHarness* harness = settings->harness;
-
    	MuLibrary* library = Mu_Loader_Open(loader, path, &err);
 
     if (err)
@@ -166,6 +170,9 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                 gdb_attach_interactive(settings->self, pid, breakpoint);
             }
             
+            if (summary.result != MOON_RESULT_SUCCESS)
+                failed++;
+
             harness->cleanup(harness, &summary);
         }
         
@@ -181,9 +188,12 @@ error:
     
     if (library)
         Mu_Loader_Close(loader, library);
+
+    return failed;
 }
 
-void run_all(RunSettings* settings, const char* path, MuError** _err)
+unsigned int
+run_all(RunSettings* settings, const char* path, MuError** _err)
 {
-    run_tests(settings, path, 0, NULL, _err);
+    return run_tests(settings, path, 0, NULL, _err);
 }

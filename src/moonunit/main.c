@@ -47,16 +47,18 @@
 #define die(fmt, ...)                               \
     do {                                            \
         fprintf(stderr, fmt "\n", ## __VA_ARGS__);  \
-        exit(1);                                    \
+        exit(255);                                  \
     } while (0);                                    \
 
-int main (int argc, char** argv)
+int
+main (int argc, char** argv)
 {
     MuError* err = NULL;
     unsigned int file_index;
     RunSettings settings;
     OptionTable option = {0};
     array* loggers;
+    unsigned int failed = 0;
 
     if (Option_Parse(argc, argv, &option))
     {
@@ -115,11 +117,11 @@ int main (int argc, char** argv)
         
         if (option.all || array_size(option.tests) == 0)
         {
-            run_all(&settings, file, &err);
+            failed += run_all(&settings, file, &err);
         }
         else
         {
-            run_tests(&settings, file, array_size(option.tests), (char**) option.tests, &err);
+            failed += run_tests(&settings, file, array_size(option.tests), (char**) option.tests, &err);
         }
 
         if (err)
@@ -133,5 +135,8 @@ int main (int argc, char** argv)
 
     Option_Release(&option);
 
-	return 0;
+    if (failed > 255)
+        return 255;
+    else
+        return (int) failed;
 }

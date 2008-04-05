@@ -38,20 +38,15 @@ typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 typedef struct MuHarness
 {
     struct MuPlugin* plugin;
-
+    MuOption option;
     // Called to run a single unit test.  Results should be stored
     // in the passed in MuTestResult structure.
-    void (*dispatch)(struct MuHarness*, struct MuTest*, MuTestResult*, MuLogCallback, void*);
-
+    MuTestResult* (*dispatch)(struct MuHarness*, struct MuTest*, MuLogCallback, void*);
+    void (*free_result)(struct MuHarness*, MuTestResult*);
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by
     // a debugger.
     pid_t (*debug)(struct MuHarness*, struct MuTest*);
-
-    // Clean up any memory in a MoonTestSummary filled in by
-    // a call to dispatch
-    void (*cleanup)(struct MuHarness*, MuTestResult*);
-    MuOption option;
 } MuHarness;
 
 const char* Mu_TestStatusToString(MuTestStatus status);

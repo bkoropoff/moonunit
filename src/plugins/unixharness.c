@@ -173,7 +173,8 @@ unixtoken_new(MuTest* test)
     return token;
 }
 
-void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary, MuLogCallback cb, void* data)
+MuTestResult*
+unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* data)
 {
     int sockets[2];
     pid_t pid;
@@ -230,7 +231,7 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
     else
     {
         uipc_handle* ipc_harness = uipc_attach(sockets[0]);
-        MuTestResult *_summary;
+        MuTestResult *summary = NULL;
         uipc_message* message = NULL;
         int status;
         uipc_status uipc_result;
@@ -248,12 +249,8 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
                 switch (uipc_msg_get_type(message))
                 {
                 case MSG_TYPE_RESULT:
-                    _summary = uipc_msg_get_payload(message, &testsummary_info);
-                    *summary = *_summary;
-                    if (summary->reason)
-                        summary->reason = strdup(_summary->reason);
+                    summary = uipc_msg_get_payload(message, &testsummary_info);
                     done = true;
-                    uipc_msg_free_payload(_summary, &testsummary_info);
                     break;
                 case MSG_TYPE_EVENT:
                 {
@@ -282,8 +279,9 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
         
         waitpid(pid, &status, 0);
         
-        if (!message)
+        if (!summary)
         {
+            summary = calloc(1, sizeof(MuTestResult));
             // Timed out waiting for response
             if (uipc_result == UIPC_TIMEOUT)
             {
@@ -312,11 +310,18 @@ void unixharness_dispatch(MuHarness* _self, MuTest* test, MuTestResult* summary,
                 summary->reason = strdup("Unexpected termination");
             }
         }
-        else
-        {
+
+        if (message)
             uipc_msg_free(message);
-        }        
+
+        return summary;
     }
+}
+
+void
+unixharness_free_result(MuHarness* _self, MuTestResult* result)
+{
+    uipc_msg_free_payload(result, &testsummary_info);
 }
 
 pid_t unixharness_debug(MuHarness* _self, MuTest* test)
@@ -362,11 +367,6 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
     }
 }
   
-void unixharness_cleanup (MuHarness* _self, MuTestResult* summary)
-{
-    free((void*) summary->reason);
-}
-
 static void
 option_set(void* _self, const char* name, void* data)
 {
@@ -406,8 +406,8 @@ MuHarness mu_unixharness =
 {
     .plugin = NULL,
     .dispatch = unixharness_dispatch,
+    .free_result = unixharness_free_result,
     .debug = unixharness_debug,
-    .cleanup = unixharness_cleanup,
     .option =
     {
         .set = option_set,

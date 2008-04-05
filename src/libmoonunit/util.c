@@ -144,9 +144,11 @@ ensure(_array* a, size_t size)
 array*
 array_new(void)
 {
-    _array* a = malloc(sizeof(_array));
+    _array* a = malloc(sizeof(_array) + sizeof(void*));
 
-    a->size = a->capacity = 0;
+    a->size = 0;
+    a->capacity = 1;
+    a->elements[0] = NULL;
 
     return hide(a);
 }
@@ -162,9 +164,10 @@ array_append(array* a, void* e)
 {
     _array* _a = a ? reveal(a) : reveal(array_new());
 
-    _a = ensure(_a, _a->size + 1);
+    _a = ensure(_a, _a->size + 2);
 
     _a->elements[_a->size++] = e;
+    _a->elements[_a->size] = NULL;
 
     return hide(_a);
 }
@@ -176,6 +179,44 @@ array_free(array* a)
     {
         free(reveal(a));
     }
+}
+
+array*
+array_dup(array* a)
+{
+    if (!a)
+    {
+        return a;
+    }
+    else
+    {
+        _array* _a = reveal(a);
+        unsigned long size = sizeof(_array) + sizeof(void*) * _a->capacity;
+        _array* _b = malloc(size);
+        memcpy(_b, _a, size);
+
+        return hide(_b);
+    }
+}
+
+array*
+array_from_generic(void** g)
+{
+    unsigned int size;
+    _array* a;
+
+    if (!g)
+        return NULL;
+
+    for (size = 0; g[size]; size++);
+    
+    a = malloc(sizeof(_array) + sizeof(void*) * (size + 1));
+    a->capacity = size + 1;
+    a->size = size;
+
+    memcpy(a->elements, g, sizeof(void*) * (size + 1));
+
+    return hide(a);
 }
 
 void*

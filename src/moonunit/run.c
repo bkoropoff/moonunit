@@ -108,7 +108,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     
     Mu_Logger_LibraryEnter(logger, basename_pure(path));
     
-    MuTest** tests = Mu_Loader_Tests(loader, library);
+    MuTest** tests = Mu_Loader_GetTests(loader, library);
     MuThunk thunk;
     
     if (tests)
@@ -188,6 +188,9 @@ error:
     
     if (library)
         Mu_Loader_Close(loader, library);
+
+    if (tests)
+        Mu_Loader_FreeTests(loader, library, tests);
 
     return failed;
 }

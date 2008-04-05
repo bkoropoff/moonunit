@@ -30,12 +30,8 @@
 
 #include <moonunit/error.h>
 #include <moonunit/test.h>
+#include <moonunit/plugin.h>
 #include <stdbool.h>
-
-struct MuError;
-struct MuTest;
-struct MuLibrary;
-struct MuPlugin;
 
 typedef struct MuLibrary MuLibrary;
 
@@ -47,7 +43,9 @@ typedef struct MuLoader
     // Opens a library and returns a handle
     MuLibrary* (*open) (struct MuLoader*, const char* path, MuError** err);
     // Returns a null-terminated list of unit tests
-    struct MuTest** (*tests) (struct MuLoader*, MuLibrary* handle);
+    struct MuTest** (*get_tests) (struct MuLoader*, MuLibrary* handle);
+    // Frees a list of unit tests that had been returned by get_tests
+    void (*free_tests) (struct MuLoader*, MuLibrary* handle, struct MuTest** list);
     // Returns the library setup routine for handle
     MuThunk (*library_setup)(struct MuLoader*, MuLibrary* handle);
     // Returns the library teardown routine for handle
@@ -66,7 +64,8 @@ typedef struct MuLoader
 
 bool Mu_Loader_CanOpen(struct MuLoader* loader, const char* path);
 MuLibrary* Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err);
-struct MuTest** Mu_Loader_Tests(struct MuLoader* loader, MuLibrary* handle);
+struct MuTest** Mu_Loader_GetTests(struct MuLoader* loader, MuLibrary* handle);
+void Mu_Loader_FreeTests(struct MuLoader* loader, MuLibrary* handle, struct MuTest**);
 MuThunk Mu_Loader_LibrarySetup(struct MuLoader* loader, MuLibrary* handle);
 MuThunk Mu_Loader_LibraryTeardown(struct MuLoader* loader, MuLibrary* handle);
 MuTestThunk Mu_Loader_FixtureSetup(struct MuLoader* loader, MuLibrary* handle, const char* name);

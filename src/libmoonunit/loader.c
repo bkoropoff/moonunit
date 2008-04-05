@@ -40,9 +40,15 @@ Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err)
 }
 
 struct MuTest**
-Mu_Loader_Tests(struct MuLoader* loader, MuLibrary* handle)
+Mu_Loader_GetTests(struct MuLoader* loader, MuLibrary* handle)
 {
-    return loader->tests(loader, handle);
+    return loader->get_tests(loader, handle);
+}
+
+void
+Mu_Loader_FreeTests(struct MuLoader* loader, MuLibrary* handle, struct MuTest** tests)
+{
+    loader->free_tests(loader, handle, tests);
 }
 
 MuThunk

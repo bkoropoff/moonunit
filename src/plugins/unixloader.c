@@ -57,39 +57,6 @@ struct MuLibrary
     bool stub;
 };
 
-/* Some stupid helper functions */
-#ifdef HAVE_LIBELF
-static unsigned int
-PtrArray_Length(void** array)
-{
-    unsigned int len;
-
-    if (!array)
-        return 0;
-
-    for (len = 0; *array; array++, len++);
-
-    return len;
-}
-
-#define PTRARRAY_LENGTH(array) (PtrArray_Length((void**) (array)))
-
-static void**
-PtrArray_Append(void** array, void* element)
-{
-    unsigned int len = PtrArray_Length(array);
-    void** expanded = realloc(array, sizeof(*array) * (len+2));
-    
-    expanded[len] = element;
-    expanded[len+1] = NULL;
-
-    return expanded;
-}
-
-#define PTRARRAY_APPEND(array, element, type) ((type*) PtrArray_Append((void **) (array), (type) element))
-
-#endif
-
 static void
 test_init(MuTest* test, MuLibrary* library)
 {
@@ -120,7 +87,7 @@ test_add(symbol* sym, void* _library, MuError **_err)
         }
 		else
         {
-            library->tests = PTRARRAY_APPEND(library->tests, test, MuTest*);
+            library->tests = (MuTest**) array_append((array*) library->tests, test);
 
             if (!library->tests)
                 MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
@@ -132,13 +99,13 @@ test_add(symbol* sym, void* _library, MuError **_err)
    	{
         MuFixtureSetup* setup = (MuFixtureSetup*) sym->addr;
 		
-        library->fixture_setups = PTRARRAY_APPEND(library->fixture_setups, setup, MuFixtureSetup*);
+        library->fixture_setups = (MuFixtureSetup**) array_append((array*) library->fixture_setups, setup);
 	}
     else if (!strncmp(MU_FT_PREFIX, sym->name, strlen(MU_FT_PREFIX)))
    	{
         MuFixtureTeardown* teardown = (MuFixtureTeardown*) sym->addr;
 		
-        library->fixture_teardowns = PTRARRAY_APPEND(library->fixture_teardowns, teardown, MuFixtureTeardown*);
+        library->fixture_teardowns = (MuFixtureTeardown**) array_append((array*) library->fixture_teardowns, teardown);
 	}
 	else if (!strncmp("__mu_ls", sym->name, strlen("__mu_ls")))
 	{
@@ -252,11 +219,17 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 }
 
 static MuTest**
-unixloader_tests (MuLoader* _self, MuLibrary* handle)
+unixloader_get_tests (MuLoader* _self, MuLibrary* handle)
 {
-	return handle->tests;
+	return (MuTest**) array_from_generic((void**) handle->tests);
 }
     
+static void
+unixloader_free_tests (MuLoader* _self, MuLibrary* handle, MuTest** tests)
+{
+    array_free((array*) tests);
+}
+
 // Returns the library setup routine for handle
 static MuThunk
 unixloader_library_setup (MuLoader* _self, MuLibrary* handle)
@@ -333,7 +306,8 @@ MuLoader mu_unixloader =
 {
     .can_open = unixloader_can_open,
 	.open = unixloader_open,
-	.tests = unixloader_tests,
+	.get_tests = unixloader_get_tests,
+	.free_tests = unixloader_free_tests,
 	.library_setup = unixloader_library_setup,
 	.library_teardown = unixloader_library_teardown,
 	.fixture_setup = unixloader_fixture_setup,

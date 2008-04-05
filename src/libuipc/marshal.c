@@ -64,10 +64,18 @@ uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc
 	int i;
     unsigned long delta;
     unsigned long written = 0;
-    void* base = buffer;
+    void* base = NULL;
+
+    if (payload == NULL)
+    {
+        return 0;
+    }
 
     if (size >= type->size)
+    {
+        base = buffer;
         memcpy(buffer, payload, type->size);
+    }
 
     buffer += type->size;
     written += type->size;
@@ -80,10 +88,22 @@ uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc
         {
         case UIPC_KIND_STRING:
             delta = marshal_string(buffer, size, *(void **)(payload + type->members[i].offset));
-            memset(base + type->members[i].offset, delta ? 0xFF : 0x0, sizeof(char*));
+            if (base)
+                memset(base + type->members[i].offset, delta ? 0xFF : 0x0, sizeof(char*));
             buffer += delta;
             written += delta;
             REDUCE(size, delta);
+            break;
+        case UIPC_KIND_POINTER:
+            delta = uipc_marshal_payload(buffer, size, 
+                                         *(void **)(payload + type->members[i].offset), 
+                                         type->members[i].pointee_type);
+            if (base)
+                memset(base + type->members[i].offset, delta ? 0xFF : 0x0, sizeof(void*));
+            buffer += delta;
+            written += delta;
+            REDUCE(size, delta);
+            break;
         default:
             ;
         }
@@ -141,6 +161,21 @@ uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
             {
                 *(void**) (object + type->members[i].offset) = NULL;
             }
+            break;
+        case UIPC_KIND_POINTER:
+            memcpy(&member, base + type->members[i].offset, sizeof(member));
+            if (member)
+            {
+                delta = uipc_unmarshal_payload(object + type->members[i].offset, payload, 
+                                               type->members[i].pointee_type);
+                payload += delta;
+                read += delta;
+            }
+            else
+            {
+                *(void**) (object + type->members[i].offset) = NULL;
+            }
+            break;
         default:
             ;
         }

@@ -38,6 +38,7 @@ typedef enum
 typedef struct __uipc_typeinfo
 {
     unsigned long size;
+    const char* name;
     struct
     {
         unsigned long offset;

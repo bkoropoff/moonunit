@@ -80,7 +80,7 @@ uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc
         {
         case UIPC_KIND_STRING:
             delta = marshal_string(buffer, size, *(void **)(payload + type->members[i].offset));
-            *(void**) (base + type->members[i].offset) = delta ? (void*) 0x1 : NULL;
+            memset(base + type->members[i].offset, delta ? 0xFF : 0x0, sizeof(char*));
             buffer += delta;
             written += delta;
             REDUCE(size, delta);
@@ -95,9 +95,17 @@ uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc
 unsigned long
 unmarshal_string(void** out, const void* payload)
 {
-    *out = strdup((const char*) payload);    
+    if (payload)
+    {
+        *out = strdup((const char*) payload);    
+        return strlen((const char*) payload) + 1;
+    }
+    else
+    {
+        *out = NULL;
+        return 0;
+    }
     
-    return strlen((const char*) payload) + 1;
 }
 
 unsigned long
@@ -108,6 +116,7 @@ uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
     unsigned long delta;
     unsigned long read = 0;
     void* member;
+    const void* base = payload;
 
     object = malloc(type->size);
     memcpy(object, payload, type->size);
@@ -120,8 +129,8 @@ uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
         switch (type->members[i].kind)
         {
         case UIPC_KIND_STRING:
-	    /* Structures in payload may be unaligned, so access with memcpy */
-	    memcpy(&member, payload + type->members[i].offset, sizeof(member));
+            /* Structures in payload may be unaligned, so access with memcpy */
+            memcpy(&member, base + type->members[i].offset, sizeof(member));
             if (member)
             {
                 delta = unmarshal_string(object + type->members[i].offset, payload);

@@ -26,15 +26,19 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#    include <config.h>
 #endif
 
-#include <execinfo.h>
+#ifdef HAVE_EXECINFO_H
+#    include <execinfo.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #include <moonunit/test.h>
+
+#if defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS)
 
 static void
 fill_backtrace(MuBacktrace* trace, char* info)
@@ -102,3 +106,11 @@ get_backtrace(int skip)
 
     return trace;
 }
+
+#else
+MuBacktrace*
+get_backtrace(int skip)
+{
+    return NULL;
+}
+#endif

@@ -101,12 +101,12 @@ AC_SUBST(LIB_pthread)
 
 AM_CONDITIONAL([HAVE_MEMBEREXT], [test -n "$memberext"])
 
-AC_CHECK_HEADERS([select.h sys/select.h])
+AC_CHECK_HEADERS([select.h sys/select.h execinfo.h])
 
 AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])
 AC_CHECK_LIB(dl, dlopen, [LIB_dl="-ldl"])
 AC_CHECK_LIB(pthread, pthread_self, [LIB_pthread="-lpthread"])
-AC_CHECK_FUNCS([strsignal])
+AC_CHECK_FUNCS([strsignal backtrace backtrace_symbols])
 
 saved_LDFLAGS=$LDFLAGS
 saved_CPPFLAGS=$CPPFLAGS

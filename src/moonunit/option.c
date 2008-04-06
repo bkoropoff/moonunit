@@ -243,7 +243,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
         }
     } while (rc > 0);
         
-    if (rc == -1 && !array_size(option->files))
+    if (rc == -1 && option->mode == MODE_RUN && !array_size(option->files))
     {
         poptPrintUsage(context, stderr, 0);
         rc = error(option, "Please specify one or more library files");

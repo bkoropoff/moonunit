@@ -210,6 +210,8 @@ run(char* self)
 int
 main (int argc, char** argv)
 {
+    int res = 0;
+
     if (Option_Parse(argc, argv, &option))
     {
         die("Error: %s", option.errormsg);
@@ -218,12 +220,20 @@ main (int argc, char** argv)
     switch (option.mode)
     {
     case MODE_RUN:
-        return run(argv[0]);
+        res = run(argv[0]);
+        break;
     case MODE_LIST_PLUGINS:
-        return list_plugins();
+        res = list_plugins();
+        break;
     case MODE_PLUGIN_INFO:
-        return plugin_info(option.plugin_info);
+        res = plugin_info(option.plugin_info);
+        break;
     default:
-        return -1;
+        res = -1;
+        break;
     }
+
+    Mu_Plugin_Shutdown();
+
+    return res;
 }

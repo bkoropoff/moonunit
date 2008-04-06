@@ -153,7 +153,10 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                 summary = harness->dispatch(harness, test, event_proxy_cb, logger);
                 if (summary->status != MU_STATUS_SUCCESS)
                     break;
+                else if (count + 1 < settings->iterations)
+                    harness->free_result(harness, summary);
             }
+
             Mu_Logger_TestLeave(logger, test, summary);
             
             if (summary->status != summary->expected && settings->debug)

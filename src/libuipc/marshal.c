@@ -190,13 +190,23 @@ void
 uipc_free_object(void* object, uipc_typeinfo* type)
 {
     int i;
-    
+    void* member;
+
+    if (!object)
+        return;
+
     for (i = 0; type->members[i].kind != UIPC_KIND_NONE; i++)
     {
         switch (type->members[i].kind)
         {
         case UIPC_KIND_STRING:
-            free(*(void**) (object + type->members[i].offset));
+            member = *(void**) (object + type->members[i].offset);
+            free(member);
+            break;
+        case UIPC_KIND_POINTER:
+            member = *(void**) (object + type->members[i].offset);
+            uipc_free_object(member, type->members[i].pointee_type);
+            break;
         default:
             ;
         }

@@ -27,7 +27,7 @@
 
 enum
 {
-    OPTION_SUITE = 1,
+    OPTION_SUITE,
     OPTION_TEST,
     OPTION_ALL,
     OPTION_GDB,
@@ -54,8 +54,9 @@ enum
 #include <stdbool.h>
 
 #include "option.h"
+#include "upopt.h"
 
-static int
+static UpoptStatus
 error(OptionTable* table, const char* fmt, ...)
 {
     va_list ap;
@@ -66,103 +67,84 @@ error(OptionTable* table, const char* fmt, ...)
 
     va_end(ap);
 
-    return -2;
+    return UPOPT_STATUS_ERROR;
 }
 
-static const struct poptOption options[] =
+static const struct UpoptOptionInfo options[] =
 {
     {
-        .longName = "suite",
-        .shortName = 's',
-        .argInfo = POPT_ARG_STRING,
-        .arg = NULL,
-        .val = OPTION_SUITE,
-        .descrip = "Run a specific test suite",
-        .argDescrip = "suite"
+        .longname = "suite",
+        .shortname = 's',
+        .description = "Run a specific test suite",
+        .argument = "suite",
+        .constant = OPTION_SUITE
     },
     {
-        .longName = "test",
-        .shortName = 't',
-        .argInfo = POPT_ARG_STRING,
-        .arg = NULL,
-        .val = OPTION_TEST,
-        .descrip = "Run a specific test",
-        .argDescrip = "suite/name"
+        .longname = "test",
+        .shortname = 't',
+        .argument = "suite/name",
+        .constant = OPTION_TEST,
+        .description = "Run a specific test",
     },
     {
-        .longName = "all",
-        .shortName = 'a',
-        .argInfo = POPT_ARG_NONE,
-        .arg = NULL,
-        .val = OPTION_ALL,
-        .descrip = "Run all tests in all suites (default)",
-        .argDescrip = NULL
+        .longname = "all",
+        .shortname = 'a',
+        .constant = OPTION_ALL,
+        .description = "Run all tests in all suites (default)",
+        .argument = NULL
     },
     {
-        .longName = "gdb",
-        .shortName = 'g',
-        .argInfo = POPT_ARG_NONE,
-        .arg = NULL,
-        .val = OPTION_GDB,
-        .descrip = "Rerun failed tests in an interactive gdb session",
-        .argDescrip = NULL
+        .longname = "gdb",
+        .shortname = 'g',
+        .constant = OPTION_GDB,
+        .description = "Rerun failed tests in an interactive gdb session",
+        .argument = NULL
     },
     {
-        .longName = "logger",
-        .shortName = 'l',
-        .argInfo = POPT_ARG_STRING,
-        .arg = NULL,
-        .val = OPTION_LOGGER,
-        .descrip = "Use a specific result logger (default: console)",
-        .argDescrip = "name"
+        .longname = "logger",
+        .shortname = 'l',
+        .constant = OPTION_LOGGER,
+        .description = "Use a specific result logger (default: console)",
+        .argument = "name"
     },
     {
-        .longName = "iterations",
-        .shortName = 'n',
-        .argInfo = POPT_ARG_INT,
-        .arg = NULL,
-        .val = OPTION_ITERATIONS,
-        .descrip = "Run each test count iterations",
-        .argDescrip = "count"
+        .longname = "iterations",
+        .shortname = 'n',
+        .constant = OPTION_ITERATIONS,
+        .description = "Run each test count iterations",
+        .argument = "count"
     },
     {
-        .longName = "timeout",
-        .shortName = '\0',
-        .argInfo = POPT_ARG_INT,
-        .arg = NULL,
-        .val = OPTION_TIMEOUT,
-        .descrip = "Terminate unresponsive tests after t milliseconds",
-        .argDescrip = "t"
+        .longname = "timeout",
+        .shortname = '\0',
+        .constant = OPTION_TIMEOUT,
+        .description = "Terminate unresponsive tests after t milliseconds",
+        .argument = "t"
     },
     {
-        .longName = "list-plugins",
-        .shortName = '\0',
-        .argInfo = POPT_ARG_NONE,
-        .arg = NULL,
-        .val = OPTION_LIST_PLUGINS,
-        .descrip = "List installed plugins and their capabilities",
-        .argDescrip = NULL
+        .longname = "list-plugins",
+        .shortname = '\0',
+        .constant = OPTION_LIST_PLUGINS,
+        .description = "List installed plugins and their capabilities",
+        .argument = NULL
     },
     {
-        .longName = "plugin-info",
-        .shortName = '\0',
-        .argInfo = POPT_ARG_STRING,
-        .arg = NULL,
-        .val = OPTION_PLUGIN_INFO,
-        .descrip = "Show information about a plugin and its supported options",
-        .argDescrip = "name"
+        .longname = "plugin-info",
+        .shortname = '\0',
+        .constant = OPTION_PLUGIN_INFO,
+        .description = "Show information about a plugin and its supported options",
+        .argument = "name"
     },
-    POPT_AUTOHELP
-    POPT_TABLEEND
+    UPOPT_END
 };
 
 int
 Option_Parse(int argc, char** argv, OptionTable* option)
 {
-    poptContext context = poptGetContext("moonunit", argc, (const char**) argv, options, 0);
-    int rc;
-
-    option->context = context;
+    UpoptContext* context = Upopt_CreateContext(options, argc, argv);
+    UpoptStatus rc;
+    int constant;
+    const char* value;
 
     /* Set defaults */
 
@@ -170,36 +152,31 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     option->timeout = 2000;
     option->mode = MODE_RUN;
 
-    poptSetOtherOptionHelp(context, "<libraries...>");
+    while ((rc = Upopt_Next(context, &constant, &value, &option->errormsg)) != UPOPT_STATUS_DONE)
+    {
+        if (rc == UPOPT_STATUS_ERROR)
+        {
+            goto error;
+        }
 
-    if ((rc = poptReadDefaultConfig(context, 0)))
-    {
-        rc = error(option, "%s: %s", 
-                   poptBadOption(context, 0),
-                   poptStrerror(rc));
-    } 
-    else do
-    {
-        switch ((rc = poptGetNextOpt(context)))
+        switch (constant)
         {
         case OPTION_SUITE:
         case OPTION_TEST:
         {
-            const char* entry = poptGetOptArg(context);
-
-            if (rc == OPTION_SUITE && strchr(entry, '/'))
+            if (constant == OPTION_SUITE && strchr(value, '/'))
             {
                 rc = error(option, "The --suite option requires an argument without a forward slash");
-                break;
+                goto error;
             }
             
-            if (rc == OPTION_TEST && !strchr(entry, '/'))
+            if (constant == OPTION_TEST && !strchr(value, '/'))
             {
                 rc = error(option, "The --test option requires an argument with a forward slash");
-                break;
+                goto error;
             }
 
-            option->tests = array_append(option->tests, (char*) entry);
+            option->tests = array_append(option->tests, (char*) value);
             break;
         }
         case OPTION_ALL:
@@ -209,47 +186,39 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             option->gdb = true;
             break;
         case OPTION_LOGGER:
-            option->loggers = array_append(option->loggers, strdup(poptGetOptArg(context)));
+            option->loggers = array_append(option->loggers, strdup(value));
             break;
         case OPTION_ITERATIONS:
-            option->iterations = atoi(poptGetOptArg(context));
+            option->iterations = atoi(value);
             break;
         case OPTION_TIMEOUT:
-            option->timeout = atoi(poptGetOptArg(context));
+            option->timeout = atoi(value);
             break;
         case OPTION_LIST_PLUGINS:
             option->mode = MODE_LIST_PLUGINS;
             break;
         case OPTION_PLUGIN_INFO:
             option->mode = MODE_PLUGIN_INFO;
-            option->plugin_info = poptGetOptArg(context);
+            option->plugin_info = value;
             break;
-        case -1:
+        case UPOPT_ARG_NORMAL:
         {
-            const char* file;
-
-            while ((file = poptGetArg(context)))
-            {
-                option->files = array_append(option->files, (char*) file);
-            }
+            option->files = array_append(option->files, (char*) value);
             break;
         }
-        case 0:
-            break;
-        default:
-            rc = error(option, "%s: %s",
-                       poptBadOption(context, 0),
-                       poptStrerror(rc));
         }
-    } while (rc > 0);
-        
-    if (rc == -1 && option->mode == MODE_RUN && !array_size(option->files))
-    {
-        poptPrintUsage(context, stderr, 0);
-        rc = error(option, "Please specify one or more library files");
     }
+    
+    if (option->mode == MODE_RUN && !array_size(option->files))
+    {
+        rc = error(option, "No libraries specified");
+    }
+    
+error:
+    
+    Upopt_DestroyContext(context);
 
-	return rc != -1;
+    return rc != UPOPT_STATUS_DONE;
 }
 
 array*
@@ -311,6 +280,7 @@ Option_Release(OptionTable* option)
 {
     if (option->errormsg)
         free(option->errormsg);
-
-    poptFreeContext(option->context);
+    array_free(option->files);
+    array_free(option->tests);
+    array_free(option->loggers);
 }

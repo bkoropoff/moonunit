@@ -49,7 +49,6 @@ typedef struct
     array* tests, *files, *loggers;
     const char* plugin_info;
     char* errormsg;
-    poptContext context;
 } OptionTable;
 
 struct MuLogger;

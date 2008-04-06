@@ -209,6 +209,12 @@ unixtoken_new(MuTest* test)
     return token;
 }
 
+static void
+unixtoken_free(UnixToken* token)
+{
+    free(token);
+}
+
 MuTestResult*
 unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* data)
 {
@@ -305,7 +311,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
             }
         }
         
-        uipc_detach(ipc_harness);    
+        uipc_detach(ipc_harness); 
         close(sockets[0]);
         
         if (uipc_result == UIPC_TIMEOUT)
@@ -350,6 +356,8 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
 
         if (message)
             uipc_msg_free(message);
+
+        unixtoken_free(token);
 
         return summary;
     }

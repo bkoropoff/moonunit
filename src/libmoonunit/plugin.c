@@ -277,3 +277,9 @@ Mu_Plugin_GetByName(const char* name)
 {
     return get_plugin(name);
 }
+
+void
+Mu_Plugin_Shutdown(void)
+{
+    array_free(plugin_list);
+}

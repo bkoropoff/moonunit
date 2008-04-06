@@ -192,6 +192,10 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
                   &library->fixture_setups, &library->fixture_teardowns,
                   &library->tests);
 
+        library->tests = (MuTest**) array_from_generic((void**) library->tests);
+        library->fixture_setups = (MuFixtureSetup**) array_from_generic((void**) library->fixture_setups);
+        library->fixture_teardowns = (MuFixtureTeardown**) array_from_generic((void**) library->fixture_teardowns);
+
         for (i = 0; library->tests[i]; i++)
         {
             test_init(library->tests[i], library);
@@ -221,7 +225,7 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 static MuTest**
 unixloader_get_tests (MuLoader* _self, MuLibrary* handle)
 {
-	return (MuTest**) array_from_generic((void**) handle->tests);
+	return (MuTest**) array_dup((array*) handle->tests);
 }
     
 static void
@@ -289,9 +293,9 @@ unixloader_close (MuLoader* _self, MuLibrary* handle)
 
     if (!handle->stub)
     {
-    	free(handle->tests);
-        free(handle->fixture_setups);
-        free(handle->fixture_teardowns);
+        array_free((array*) handle->tests);
+        array_free((array*) handle->fixture_setups);
+        array_free((array*) handle->fixture_teardowns);
     }
    	free(handle);
 }

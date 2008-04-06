@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_PLUGIN_H__
-#define __MU_PLUGIN_H__
+#ifndef __UPOPT_H__
+#define __UPOPT_H__
 
 #include <stdbool.h>
 
-struct MuLogger;
-struct MuHarness;
-struct MuLoader;
+/* Minimalist popt-like command line option parser */
 
-typedef struct MuPlugin
+typedef struct UpoptOptionInfo
 {
-    const char* name;
-    
-    struct MuLoader*  (*loader) ();
-    struct MuHarness* (*harness) ();
-    struct MuLogger*  (*create_logger) ();
-} MuPlugin;
+    /* Short option name */
+    char shortname;
+    /* Long option name */
+    const char* longname;
+    /* Description of option */
+    const char *description;
+    /* Description of argument (or NULL if none taken) */
+    const char *argument;
+    /* Enum constant */
+    int constant;
+} UpoptOptionInfo;
 
-#define MU_PLUGIN_INIT \
-    MuPlugin* __mu_p_init ()
+typedef struct UpoptContext UpoptContext;
 
-struct MuLoader* Mu_Plugin_GetLoaderWithName(const char *name);
-struct MuLoader* Mu_Plugin_GetLoaderForFile(const char *file);
-struct MuHarness* Mu_Plugin_GetHarness(const char *name);
-struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
-MuPlugin** Mu_Plugin_List(void);
-MuPlugin* Mu_Plugin_GetByName(const char* name);
-void Mu_Plugin_Shutdown(void);
+#define UPOPT_ARG_NORMAL (-1)
+#define UPOPT_ARG_END (-2)
+#define UPOPT_END                       \
+    {                                   \
+        .constant = UPOPT_ARG_END       \
+    }                                   \
+
+typedef enum UpoptStatus
+{
+    UPOPT_STATUS_NORMAL,
+    UPOPT_STATUS_DONE,
+    UPOPT_STATUS_ERROR
+} UpoptStatus;
+
+UpoptContext* Upopt_CreateContext(const UpoptOptionInfo* options, int argc, char** argv);
+UpoptStatus Upopt_Next(UpoptContext* context, int* constant, const char** value, char** error);
+void Upopt_DestroyContext(UpoptContext* context);
 
 #endif

@@ -3,8 +3,8 @@ bin_SCRIPTS = moonunit-lt moonunit-strip moonunit-stub
 
 check_LTLIBRARIES = libexample.la libexample_mu.la
 
-moonunit_SOURCES = main.c option.c run.c gdb.c multilog.c
-moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @POPT_LIBADD@ @LIB_pthread@
+moonunit_SOURCES = main.c option.c run.c gdb.c multilog.c upopt.c
+moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @LIB_pthread@
 
 LINKSTYLE = -DMU_LINK_STYLE=MU_LINK_WEAK
 
@@ -35,7 +35,7 @@ example_mu.c: example.c moonunit-stub
 		CPPFLAGS="$(CPPFLAGS) $(AM_CPPFLAGS) $(LINKSTYLE)" \
 		CPP="$(CPP)"
 
-AM_CPPFLAGS = -I$(top_srcdir)/include @POPT_INCLUDES@
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 CHECK_PLUGINS= \
 	--plugin $(top_builddir)/src/plugins/unix.la \

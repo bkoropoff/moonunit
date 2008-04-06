@@ -50,5 +50,7 @@ struct MuLoader* Mu_Plugin_GetLoaderWithName(const char *name);
 struct MuLoader* Mu_Plugin_GetLoaderForFile(const char *file);
 struct MuHarness* Mu_Plugin_GetHarness(const char *name);
 struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
+MuPlugin** Mu_Plugin_List(void);
+MuPlugin* Mu_Plugin_GetByName(const char* name);
 
 #endif

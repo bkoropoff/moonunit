@@ -42,7 +42,7 @@ Mu_Logger_SetOption(MuLogger* logger, const char *name, ...)
 
     va_start(ap, name);
 
-    Mu_Option_Setv(logger, &logger->option, name, ap);
+    Mu_Option_Setv(logger->options, logger, name, ap);
 
     va_end(ap);
 }
@@ -50,13 +50,13 @@ Mu_Logger_SetOption(MuLogger* logger, const char *name, ...)
 void 
 Mu_Logger_SetOptionString(MuLogger* logger, const char *name, const char *value)
 {
-    Mu_Option_SetString(logger, &logger->option, name, value);
+    Mu_Option_SetString(logger->options, logger, name, value);
 }
 
 MuType
 Mu_Logger_OptionType(MuLogger* logger, const char *name)
 {
-    return Mu_Option_Type(logger, &logger->option, name);
+    return Mu_Option_Type(logger->options, name);
 }
 
 void

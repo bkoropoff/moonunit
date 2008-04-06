@@ -212,75 +212,51 @@ static void test_leave(MuLogger* _self,
     fprintf(out, "      </test>\n");
 }
 
-static void option_set(void* _self, const char* name, void* data)
+static int
+get_fd(XmlLogger* self)
 {
-    XmlLogger* self = (XmlLogger*) _self;
+    return self->fd;
+}
 
-    if (!strcmp(name, "fd"))
-    {
-        self->fd = dup(*(int*) data);        
-        if (self->out)
-            fclose(self->out);
-        self->out = fdopen(self->fd, "w");
-    }
-    else if (!strcmp(name, "file"))
-    {
-        if (self->file)
-            free(self->file);
-        self->file = strdup((char*) data);
-        if (self->out)
-            fclose(self->out);
-        self->out = fopen(self->file, "w");
-    }
-    else if (!strcmp(name, "name"))
-    {
-        if (self->name)
-            free(self->name);
-        self->name = strdup((char*) data);
-    }
+static void
+set_fd(XmlLogger* self, int fd)
+{
+    self->fd = dup(fd);
+    if (self->out)
+        fclose(self->out);
+    self->out = fdopen(self->fd, "w");  
+}
+
+static const char*
+get_file(XmlLogger* self)
+{
+    return self->file;
+}
+
+static void
+set_file(XmlLogger* self, const char* file)
+{
+    if (self->file)
+        free(self->file);
+    self->file = strdup(file);
+    if (self->out)
+        fclose(self->out);
+    self->out = fopen(self->file, "w");
+}
+
+static const char*
+get_name(XmlLogger* self)
+{
+    return self->name;
+}
+
+static void
+set_name(XmlLogger* self, const char* name)
+{
+    if (self->name)
+        free(self->name);
+    self->name = strdup(name);
 }                       
-
-static const void* option_get(void* _self, const char* name)
-{
-    XmlLogger* self = (XmlLogger*) _self;
-
-    if (!strcmp(name, "fd"))
-    {
-        return &self->fd;
-    }
-    else if (!strcmp(name, "file"))
-    {
-        return self->file;
-    }
-    else if (!strcmp(name, "name"))
-    {
-        return self->name;
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-static MuType option_type(void* _self, const char* name)
-{
-    if (!strcmp(name, "fd"))
-    {
-        return MU_TYPE_INTEGER;
-    }
-    else if (!strcmp(name, "file"))
-    {
-        return MU_TYPE_STRING;
-    }
-    else if (!strcmp(name, "name"))
-    {
-        return MU_TYPE_STRING;
-    }
-    else
-    {
-        return MU_TYPE_UNKNOWN;
-    }
-}
 
 static void
 destroy(MuLogger* _logger)
@@ -297,6 +273,17 @@ destroy(MuLogger* _logger)
     free(logger);
 }
 
+static MuOption xmllogger_options[] =
+{
+    MU_OPTION("fd", MU_TYPE_INTEGER, get_fd, set_fd,
+              "File descriptor to which results will be written"),
+    MU_OPTION("file", MU_TYPE_STRING, get_file, set_file,
+              "File to which results will be written"),
+    MU_OPTION("name", MU_TYPE_STRING, get_name, set_name,
+              "Name attribute which will be set on the top-level <libraries> element"),
+    MU_OPTION_END
+};
+
 static XmlLogger xmllogger =
 {
     .base = 
@@ -311,12 +298,7 @@ static XmlLogger xmllogger =
         .test_log = test_log,
         .test_leave = test_leave,
         .destroy = destroy,
-        .option =
-        {
-            .set = option_set,
-            .get = option_get,
-            .type = option_type
-        }
+        .options = xmllogger_options
     },
     .fd = -1,
     .file = NULL,

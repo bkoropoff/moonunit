@@ -69,7 +69,7 @@ Mu_Harness_SetOption(MuHarness* harness, const char *name, ...)
 
     va_start(ap, name);
 
-    Mu_Option_Setv(harness, &harness->option, name, ap);
+    Mu_Option_Setv(harness->options, harness, name, ap);
 
     va_end(ap);
 }
@@ -77,11 +77,11 @@ Mu_Harness_SetOption(MuHarness* harness, const char *name, ...)
 void 
 Mu_Harness_SetOptionString(MuHarness* harness, const char *name, const char *value)
 {
-    Mu_Option_SetString(harness, &harness->option, name, value);
+    Mu_Option_SetString(harness->options, harness, name, value);
 }
 
 MuType
 Mu_Harness_OptionType(MuHarness* harness, const char *name)
 {
-    return Mu_Option_Type(harness, &harness->option, name);
+    return Mu_Option_Type(harness->options, name);
 }

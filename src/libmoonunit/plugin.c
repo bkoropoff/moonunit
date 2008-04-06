@@ -259,3 +259,21 @@ Mu_Plugin_CreateLogger(const char* name)
     return logger;
 }
 
+MuPlugin**
+Mu_Plugin_List(void)
+{
+    if (plugin_list == NULL)
+    {
+        load_plugins();
+        if (plugin_list == NULL)
+            return NULL;
+    }
+
+    return (MuPlugin**) plugin_list;
+}
+
+MuPlugin*
+Mu_Plugin_GetByName(const char* name)
+{
+    return get_plugin(name);
+}

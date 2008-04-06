@@ -146,23 +146,6 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 }
 
 static void
-option_set(void* _self, const char* name, void* data)
-{
-}
-
-static const void*
-option_get(void* _self, const char* name)
-{
-    return NULL;
-}
-
-static MuType
-option_type(void* _self, const char* name)
-{
-    return MU_TYPE_UNKNOWN;
-}
-
-static void
 destroy(MuLogger* _self)
 {
     MultiLogger* self = (MultiLogger*) _self;
@@ -191,12 +174,7 @@ static MultiLogger multilogger =
         .test_log = test_log,
         .test_leave = test_leave,
         .destroy = destroy,
-        .option = 
-        {
-            .get = option_get,
-            .set = option_set,
-            .type = option_type
-        }
+        .options = NULL 
     },
     .loggers = NULL
 };

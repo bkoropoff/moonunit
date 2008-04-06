@@ -38,4 +38,6 @@ typedef enum MuType
     MU_TYPE_UNKNOWN
 } MuType;
 
+const char* Mu_Type_ToString(MuType type);
+
 #endif

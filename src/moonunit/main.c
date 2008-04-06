@@ -50,24 +50,90 @@
         exit(255);                                  \
     } while (0);                                    \
 
+OptionTable option = {0};
+
 int
-main (int argc, char** argv)
+list_plugins()
+{
+    MuPlugin** plugins = Mu_Plugin_List();
+    unsigned int i;
+    static const char* yes = "yes";
+    static const char* no = "no";
+
+    printf("|-------------+--------+---------+--------|\n");
+    printf("| Plugin      | Loader | Harness | Logger |\n");
+    printf("|-------------+--------+---------+--------|\n");
+    
+    for (i = 0; plugins[i]; i++)
+    {
+        MuPlugin* plugin = plugins[i];
+
+        printf("| %11s | %6s | %7s | %6s |\n",
+               plugin->name,
+               plugin->loader ? yes : no,
+               plugin->harness ? yes : no,
+               plugin->create_logger ? yes : no);
+                
+        printf("|-------------+--------+---------+--------|\n");
+    }
+
+    return 0;
+}
+
+void
+print_options(MuOption* options)
+{
+    unsigned int i;
+
+    for (i = 0; options[i].name; i++)
+    {
+        printf("    Option: %s\n", options[i].name);
+        printf("      Type: %s\n", Mu_Type_ToString(options[i].type));
+        printf("      Description: %s\n", options[i].description);
+    }
+}
+
+int
+plugin_info(const char* name)
+{
+    MuPlugin* plugin = Mu_Plugin_GetByName(name);
+
+    if (!plugin)
+        die("No such plugin: %s\n", name);
+
+    printf("Plugin: %s\n", plugin->name);
+
+    if (plugin->harness)
+    {
+        MuHarness* harness = plugin->harness();
+
+        printf("  Harness:\n");
+        print_options(harness->options);
+    }
+
+    if (plugin->create_logger)
+    {
+        MuLogger* logger = plugin->create_logger();
+        printf("  Logger:\n");
+        print_options(logger->options);
+        Mu_Logger_Destroy(logger);
+    }
+
+    return 0;
+}
+
+int
+run(char* self)
 {
     MuError* err = NULL;
     unsigned int file_index;
     RunSettings settings;
-    OptionTable option = {0};
     array* loggers;
     unsigned int failed = 0;
 
-    if (Option_Parse(argc, argv, &option))
-    {
-        die("Error: %s", option.errormsg);
-    }
-
     loggers = Option_CreateLoggers(&option);
 
-    settings.self = argv[0];
+    settings.self = self;
     settings.debug = option.gdb;
     settings.iterations = option.iterations;
 
@@ -139,4 +205,25 @@ main (int argc, char** argv)
         return 255;
     else
         return (int) failed;
+}
+
+int
+main (int argc, char** argv)
+{
+    if (Option_Parse(argc, argv, &option))
+    {
+        die("Error: %s", option.errormsg);
+    }
+
+    switch (option.mode)
+    {
+    case MODE_RUN:
+        return run(argv[0]);
+    case MODE_LIST_PLUGINS:
+        return list_plugins();
+    case MODE_PLUGIN_INFO:
+        return plugin_info(option.plugin_info);
+    default:
+        return -1;
+    }
 }

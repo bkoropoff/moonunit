@@ -264,102 +264,72 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     self->test_log = NULL;
 }
 
+static int
+get_fd(ConsoleLogger* self)
+{
+    return self->fd;
+}
+
 static void
-option_set(void* _self, const char* name, void* data)
+set_fd(ConsoleLogger* self, int fd)
 {
-    ConsoleLogger* self = (ConsoleLogger*) _self;
-
-    if (!strcmp(name, "fd"))
-    {
-        self->fd = dup(*(int*) data);
-        
-        if (self->out)
-            fclose(self->out);
-
-        self->out = fdopen(self->fd, "w");
-    }
-    else if (!strcmp(name, "file"))
-    {
-        if (self->file)
-            free(self->file);
-        self->file = strdup((char*) data);
-        if (self->out)
-            fclose(self->out);
-        self->out = fopen(self->file, "w");
-    }
-    else if (!strcmp(name, "ansi"))
-    {
-        self->ansi = *(bool*) data;
-    }
-    else if (!strcmp(name, "align"))
-    {
-        self->align = *(int*) data;
-    }
-    else if (!strcmp(name, "details"))
-    {
-        self->details = *(bool*) data;
-    }
+    self->fd = dup(fd);
+    if (self->out)
+        fclose(self->out);
+    self->out = fdopen(self->fd, "w");  
 }
 
-static const void*
-option_get(void* _self, const char* name)
+static const char*
+get_file(ConsoleLogger* self)
 {
-    ConsoleLogger* self = (ConsoleLogger*) _self;
-
-    if (!strcmp(name, "fd"))
-    {
-        return &self->fd;
-    }
-    else if (!strcmp(name, "file"))
-    {
-        return self->file;
-    }
-    else if (!strcmp(name, "ansi"))
-    {
-        return &self->ansi;
-    }
-    else if (!strcmp(name, "align"))
-    {
-        return &self->align;
-    }
-    else if (!strcmp(name, "details"))
-    {
-        return &self->details;
-    }
-    else
-    {
-        return NULL;
-    }
+    return self->file;
 }
 
-
-static MuType
-option_type(void* _self, const char* name)
+static void
+set_file(ConsoleLogger* self, const char* file)
 {
-    if (!strcmp(name, "fd"))
-    {
-        return MU_TYPE_INTEGER;
-    }
-    else if (!strcmp(name, "file"))
-    {
-        return MU_TYPE_STRING;
-    }
-    else if (!strcmp(name, "ansi"))
-    {
-        return MU_TYPE_BOOLEAN;
-    }
-    else if (!strcmp(name, "align"))
-    {
-        return MU_TYPE_INTEGER;
-    }
-    else if (!strcmp(name, "details"))
-    {
-        return MU_TYPE_BOOLEAN;
-    }
-    else
-    {
-        return MU_TYPE_UNKNOWN;
-    }
+    if (self->file)
+        free(self->file);
+    self->file = strdup(file);
+    if (self->out)
+        fclose(self->out);
+    self->out = fopen(self->file, "w");
+}
+
+static bool
+get_ansi(ConsoleLogger* self)
+{
+    return self->ansi;
+}
+
+static void
+set_ansi(ConsoleLogger* self, bool ansi)
+{
+    self->ansi = ansi;
+}
+
+static int
+get_align(ConsoleLogger* self)
+{
+    return self->align;
+}
+
+static void
+set_align(ConsoleLogger* self, int align)
+{
+    self->align = align;
+}
+
+static bool
+get_details(ConsoleLogger* self)
+{
+    return self->details;
+}
+
+static void
+set_details(ConsoleLogger* self, bool details)
+{
+    self->details = details;
 }
 
 static void
@@ -377,6 +347,23 @@ destroy(MuLogger* _self)
     free(self);
 }
 
+
+static MuOption consolelogger_options[] =
+{
+    MU_OPTION("fd", MU_TYPE_INTEGER, get_fd, set_fd,
+              "File descriptor to which results will be written"),
+    MU_OPTION("file", MU_TYPE_STRING, get_file, set_file,
+              "File to which results will be written"),
+    MU_OPTION("ansi", MU_TYPE_BOOLEAN, get_ansi, set_ansi,
+              "Whether to use ANSI color/fonts in output"),
+    MU_OPTION("align", MU_TYPE_INTEGER, get_align, set_align,
+              "Column number use for right-aligned output"),
+    MU_OPTION("details", MU_TYPE_BOOLEAN, get_details, set_details,
+              "Whether result details should be output for failed "
+              "tests even if the failure is expected"),
+    MU_OPTION_END
+};
+
 static ConsoleLogger consolelogger =
 {
     .base = 
@@ -391,12 +378,7 @@ static ConsoleLogger consolelogger =
         .test_log = test_log,
         .test_leave = test_leave,
         .destroy = destroy,
-        .option = 
-        {
-            .get = option_get,
-            .set = option_set,
-            .type = option_type
-        }
+        .options = consolelogger_options
     },
     .fd = -1,
     .out = NULL,

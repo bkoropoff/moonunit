@@ -25,40 +25,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_OPTION_H__
-#define __MU_OPTION_H__
-
-#include <stdarg.h>
 #include <moonunit/type.h>
 
-typedef struct MuOption
-{
-    const char* name;
-    MuType type;
-    /* Function pointers (prototype varies by type) */
-    void *set, *get;
-    const char* description;
-} MuOption;
+#include <stdlib.h>
 
-#define MU_OPTION(_name, _type, _get, _set, _description)   \
-    {                                                       \
-        .type = (_type),                                    \
-        .name = (_name),                                    \
-        .set = (void*) (_set),                              \
-        .get = (void*) (_get),                              \
-        .description = (_description)                       \
+const char*
+Mu_Type_ToString(MuType type)
+{
+    switch (type)
+    {
+    case MU_TYPE_BOOLEAN:
+        return "boolean";
+    case MU_TYPE_INTEGER:
+        return "integer";
+    case MU_TYPE_FLOAT:
+        return "float";
+    case MU_TYPE_STRING:
+        return "string";
+    case MU_TYPE_POINTER:
+        return "pointer";
+    case MU_TYPE_UNKNOWN:
+        return "unknown";
     }
 
-#define MU_OPTION_END                           \
-    {                                           \
-        .name = NULL,                           \
-    }                                           \
-
-void Mu_Option_SetString(MuOption* table, void* object, const char *name, const char* value);
-void Mu_Option_Setv(MuOption* table, void* object, const char *name, va_list ap);
-void Mu_Option_Set(MuOption* table, void* object, const char *name, ...);
-void Mu_Option_Get(MuOption* table, void* object, const char *name, void* res);
-MuType Mu_Option_Type(MuOption* table, const char* name);
-const char* Mu_Option_Description(MuOption* table, const char *name);
-
-#endif
+    return NULL;
+}

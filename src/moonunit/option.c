@@ -25,14 +25,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define OPTION_SUITE 1
-#define OPTION_TEST 2
-#define OPTION_ALL 3
-#define OPTION_GDB 4
-#define OPTION_LOGGER 5
-#define OPTION_OPTION 6
-#define OPTION_ITERATIONS 7
-#define OPTION_TIMEOUT 8
+enum
+{
+    OPTION_SUITE = 1,
+    OPTION_TEST,
+    OPTION_ALL,
+    OPTION_GDB,
+    OPTION_LOGGER,
+    OPTION_OPTION,
+    OPTION_ITERATIONS,
+    OPTION_TIMEOUT,
+    OPTION_LIST_PLUGINS,
+    OPTION_PLUGIN_INFO
+};
+
+
 
 #include <moonunit/util.h>
 #include <moonunit/logger.h>
@@ -127,6 +134,24 @@ static const struct poptOption options[] =
         .descrip = "Terminate unresponsive tests after t milliseconds",
         .argDescrip = "t"
     },
+    {
+        .longName = "list-plugins",
+        .shortName = '\0',
+        .argInfo = POPT_ARG_NONE,
+        .arg = NULL,
+        .val = OPTION_LIST_PLUGINS,
+        .descrip = "List installed plugins and their capabilities",
+        .argDescrip = NULL
+    },
+    {
+        .longName = "plugin-info",
+        .shortName = '\0',
+        .argInfo = POPT_ARG_STRING,
+        .arg = NULL,
+        .val = OPTION_PLUGIN_INFO,
+        .descrip = "Show information about a plugin and its supported options",
+        .argDescrip = "name"
+    },
     POPT_AUTOHELP
     POPT_TABLEEND
 };
@@ -143,6 +168,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
 
     option->iterations = 1;
     option->timeout = 2000;
+    option->mode = MODE_RUN;
 
     poptSetOtherOptionHelp(context, "<libraries...>");
 
@@ -190,6 +216,13 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             break;
         case OPTION_TIMEOUT:
             option->timeout = atoi(poptGetOptArg(context));
+            break;
+        case OPTION_LIST_PLUGINS:
+            option->mode = MODE_LIST_PLUGINS;
+            break;
+        case OPTION_PLUGIN_INFO:
+            option->mode = MODE_PLUGIN_INFO;
+            option->plugin_info = poptGetOptArg(context);
             break;
         case -1:
         {

@@ -35,12 +35,19 @@
 
 typedef struct
 {
+    enum
+    {
+        MODE_RUN,
+        MODE_LIST_PLUGINS,
+        MODE_PLUGIN_INFO
+    } mode;
     bool gdb;
     bool all;
     unsigned int iterations;
     long timeout;
     char* logger;
     array* tests, *files, *loggers;
+    const char* plugin_info;
     char* errormsg;
     poptContext context;
 } OptionTable;

@@ -45,7 +45,7 @@ typedef struct MuLogger
     void (*test_leave) (struct MuLogger*, 
                     struct MuTest*, struct MuTestResult*);
     void (*destroy) (struct MuLogger*);
-    MuOption option;
+    MuOption* options;
 } MuLogger;
 
 void Mu_Logger_SetOption(MuLogger* logger, const char *name, ...);

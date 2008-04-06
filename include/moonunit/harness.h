@@ -38,7 +38,6 @@ typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 typedef struct MuHarness
 {
     struct MuPlugin* plugin;
-    MuOption option;
     // Called to run a single unit test.  Results should be stored
     // in the passed in MuTestResult structure.
     MuTestResult* (*dispatch)(struct MuHarness*, struct MuTest*, MuLogCallback, void*);
@@ -47,6 +46,7 @@ typedef struct MuHarness
     // a separate process.  The test can then be traced by
     // a debugger.
     pid_t (*debug)(struct MuHarness*, struct MuTest*);
+    MuOption* options;
 } MuHarness;
 
 const char* Mu_TestStatusToString(MuTestStatus status);

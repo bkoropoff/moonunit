@@ -405,39 +405,24 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 }
   
 static void
-option_set(void* _self, const char* name, void* data)
+timeout_set(MuHarness* self, int timeout)
 {
-    if (!strcmp(name, "timeout"))
-    {
-        default_timeout = *(int*) data;
-    }
+    default_timeout = timeout;
 }
 
-static const void*
-option_get(void* _self, const char* name)
+static int
+timeout_get(MuHarness* self)
 {
-    if (!strcmp(name, "timeout"))
-    {
-        return &default_timeout;
-    }
-    else
-    {
-        return NULL;
-    }
+    return default_timeout;
 }
 
-static MuType
-option_type(void* _self, const char* name)
+MuOption unixharness_options[] =
 {
-    if (!strcmp(name, "timeout"))
-    {
-        return MU_TYPE_INTEGER;
-    }
-    else
-    {
-        return MU_TYPE_UNKNOWN;
-    }
-}
+    MU_OPTION("timeout", MU_TYPE_INTEGER, timeout_get, timeout_set,
+              "Time in milliseconds before tests automatically "
+              "fail and are forcefully terminated"),
+    MU_OPTION_END
+};
 
 MuHarness mu_unixharness =
 {
@@ -445,10 +430,5 @@ MuHarness mu_unixharness =
     .dispatch = unixharness_dispatch,
     .free_result = unixharness_free_result,
     .debug = unixharness_debug,
-    .option =
-    {
-        .set = option_set,
-        .get = option_get,
-        .type = option_type
-    }
+    .options = unixharness_options
 };

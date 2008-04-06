@@ -230,8 +230,8 @@ uipc_detach(uipc_handle* handle)
 {
     uipc_status result = UIPC_SUCCESS;
 
-    if (!result)
-        return result;
+    if (!handle)
+        return UIPC_ERROR;
     
     free(handle);
     

@@ -291,12 +291,10 @@ unixloader_close (MuLoader* _self, MuLibrary* handle)
 	dlclose(handle->dlhandle);
 	free((void*) handle->path);
 
-    if (!handle->stub)
-    {
-        array_free((array*) handle->tests);
-        array_free((array*) handle->fixture_setups);
-        array_free((array*) handle->fixture_teardowns);
-    }
+    array_free((array*) handle->tests);
+    array_free((array*) handle->fixture_setups);
+    array_free((array*) handle->fixture_teardowns);
+
    	free(handle);
 }
 

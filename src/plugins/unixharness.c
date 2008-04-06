@@ -120,6 +120,8 @@ void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
     uipc_msg_free(message);
 }
 
+static void unixtoken_free(UnixToken* token);
+
 void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
 {    
     UnixToken* token = (UnixToken*) _token;
@@ -127,7 +129,7 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     
     if (!ipc_handle)
     {
-        exit(0);
+        goto done;
     }
 
     ((MuTestResult*) summary)->stage = token->current_stage;
@@ -137,7 +139,10 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     uipc_send(ipc_handle, message, NULL);
     uipc_msg_free(message);
 
-    uipc_detach(ipc_handle);
+done:
+    if (ipc_handle)
+        uipc_detach(ipc_handle);
+    unixtoken_free(token);
     
     exit(0);
 }
@@ -264,8 +269,6 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
     
         token->base.method.success((MuTestToken*) token);
     
-        uipc_detach(ipc_test);
-        
         close(sockets[1]);
         
         exit(0);

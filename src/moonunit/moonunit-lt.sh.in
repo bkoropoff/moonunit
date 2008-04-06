@@ -102,4 +102,5 @@ done
 MU_EXTRA_PLUGINS="$extra_plugins" libtool --mode=execute "${dlopens[@]}" $wrap $moonunit "${command[@]}"
 rc=$?
 rm -rf ${tempdir}
-exit $rc
+exit "$rc"
+

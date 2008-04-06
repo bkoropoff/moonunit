@@ -25,6 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "run.h"
 #include "gdb.h"
 
@@ -170,8 +174,8 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                 gdb_attach_interactive(settings->self, pid, breakpoint);
             }
             
-            if (summary->status != summary->expected)
-                failed++;
+	    if (summary->status != summary->expected)
+	      failed++;
 
             harness->free_result(harness, summary);
         }

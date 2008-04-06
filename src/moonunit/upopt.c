@@ -89,7 +89,7 @@ is_long(const char* arg)
 static inline bool
 is_short(const char* arg)
 {
-    return arg[0] && arg[1] && !arg[2] && arg[0] == '-';
+    return arg[0] && arg[1] && arg[0] == '-';
 }
 
 static inline bool
@@ -102,6 +102,7 @@ UpoptStatus
 Upopt_Next(UpoptContext* context, int* constant, const char** value, char** error)
 {
     const char* arg;
+    const char* val = NULL;
     const UpoptOptionInfo* info = NULL;
    
     if (context->index >= context->argc)
@@ -120,8 +121,21 @@ Upopt_Next(UpoptContext* context, int* constant, const char** value, char** erro
             }
             else
             {
+                char* equal = strchr(arg, '=');
+                
+                if (equal)
+                {
+                    *equal = '\0';
+                    val = equal + 1;
+                }
+                
                 info = find_long(context->options, arg+2);
-
+                
+                if (equal)
+                {
+                    *equal = '=';
+                }
+                
                 if (!info)
                 {
                     *error = format("Unrecognized option: %s\n", arg);
@@ -131,6 +145,11 @@ Upopt_Next(UpoptContext* context, int* constant, const char** value, char** erro
         }
         else if (is_short(arg))
         {
+            if (arg[2])
+            {
+                val = arg+2;
+            }
+
             info = find_short(context->options, arg[1]);
             
             if (!info)
@@ -143,19 +162,34 @@ Upopt_Next(UpoptContext* context, int* constant, const char** value, char** erro
      
     if (info)
     {
-        if (info->argument && 
-            (context->index >= context->argc ||
-             is_option(context->argv[context->index])))
+        if (val && !info->argument)
         {
-            *error = format("Expected argument after %s\n", arg);
+            if (is_long(arg))
+            {
+                *error = format("Did not expect an argument after --%s\n", 
+                                info->longname);
+            }
+            else
+            {
+                *error = format("Did not expect an argument after -%c\n", 
+                                info->shortname);
+            }
             return UPOPT_STATUS_ERROR;
         }
-        
+        else if (!val && info->argument)
+        {
+            if ((context->index >= context->argc ||
+                 (!context->only_normal &&
+                  is_option(context->argv[context->index]))))
+            {
+                *error = format("Expected argument after %s\n", arg);
+                return UPOPT_STATUS_ERROR;
+            }
+            val = context->argv[context->index++];
+        }
+
         *constant = info->constant;
-        if (info->argument)
-            *value = context->argv[context->index++];
-        else
-            *value = NULL;
+        *value = val;
         *error = NULL;
         return UPOPT_STATUS_NORMAL;
     }

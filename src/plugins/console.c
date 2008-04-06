@@ -145,7 +145,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 	const char* reason, * stage;
 	char* failure_message;
     bool result = summary->status == summary->expected;
-    const char* result_str;
+    const char* result_str = NULL;
     unsigned int result_code;
 
 	fprintf(out, "    %s:", test->name);

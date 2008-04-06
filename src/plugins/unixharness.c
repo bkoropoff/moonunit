@@ -183,7 +183,7 @@ signal_handler(int sig)
         summary.reason = signal_description(sig);
         summary.file = NULL;
         summary.line = 0;
-        summary.backtrace = get_backtrace(3);
+        summary.backtrace = get_backtrace(1);
     
         current_token->base.result((MuTestToken*) current_token, &summary);
     }

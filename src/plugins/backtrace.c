@@ -59,12 +59,10 @@ fill_backtrace(MuBacktrace* trace, char* info)
     if (open_brace > info)
     {
         open_brace[-1] = '\0';
-        if ((open_paren = strchr(info, '(')))
+        if ((open_paren = strchr(info, '(')) || (open_paren = strchr(info, '\'')))
         {
-            char* close_paren = strchr(open_paren, ')');
             char* plus = strchr(open_paren, '+');
             *open_paren = '\0';
-            *close_paren = '\0';
             *plus = '\0';
             trace->func_name = strdup(open_paren+1);
             trace->ip_offset = strtoul(plus + 3, NULL, 16);

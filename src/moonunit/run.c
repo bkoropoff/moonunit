@@ -99,7 +99,9 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     MuLogger* logger = settings->logger;
     MuLoader* loader = settings->loader;
     MuHarness* harness = settings->harness;
-   	MuLibrary* library = Mu_Loader_Open(loader, path, &err);
+    MuLibrary* library = Mu_Loader_Open(loader, path, &err);
+    MuTest** tests = NULL;
+    MuThunk thunk;
 
     if (err)
     {
@@ -108,8 +110,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     
     Mu_Logger_LibraryEnter(logger, basename_pure(path));
     
-    MuTest** tests = Mu_Loader_GetTests(loader, library);
-    MuThunk thunk;
+    tests = Mu_Loader_GetTests(loader, library);
     
     if (tests)
     {

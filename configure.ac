@@ -111,9 +111,11 @@ AC_CHECK_FUNCS([strsignal backtrace backtrace_symbols])
 AC_MSG_CHECKING([symbol layout order])
 AC_TRY_RUN(
 	[
-		int a;
-		int b;
-		
+		struct s { int x, y; };
+
+		struct s a = {0,1};
+		struct s b = {2,3};
+
 		int main (int argc, char** argv)
 		{
 			if (&b > &a)

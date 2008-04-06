@@ -10,7 +10,7 @@ console_la_SOURCES = console.c
 console_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
 console_la_LDFLAGS = $(MODULE_LDFLAGS)
 
-unix_la_SOURCES = unix.c unixharness.c unixloader.c
+unix_la_SOURCES = unix.c unixharness.c unixloader.c backtrace.c
 unix_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
 unix_la_LDFLAGS = $(MODULE_LDFLAGS)
 

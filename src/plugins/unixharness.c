@@ -46,6 +46,8 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
+#include "backtrace.h"
+
 static long default_timeout;
 
 typedef struct
@@ -60,13 +62,28 @@ typedef struct
 
 static UnixToken* current_token;
 
-static uipc_typeinfo testsummary_info =
+static uipc_typeinfo backtrace_info =
 {
+    .name = "MuBacktrace",
+    .size = sizeof(MuBacktrace),
+    .members =
+    {
+        UIPC_STRING(MuBacktrace, file_name),
+        UIPC_STRING(MuBacktrace, func_name),
+        UIPC_POINTER(MuBacktrace, up, &backtrace_info),
+        UIPC_END
+    }
+};
+
+static uipc_typeinfo testresult_info =
+{
+    .name = "MuTestResult",
     .size = sizeof(MuTestResult),
     .members =
     {
         UIPC_STRING(MuTestResult, file),
         UIPC_STRING(MuTestResult, reason),
+        UIPC_POINTER(MuTestResult, backtrace, &backtrace_info),
         UIPC_END
     }
 };
@@ -99,7 +116,7 @@ void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
 
     uipc_message* message = uipc_msg_new(MSG_TYPE_EVENT);
     uipc_msg_set_payload(message, event, &logevent_info);
-    uipc_waitwrite(ipc_handle, message, NULL);
+    uipc_send(ipc_handle, message, NULL);
     uipc_msg_free(message);
 }
 
@@ -107,7 +124,7 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
 {    
     UnixToken* token = (UnixToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
-
+    
     if (!ipc_handle)
     {
         exit(0);
@@ -116,8 +133,8 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     ((MuTestResult*) summary)->stage = token->current_stage;
     ((MuTestResult*) summary)->expected = token->expected;
     uipc_message* message = uipc_msg_new(MSG_TYPE_RESULT);
-    uipc_msg_set_payload(message, summary, &testsummary_info);
-    uipc_waitwrite(ipc_handle, message, NULL);
+    uipc_msg_set_payload(message, summary, &testresult_info);
+    uipc_send(ipc_handle, message, NULL);
     uipc_msg_free(message);
 
     uipc_detach(ipc_handle);
@@ -166,6 +183,7 @@ signal_handler(int sig)
         summary.reason = signal_description(sig);
         summary.file = NULL;
         summary.line = 0;
+        summary.backtrace = get_backtrace(3);
     
         current_token->base.result((MuTestToken*) current_token, &summary);
     }
@@ -260,14 +278,14 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
         
         while (!done)
         {    
-            uipc_result = uipc_waitread(ipc_harness, &message, &timeleft);
+            uipc_result = uipc_recv(ipc_harness, &message, &timeleft);
             
             if (uipc_result == UIPC_SUCCESS)
             {
                 switch (uipc_msg_get_type(message))
                 {
                 case MSG_TYPE_RESULT:
-                    summary = uipc_msg_get_payload(message, &testsummary_info);
+                    summary = uipc_msg_get_payload(message, &testresult_info);
                     done = true;
                     break;
                 case MSG_TYPE_EVENT:
@@ -340,7 +358,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
 void
 unixharness_free_result(MuHarness* _self, MuTestResult* result)
 {
-    uipc_msg_free_payload(result, &testsummary_info);
+    uipc_msg_free_payload(result, &testresult_info);
 }
 
 pid_t unixharness_debug(MuHarness* _self, MuTest* test)

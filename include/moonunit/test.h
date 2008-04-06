@@ -58,6 +58,15 @@ typedef enum MuTestStage
     MU_STAGE_UNKNOWN = 3
 } MuTestStage;
 
+typedef struct MuBacktrace
+{
+    unsigned long ret_addr;
+    unsigned long ip_offset;
+    const char* file_name;
+    const char* func_name;
+    struct MuBacktrace* up;
+} MuBacktrace;
+
 typedef struct MuTestResult
 {
     /** Status of the test (pass/fail) */
@@ -72,6 +81,8 @@ typedef struct MuTestResult
     const char* file;
     /** Line on which the failure occured */
     unsigned int line;
+    /** Backtrace, if available */
+    MuBacktrace* backtrace;
 } MuTestResult;
 
 typedef enum

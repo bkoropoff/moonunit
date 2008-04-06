@@ -36,11 +36,14 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define PAYLOAD_BUFFER_SIZE (1024)
+
 struct __uipc_message
 {
     uipc_message_type type;
-	unsigned long size;
     void* payload;
+    uipc_typeinfo* payload_type;
+    uipc_packet* packet;
 };
 
 struct __uipc_handle
@@ -52,18 +55,36 @@ struct __uipc_handle
 uipc_packet*
 packet_from_message(uipc_message* message)
 {
-    unsigned int length = sizeof(uipc_packet_message) + message->size;
-    uipc_packet* packet = malloc(sizeof (uipc_packet_header) + length);
-      
+    uipc_packet* packet = malloc(sizeof (uipc_packet_header) + 
+                                 sizeof (uipc_packet_message) +
+                                 PAYLOAD_BUFFER_SIZE);
+    unsigned long payload_length;
+
     if (!packet)
         return NULL;
 
     packet->header.type = PACKET_MESSAGE;
-    packet->header.length = length;
     packet->message.type = message->type;
-    packet->message.length = message->size;
-    memcpy(packet->message.payload, message->payload, message->size);
-	
+
+    payload_length = uipc_marshal_payload(packet->message.payload, PAYLOAD_BUFFER_SIZE,
+                                          message->payload, message->payload_type);
+    
+    if (payload_length > PAYLOAD_BUFFER_SIZE)
+    {
+        packet = realloc(packet, 
+                         sizeof(uipc_packet_header) +
+                         sizeof(uipc_packet_message) +
+                         payload_length);
+        payload_length = uipc_marshal_payload(packet->message.payload, payload_length,
+                                              message->payload, message->payload_type);
+    }
+
+    packet->message.length = payload_length;
+    packet->header.length = 
+        sizeof(uipc_packet_header) +
+        sizeof(uipc_packet_message) +
+        payload_length;
+
     return packet;
 }
 
@@ -76,9 +97,9 @@ message_from_packet(uipc_packet* packet)
         return NULL;
 
     message->type = packet->message.type;
-	message->payload = malloc(packet->message.length);
-    memcpy(message->payload, packet->message.payload, packet->message.length);
-	message->size = packet->message.length;
+    message->packet = packet;
+    message->payload = NULL;
+    message->payload_type = NULL;
 
     return message;
 }
@@ -98,7 +119,7 @@ uipc_attach(int socket)
 }
 
 uipc_status
-uipc_read(uipc_handle* handle, uipc_message** message)
+uipc_recv_async(uipc_handle* handle, uipc_message** message)
 {
     uipc_packet* packet = NULL;
     uipc_status result;
@@ -125,10 +146,9 @@ uipc_read(uipc_handle* handle, uipc_message** message)
         {
             *message = message_from_packet(packet);
             
-            free(packet);
-            
             if (!*message)
             {
+                free(packet);
                 handle->readable = false;
                 return UIPC_NOMEM;
             }
@@ -141,7 +161,7 @@ uipc_read(uipc_handle* handle, uipc_message** message)
 }
 
 uipc_status
-uipc_waitread(uipc_handle* handle, uipc_message** message, long* timeout)
+uipc_recv(uipc_handle* handle, uipc_message** message, long* timeout)
 {
     uipc_status result = UIPC_SUCCESS;
     
@@ -153,11 +173,11 @@ uipc_waitread(uipc_handle* handle, uipc_message** message, long* timeout)
     if (result != UIPC_SUCCESS)
         return result;
     
-	return uipc_read(handle, message);
+	return uipc_recv_async(handle, message);
 }
 
 uipc_status
-uipc_write(uipc_handle* handle, uipc_message* message)
+uipc_send_async(uipc_handle* handle, uipc_message* message)
 {
     uipc_status result = UIPC_SUCCESS;
     uipc_packet* packet = NULL;
@@ -190,7 +210,7 @@ cleanup:
 }
 
 uipc_status
-uipc_waitwrite(uipc_handle* handle, uipc_message* message, long* timeout)
+uipc_send(uipc_handle* handle, uipc_message* message, long* timeout)
 {
     uipc_status result = UIPC_SUCCESS;
     
@@ -202,7 +222,7 @@ uipc_waitwrite(uipc_handle* handle, uipc_message* message, long* timeout)
     if (result != UIPC_SUCCESS)
         return result;
     
-	return uipc_write(handle, message);
+	return uipc_send_async(handle, message);
 }
 
 uipc_status
@@ -228,7 +248,7 @@ uipc_msg_new(uipc_message_type type)
 
     message->type = type;
     message->payload = NULL;
-    message->size = 0;
+    message->packet = NULL;
 
 	return message;
 }
@@ -236,8 +256,8 @@ uipc_msg_new(uipc_message_type type)
 void
 uipc_msg_free(uipc_message* message)
 {
-    if (message->payload)
-        free(message->payload);
+    if (message->packet)
+        free((void*) message->packet);
     free(message);
 }
 
@@ -250,10 +270,16 @@ uipc_msg_get_type(uipc_message* message)
 void*
 uipc_msg_get_payload(uipc_message* message, uipc_typeinfo* info)
 {
-    void* object;
-	uipc_unmarshal_payload(&object, message->payload, info); 
-
-    return object;
+    if (message->packet)
+    {
+        void* object;
+        uipc_unmarshal_payload(&object, message->packet->message.payload, info); 
+        return object;
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 void
@@ -265,17 +291,6 @@ uipc_msg_free_payload(void* payload, uipc_typeinfo* info)
 void
 uipc_msg_set_payload(uipc_message* message, const void* payload, uipc_typeinfo* info)
 {
-    unsigned long actual, size = 512;
-    void* buffer = malloc(size);
-
-    actual = uipc_marshal_payload(buffer, size, payload, info); 
-    
-    if (actual > size)
-    {
-        buffer = realloc(buffer, actual);
-        uipc_marshal_payload(buffer, actual, payload, info);
-    }
-
-    message->payload = buffer;
-    message->size = actual;
+    message->payload = (void*) payload;
+    message->payload_type = info;
 }

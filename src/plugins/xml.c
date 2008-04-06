@@ -187,6 +187,28 @@ static void test_leave(MuLogger* _self,
             fprintf(out, "/>\n");
         }
 	}
+
+    if (summary->backtrace)
+    {
+        MuBacktrace* frame;
+        fprintf(out, "        <backtrace>\n");
+        for (frame = summary->backtrace; frame; frame = frame->up)
+        {
+            fprintf(out, "          <frame");
+            if (frame->file_name)
+                fprintf(out, " binary_file=\"%s\"", frame->file_name);
+            if (frame->func_name)
+            {
+                fprintf(out, " function=\"%s\"", frame->func_name);
+                fprintf(out, " ip_offset=\"%lx\"", frame->ip_offset);
+            }
+            if (frame->ret_addr)
+                fprintf(out, " ret_addr=\"%lx\"", frame->ret_addr);
+            fprintf(out, "/>\n");
+        }
+        fprintf(out, "        </backtrace>\n");
+    }
+
     fprintf(out, "      </test>\n");
 }
 

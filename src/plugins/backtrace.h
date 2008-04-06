@@ -25,34 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __UIPC_IPC_H__
-#define __UIPC_IPC_H__
+#ifndef __MU_UNIX_BACKTRACE_H__
+#define __MU_UNIX_BACKTRACE_H__
 
-#include "marshal.h"
-#include "status.h"
+#include <moonunit/test.h>
 
-#include <stdlib.h>
-
-struct __uipc_handle;
-typedef struct __uipc_handle uipc_handle;
-
-struct __uipc_message;
-typedef struct __uipc_message uipc_message;
-
-typedef unsigned int uipc_message_type;
-
-uipc_handle* uipc_attach(int socket);
-uipc_status uipc_recv_async(uipc_handle* handle, uipc_message** message);
-uipc_status uipc_recv(uipc_handle* handle, uipc_message** message, long* timeout);
-uipc_status uipc_send_async(uipc_handle* handle, uipc_message* message);
-uipc_status uipc_send(uipc_handle* handle, uipc_message* message, long* timeout);
-uipc_status uipc_detach(uipc_handle* handle);
-
-uipc_message* uipc_msg_new(uipc_message_type type);
-void uipc_msg_free(uipc_message* message);
-uipc_message_type uipc_msg_get_type(uipc_message* message);
-void* uipc_msg_get_payload(uipc_message* message, uipc_typeinfo* info);
-void uipc_msg_set_payload(uipc_message* message, const void* payload, uipc_typeinfo* info);
-void uipc_msg_free_payload(void* payload, uipc_typeinfo* info);
+MuBacktrace* get_backtrace(int skip);
 
 #endif

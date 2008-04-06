@@ -47,6 +47,7 @@ typedef struct
 
     int align;
     bool ansi;
+    bool details;
 
     char* test_log;
 } ConsoleLogger;
@@ -193,7 +194,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         }
     }
 
-    if (summary->status == MU_STATUS_SUCCESS)
+    if (summary->status == MU_STATUS_SUCCESS || (result && !self->details))
     {
         for (i = self->align - strlen(test->name) - 5 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
@@ -211,19 +212,51 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         
         reason = summary->reason ? summary->reason : "unknown";
         if (self->ansi)
+        {
             fprintf(out, "(%s) \e[%um\e[1m%s\e[22m\e[0m\n", stage, result_code, result_str);
+        }
         else
+        {
             fprintf(out, "(%s) %s\n", stage, result_str);
+        }
         
         failure_message = summary->line != 0 
             ? format("%s:%i: %s", basename_pure(test->file), summary->line, reason)
             : format("%s", reason);
         
-        for (i = self->align - strlen(failure_message); i > 0; i--)
-            fprintf(out, " ");
-        fprintf(out, "%s\n", failure_message);
+        fprintf(out, "      %s\n", failure_message);
         
         free(failure_message);
+
+        if (summary->backtrace)
+        {
+            MuBacktrace* frame;
+            unsigned int i = 1;
+
+            for (frame = summary->backtrace; frame; frame = frame->up)
+            {
+                fprintf(out, "        #%2u: ", i++);
+                if (frame->func_name)
+                {
+                    fprintf(out, "%s ", frame->func_name);
+                }
+                else if (frame->file_name)
+                {
+                    fprintf(out, "<unknown> ");
+                }
+
+                if (frame->file_name)
+                {
+                    fprintf(out, "in %s", basename_pure(frame->file_name));
+                }
+                else if (frame->ret_addr)
+                {
+                    fprintf(out, "[0x%lx]", frame->ret_addr);
+                }
+                               
+                fprintf(out, "\n");
+            }
+        }
 	}
     
     fprintf(out, "%s", self->test_log);
@@ -262,6 +295,10 @@ option_set(void* _self, const char* name, void* data)
     {
         self->align = *(int*) data;
     }
+    else if (!strcmp(name, "details"))
+    {
+        self->details = *(bool*) data;
+    }
 }
 
 static const void*
@@ -284,6 +321,10 @@ option_get(void* _self, const char* name)
     else if (!strcmp(name, "align"))
     {
         return &self->align;
+    }
+    else if (!strcmp(name, "details"))
+    {
+        return &self->details;
     }
     else
     {
@@ -310,6 +351,10 @@ option_type(void* _self, const char* name)
     else if (!strcmp(name, "align"))
     {
         return MU_TYPE_INTEGER;
+    }
+    else if (!strcmp(name, "details"))
+    {
+        return MU_TYPE_BOOLEAN;
     }
     else
     {

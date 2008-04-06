@@ -84,7 +84,8 @@ __mu_assert(MuTestToken* token, int result, int sense, const char* expr,
                                : format("Assertion (not) %s failed", expr);
         summary.file = file;
         summary.line = line;
-        
+        summary.backtrace = NULL;
+
         token->result(token, &summary);
 
         free((void*) summary.reason);
@@ -181,6 +182,7 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, in
         summary.reason = reason;
         summary.line = line;
         summary.file = file;
+        summary.backtrace = NULL;
 
         token->result(token, &summary);
 
@@ -197,6 +199,7 @@ __mu_success(MuTestToken* token)
     summary.reason = NULL;
     summary.file = NULL;
     summary.line = 0;
+    summary.backtrace = NULL;
 
     token->result(token, &summary);
 }
@@ -212,6 +215,7 @@ __mu_failure(MuTestToken* token, const char* file, unsigned int line, const char
     summary.reason = formatv(message, ap);
     summary.line = line;
     summary.file = file;
+    summary.backtrace = NULL;
 
     token->result(token, &summary);
     free((void*) summary.reason);
@@ -229,6 +233,7 @@ __mu_skip(MuTestToken* token, const char* file, unsigned int line, const char* m
     summary.reason = formatv(message, ap);
     summary.line = line;
     summary.file = file;
+    summary.backtrace = NULL;
 
     token->meta(token, MU_META_EXPECT, MU_STATUS_SKIPPED);
     token->result(token, &summary);

@@ -7,6 +7,8 @@ DOCBOOK_MAN = $(DOCBOOK_XML_INDEXLESS:.xml=.1)
 
 EXTRA_DIST = $(DOCBOOK_XML)
 
+BUILT_SOURCES =
+
 if HAVE_DOXYGEN
 HTML_TARGETS += doc-doxygen
 HTML_INSTALL_TARGETS += install-doc-doxygen
@@ -26,8 +28,14 @@ man_MANS = $(DOCBOOK_MAN)
 HTML_TARGETS += doc-docbook-html
 HTML_INSTALL_TARGETS += install-doc-docbook-html
 
+BUILT_SOURCES += index.html
+BUILT_SOURCES += moonunit.1
+
 $(DOCBOOK_HTML): $(DOCBOOK_XML) docbook-html.xsl
 	$(XSLTPROC) --param citerefentry.link 1 --param use.id.as.filename 1 --xinclude docbook-html.xsl @srcdir@/index.xml
+
+$(DOCBOOK_MAN): $(DOCKBOOK_XML) docbook-man.xsl
+	$(XSLTPROC) --xinclude docbook-man.xsl @srcdir@/index.xml
 
 doc-docbook-html: $(DOCBOOK_HTML)
 
@@ -37,9 +45,6 @@ install-doc-docbook-html:
 endif
 
 html-local: $(HTML_TARGETS)
-
-$(DOCBOOK_MAN): $(DOCKBOOK_XML) docbook-man.xsl
-	$(XSLTPROC) --xinclude docbook-man.xsl @srcdir@/index.xml
 
 install-html-local: $(HTML_INSTALL_TARGETS)
 

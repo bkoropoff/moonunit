@@ -108,6 +108,28 @@ AC_CHECK_LIB(dl, dlopen, [LIB_dl="-ldl"])
 AC_CHECK_LIB(pthread, pthread_self, [LIB_pthread="-lpthread"])
 AC_CHECK_FUNCS([strsignal backtrace backtrace_symbols])
 
+AC_MSG_CHECKING([symbol layout order])
+AC_TRY_RUN(
+	[
+		int a;
+		int b;
+		
+		int main (int argc, char** argv)
+		{
+			if (&b > &a)
+			   return 0;
+			else
+			   return 1;
+		}
+	],
+	[
+		AC_MSG_RESULT([forward])
+	],
+	[
+		AC_MSG_RESULT([reverse])
+		AC_DEFINE([SYMBOL_LAYOUT_REVERSE], [], [Define if symbols are laid out in reverse textual order in object file])
+	])
+
 saved_LDFLAGS=$LDFLAGS
 saved_CPPFLAGS=$CPPFLAGS
 

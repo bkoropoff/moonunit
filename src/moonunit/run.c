@@ -43,7 +43,11 @@ test_compare(const void* _a, const void* _b)
 	if ((result = strcmp(a->suite, b->suite)))
 		return result;
 	else
+#ifdef SYMBOL_LAYOUT_REVERSE
+		return (a == b) ? 0 : ((a < b) ? 1 : -1);
+#else
 		return (a == b) ? 0 : ((a < b) ? -1 : 1);
+#endif
 }
 
 static unsigned int

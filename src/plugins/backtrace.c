@@ -51,31 +51,27 @@ fill_backtrace(MuBacktrace* trace, char* info)
     {
         trace->ret_addr = strtoul(open_brace + 3, NULL, 16);
     }
-    else
-    {
-        trace->ret_addr = 0x0;
-    }
 
     if (open_brace > info)
     {
         open_brace[-1] = '\0';
         if ((open_paren = strchr(info, '(')) || (open_paren = strchr(info, '\'')))
         {
-            char* plus = strchr(open_paren, '+');
+            char* plus = strchr(open_paren+1, '+');
             *open_paren = '\0';
-            *plus = '\0';
-            trace->func_name = strdup(open_paren+1);
-            trace->ip_offset = strtoul(plus + 3, NULL, 16);
-        }
-        else
-        {
-            trace->func_name = NULL;
+            
+            if (plus)
+            {
+                *plus = '\0';
+                trace->func_name = strdup(open_paren+1);
+                trace->ip_offset = strtoul(plus + 3, NULL, 16);
+            }
+            else
+            {
+                trace->ip_offset = strtoul(open_paren+1, NULL, 16);
+            }
         }
         trace->file_name = strdup(info);
-    }
-    else
-    {
-        trace->file_name = trace->func_name = NULL;
     }
 }
 

@@ -29,7 +29,6 @@
 #define __OPTION_H__
 
 #include <stdbool.h>
-#include <popt.h>
 
 #include <moonunit/util.h>
 

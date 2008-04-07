@@ -51,7 +51,11 @@
 #ifndef DOXYGEN
 
 #ifdef __GNUC__
-#    define __MU_USED__ __attribute__((used))
+#    if __GNUC__ >= 3 && __GNUC_MINOR__ > 0
+#        define __MU_USED__ __attribute__((used))
+#    else
+#        define __MU_USED__
+#    endif
 #    if defined(__APPLE__) || (defined(__hpux__) && defined(__hppa__))
 #        define __MU_SECTION__(name)
 #    else

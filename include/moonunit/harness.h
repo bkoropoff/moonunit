@@ -29,9 +29,12 @@
 #define __MU_HARNESS_H__
 
 #include <sys/types.h>
+#include <moonunit/boilerplate.h>
 #include <moonunit/test.h>
 #include <moonunit/plugin.h>
 #include <moonunit/option.h>
+
+C_BEGIN_DECLS
 
 typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 
@@ -55,5 +58,7 @@ const char* Mu_TestStageToString(MuTestStage stage);
 void Mu_Harness_SetOption(MuHarness* harness, const char *name, ...);
 void Mu_Harness_SetOptionString(MuHarness* harness, const char *name, const char *value);
 MuType Mu_Harness_OptionType(MuHarness* harness, const char *name);
+
+C_END_DECLS
 
 #endif

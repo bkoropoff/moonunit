@@ -88,13 +88,11 @@ AC_ARG_WITH([libelf],
 AC_CONFIG_HEADERS(include/config.h)
 
 AC_PROG_CC
-AC_PROG_CPP
+AC_PROG_CXX
 
 if $WANT_CPLUSPLUS
 then
-	AC_PROG_CXX
-	AC_PROG_CXXCPP
-	AC_DEFINE(CPLUSPLUS_ENABLED, [], [Define if you want C++ support])
+   AC_DEFINE(CPLUSPLUS_ENABLED, [], [Define if you want C++ support])
 fi
 AM_CONDITIONAL([CPLUSPLUS_ENABLED], [$WANT_CPLUSPLUS])
 

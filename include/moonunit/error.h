@@ -30,9 +30,14 @@
 
 #include <stdbool.h>
 
-// Moonunit error code facility
-// Used internally and for plugins
-// Patterned after GError in glib
+#include <moonunit/boilerplate.h>
+
+/* Moonunit error code facility
+ * Used internally and for plugins
+ * Patterned after GError in glib
+ */
+
+C_BEGIN_DECLS
 
 typedef struct MuError
 {
@@ -109,5 +114,7 @@ typedef enum MuErrorGeneral
     MU_ERROR_NOMEM,
     MU_ERROR_ERRNO
 } MuErrorGeneral;
+
+C_END_DECLS
 
 #endif

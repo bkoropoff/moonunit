@@ -27,6 +27,9 @@ case "$target_os" in
     darwin8.*)
 	moduleext=".so"
 	;;
+    freebsd6.*)
+	moduleext=".so"
+	;;
     *)
 	AC_MSG_ERROR([Unsupported OS: $target_os])
 	;;

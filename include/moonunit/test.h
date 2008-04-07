@@ -28,7 +28,10 @@
 #ifndef __MU_TEST_H__
 #define __MU_TEST_H__
 
+#include <moonunit/boilerplate.h>
 #include <moonunit/type.h>
+
+C_BEGIN_DECLS
 
 /* Forward declarations */
 struct MuTestToken;
@@ -47,7 +50,9 @@ typedef enum MuTestStatus
     // Failure due to timeout (infinite loop, etc.)
     MU_STATUS_TIMEOUT = 4,
     // Skipped test
-    MU_STATUS_SKIPPED = 5
+    MU_STATUS_SKIPPED = 5,
+    // Exception (probably C++)
+    MU_STATUS_EXCEPTION = 6
 } MuTestStatus;
 
 typedef enum MuTestStage
@@ -191,5 +196,7 @@ typedef void (*MuTestThunk) (MuTestToken*);
 void Mu_TestToken_FillMethods(MuTestToken* token);
 
 const char* Mu_TestStatus_ToString(MuTestStatus status);
+
+C_END_DECLS
 
 #endif

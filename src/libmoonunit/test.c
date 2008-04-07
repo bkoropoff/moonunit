@@ -315,6 +315,8 @@ Mu_TestStatus_ToString(MuTestStatus status)
         return "crash";
     case MU_STATUS_SKIPPED:
         return "skipped test";
+    case MU_STATUS_EXCEPTION:
+        return "exception";
     }
 
     return "unknown";

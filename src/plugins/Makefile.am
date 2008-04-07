@@ -19,6 +19,10 @@ unix_la_SOURCES += elfscan.c
 unix_la_LIBADD += -lelf
 endif
 
+if CPLUSPLUS_ENABLED
+unix_la_SOURCES += cplusplus.cpp
+endif
+
 EXTRA_DIST = elfscan.h
 
 AM_CPPFLAGS = -I$(top_srcdir)/include

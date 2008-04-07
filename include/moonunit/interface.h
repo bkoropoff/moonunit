@@ -45,8 +45,13 @@
 #ifndef __MU_INTERFACE_H__
 #define __MU_INTERFACE_H__
 
+#include <moonunit/boilerplate.h>
 #include <moonunit/type.h>
 #include <moonunit/test.h>
+
+#include <stdlib.h>
+
+C_BEGIN_DECLS
 
 #ifndef DOXYGEN
 
@@ -160,16 +165,19 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
     __MU_SECTION_TEXT__                                                 \
     __MU_HIDDEN_TEST__                                                  \
     void __mu_f_##_suite##_##_name(MuTestToken*);                       \
+    C_DECL MuTest __mu_t_##_suite##_##_name;                            \
     __MU_SECTION_DATA__                                                 \
     __MU_HIDDEN_TEST__                                                  \
     MuTest __mu_t_##_suite##_##_name =                                  \
     {                                                                   \
-        .suite = #_suite,                                               \
-        .name = #_name,                                                 \
-        .file = __FILE__,                                               \
-        .line = __LINE__,                                               \
-        .expected = _expected,                                          \
-        .run = __mu_f_##_suite##_##_name                                \
+        FIELD(suite, #_suite),                                          \
+        FIELD(name, #_name),                                            \
+        FIELD(file, __FILE__),                                          \
+        FIELD(line, __LINE__),                                          \
+        FIELD(expected, _expected),                                     \
+        FIELD(loader, NULL),                                            \
+        FIELD(library, NULL),                                           \
+        FIELD(run, __mu_f_##_suite##_##_name)                           \
     };                                                                  \
     void __mu_f_##_suite##_##_name(MuTestToken* __mu_token__)
 
@@ -612,6 +620,9 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #define MU_FT_PREFIX "__mu_ft_"
 
 void Mu_Interface_SetCurrentToken(MuTestToken* token);
+
+C_END_DECLS
+
 #endif
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_UTIL_H__
-#define __MU_UTIL_H__
+#include <exception>
+#include <moonunit/interface.h>
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdbool.h>
+namespace MoonUnit
+{
 
-#include <moonunit/boilerplate.h>
+    class example_exception: public std::exception
+    {
+    private:
+        const char* msg;
+    public:
+        example_exception(const char* _msg): msg(_msg)
+        {
+        }
+        virtual const char* what() const throw()
+        {
+            return msg;
+        }
+    };
+};
 
-C_BEGIN_DECLS
+MU_TEST_EX(Crash, exception, MU_STATUS_EXCEPTION)
+{
+    throw MoonUnit::example_exception("I threw an exception");
+}
 
-bool ends_with (const char* haystack, const char* needle);
-char* format(const char* format, ...);
-char* formatv(const char* format, va_list ap);
-const char* basename_pure(const char* filename);
+MU_TEST_EX(Crash, unknown_exception, MU_STATUS_EXCEPTION)
+{
+    throw 5;
+}
 
-typedef void* array;
-
-array* array_new(void);
-size_t array_size(array* a);
-array* array_append(array* a, void* e);
-void array_free(array* a);
-array* array_dup(array* a);
-array* array_from_generic(void** g);
-
-void* mu_dlopen(const char* path, int flags);
-
-C_END_DECLS
-
-#endif

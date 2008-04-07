@@ -164,6 +164,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 		case MU_STATUS_ASSERTION:
 		case MU_STATUS_CRASH:
         case MU_STATUS_TIMEOUT:
+        case MU_STATUS_EXCEPTION:
             result_str = "XFAIL";
             break;
         case MU_STATUS_SKIPPED:
@@ -185,6 +186,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 		case MU_STATUS_ASSERTION:
 		case MU_STATUS_CRASH:
         case MU_STATUS_TIMEOUT:
+        case MU_STATUS_EXCEPTION:
             result_str = "FAIL ";
             break;
         case MU_STATUS_SKIPPED:

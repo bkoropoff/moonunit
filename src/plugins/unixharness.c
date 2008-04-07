@@ -47,19 +47,13 @@
 #include <sys/wait.h>
 
 #include "backtrace.h"
+#include "unixtoken.h"
+
+#ifdef CPLUSPLUS_ENABLED
+#    include "cplusplus.h"
+#endif
 
 static long default_timeout;
-
-typedef struct
-{
-    MuTestToken base;
-    MuTestStage current_stage;
-    MuTestStatus expected;
-    MuTest* current_test;
-    uipc_handle* ipc_handle;
-    pid_t child;
-} UnixToken;
-
 static UnixToken* current_token;
 
 static uipc_typeinfo backtrace_info =
@@ -220,6 +214,12 @@ unixtoken_free(UnixToken* token)
     free(token);
 }
 
+#ifdef CPLUSPLUS_ENABLED
+#   define INVOKE(thunk, token) (cplusplus_trampoline((thunk), (MuTestToken*) (token)))
+#else
+#   define INVOKE(thunk, token) ((thunk)((MuTestToken*) (token)))
+#endif
+
 MuTestResult*
 unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* data)
 {
@@ -256,16 +256,16 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
         token->current_stage = MU_STAGE_SETUP;
     
         if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
-            thunk((MuTestToken*) token);
+            INVOKE(thunk, token);
     
         token->current_stage = MU_STAGE_TEST;
     
-        test->run((MuTestToken*) token);
+        INVOKE(test->run, token);
     
         token->current_stage = MU_STAGE_TEARDOWN;
     
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
-            thunk((MuTestToken*) token);
+            INVOKE(thunk, token);
     
         token->base.method.success((MuTestToken*) token);
     

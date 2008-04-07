@@ -38,7 +38,9 @@ typedef struct
     {
         MODE_RUN,
         MODE_LIST_PLUGINS,
-        MODE_PLUGIN_INFO
+        MODE_PLUGIN_INFO,
+        MODE_USAGE,
+        MODE_HELP
     } mode;
     bool gdb;
     bool all;

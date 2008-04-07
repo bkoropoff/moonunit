@@ -228,6 +228,9 @@ main (int argc, char** argv)
     case MODE_PLUGIN_INFO:
         res = plugin_info(option.plugin_info);
         break;
+    case MODE_USAGE:
+    case MODE_HELP:
+        break;
     default:
         res = -1;
         break;

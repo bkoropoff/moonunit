@@ -29,6 +29,7 @@
 #define __UPOPT_H__
 
 #include <stdbool.h>
+#include <stdio.h>
 
 /* Minimalist popt-like command line option parser */
 
@@ -64,6 +65,10 @@ typedef enum UpoptStatus
 
 UpoptContext* Upopt_CreateContext(const UpoptOptionInfo* options, int argc, char** argv);
 UpoptStatus Upopt_Next(UpoptContext* context, int* constant, const char** value, char** error);
+void Upopt_SetInfo(UpoptContext* context, const char* program_name, const char* normal_arguments,
+                   const char* description);
+void Upopt_PrintUsage(UpoptContext* context, FILE* out, int columns);
+void Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns);
 void Upopt_DestroyContext(UpoptContext* context);
 
 #endif

@@ -36,7 +36,9 @@ enum
     OPTION_ITERATIONS,
     OPTION_TIMEOUT,
     OPTION_LIST_PLUGINS,
-    OPTION_PLUGIN_INFO
+    OPTION_PLUGIN_INFO,
+    OPTION_USAGE,
+    OPTION_HELP
 };
 
 
@@ -134,6 +136,20 @@ static const struct UpoptOptionInfo options[] =
         .description = "Show information about a plugin and its supported options",
         .argument = "name"
     },
+    {
+        .longname = "usage",
+        .shortname = '\0',
+        .constant = OPTION_USAGE,
+        .description = "Show usage information",
+        .argument = NULL
+    },
+    {
+        .longname = "help",
+        .shortname = 'h',
+        .constant = OPTION_HELP,
+        .description = "Show detailed help information",
+        .argument = NULL
+    },
     UPOPT_END
 };
 
@@ -144,6 +160,9 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     UpoptStatus rc;
     int constant;
     const char* value;
+
+
+    Upopt_SetInfo(context, basename_pure(argv[0]), "libraries ...", "Run MoonUnit unit tests");
 
     /* Set defaults */
 
@@ -199,6 +218,14 @@ Option_Parse(int argc, char** argv, OptionTable* option)
         case OPTION_PLUGIN_INFO:
             option->mode = MODE_PLUGIN_INFO;
             option->plugin_info = value;
+            break;
+        case OPTION_USAGE:
+            Upopt_PrintUsage(context, stdout, 80);
+            option->mode = MODE_USAGE;
+            break;
+        case OPTION_HELP:
+            Upopt_PrintHelp(context, stdout, 80);
+            option->mode = MODE_HELP;
             break;
         case UPOPT_ARG_NORMAL:
         {

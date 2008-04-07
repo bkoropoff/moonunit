@@ -26,6 +26,7 @@
  */
 
 #include <string.h>
+#include <ctype.h>
 
 #include "upopt.h"
 #include <moonunit/util.h>
@@ -36,6 +37,9 @@ struct UpoptContext
     int argc, index;
     char **argv; 
     const UpoptOptionInfo* options;
+    const char* program_name;
+    const char* normal_arguments;
+    const char* description;
 };
 
 UpoptContext*
@@ -206,4 +210,175 @@ void
 Upopt_DestroyContext(UpoptContext* context)
 {
     free(context);
+}
+
+void
+Upopt_SetInfo(UpoptContext* context, const char* program_name, const char* normal_arguments, const char* description)
+{
+    context->program_name = program_name;
+    context->normal_arguments = normal_arguments;
+    context->description = description;
+}
+
+static void
+print_wrapped(FILE* out, int* used, int columns, int indent, const char* format, ...)
+{
+    char* str;
+    va_list ap;
+
+    va_start(ap, format);
+    
+    str = formatv(format, ap);
+    
+    va_end(ap);
+    
+    if ((*used + strlen(str) > columns) ||
+        !strcmp(str, "\n"))
+    {
+        int i;
+        fprintf(out, "\n");
+        for (i = 0; i < indent; i++)
+            fprintf(out, " ");
+        *used = 0;
+    }
+
+    if (strcmp(str, "\n"))
+    {
+        *used += strlen(str);
+        fprintf(out, "%s", str);
+    }
+
+    free(str);
+}
+
+void
+Upopt_PrintUsage(UpoptContext* context, FILE* out, int columns)
+{
+#define PRINT(...) (print_wrapped(out, &used, columns, indent, __VA_ARGS__))
+    int i, used = 0;
+    int indent = 7 + strlen(context->program_name);
+
+    fprintf(out, "%s - %s\n\n", context->program_name, context->description);
+    PRINT("Usage: %s", context->program_name);
+
+    for (i = 0; context->options[i].constant != UPOPT_ARG_END; i++)
+    {
+        const UpoptOptionInfo* info = &context->options[i];
+        if (info->shortname && info->longname && info->argument)
+        {
+            PRINT(" [ -%c, --%s=%s ]", info->shortname, info->longname,
+                  info->argument);
+        }
+        else if (info->shortname && info->longname)
+        {
+            PRINT(" [ -%c, --%s ]", info->shortname, info->longname,
+                  info->argument);
+        }
+        else if (info->longname && info->argument)
+        {
+            PRINT(" [ --%s=%s ]", info->longname, info->argument);
+        }
+        else if (info->shortname && info->argument)
+        {
+            PRINT(" [ -%c %s ]", info->shortname, info->argument);
+        }
+        else if (info->longname)
+        {
+            PRINT(" [ --%s ]", info->longname);
+        }
+        else if (info->shortname)
+        {
+            PRINT(" [ -%c ]", info->shortname);
+        }
+    }
+
+    if (context->normal_arguments)
+    {
+        PRINT(" %s", context->normal_arguments);
+    }
+
+    fprintf(out, "\n");
+#undef PRINT
+}
+
+void
+Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
+{
+#define PRINT(...) (print_wrapped(out, &used, columns, indent + indent_newline, __VA_ARGS__))
+#define PRINT_NEW(...) (print_wrapped(out, &used, columns, indent_newline, __VA_ARGS__))
+    int used = 0;
+    int indent = 35;
+    int indent_newline = 4;
+    int i;
+    Upopt_PrintUsage(context, out, columns);
+
+    fprintf(out, "\nOptions:");
+    PRINT_NEW("\n");
+
+    for (i = 0; context->options[i].constant != UPOPT_ARG_END; i++)
+    {
+        const UpoptOptionInfo* info = &context->options[i];
+
+        if (info->shortname && info->longname && info->argument)
+        {
+            PRINT("-%c, --%s=%s", info->shortname, info->longname,
+                  info->argument);
+        }
+        else if (info->shortname && info->longname)
+        {
+            PRINT("-%c, --%s", info->shortname, info->longname,
+                  info->argument);
+        }
+        else if (info->longname && info->argument)
+        {
+            PRINT("--%s=%s", info->longname, info->argument);
+        }
+        else if (info->shortname && info->argument)
+        {
+            PRINT("-%c %s", info->shortname, info->argument);
+        }
+        else if (info->longname)
+        {
+            PRINT("--%s", info->longname);
+        }
+        else if (info->shortname)
+        {
+            PRINT("-%c", info->shortname);
+        }
+
+
+        for (; used < indent; used++)
+            fprintf(out, " ");
+
+        {
+            char* desc = strdup(info->description);
+            char* cur = desc, *ws;
+
+            do
+            {
+                ws = strchr(cur, ' ');
+                if (ws)
+                    *(ws++) = 0;
+                
+                PRINT("%s ", cur);
+                
+                if (ws)
+                {
+                    while (isspace(*ws)) ws++;
+                    cur = *ws ? ws : NULL;
+                }
+                else
+                {
+                    cur = NULL;
+                }
+            } while (cur);
+
+            free(desc);
+        }
+
+        if (context->options[i+1].constant != UPOPT_ARG_END)
+            PRINT_NEW("\n");
+    }
+
+    fprintf(out, "\n");
 }

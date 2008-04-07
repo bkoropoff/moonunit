@@ -32,8 +32,6 @@
 
 /** \cond SKIP */
 
-//#define MU_HIDE_TESTS
-
 #include <moonunit/interface.h>
 
 #include <string.h>

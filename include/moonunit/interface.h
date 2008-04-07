@@ -27,7 +27,7 @@
 
 /**
  * @file interface.h
- * @brief MoonUnit testing interface
+ * @brief MoonUnit unit test API
  */
 
 /**
@@ -51,11 +51,6 @@
 #ifndef DOXYGEN
 
 #ifdef __GNUC__
-#    if __GNUC__ >= 3 && __GNUC_MINOR__ > 0
-#        define __MU_USED__ __attribute__((used))
-#    else
-#        define __MU_USED__
-#    endif
 #    if defined(__APPLE__) || (defined(__hpux__) && defined(__hppa__))
 #        define __MU_SECTION__(name)
 #    else
@@ -167,7 +162,6 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
     void __mu_f_##_suite##_##_name(MuTestToken*);                       \
     __MU_SECTION_DATA__                                                 \
     __MU_HIDDEN_TEST__                                                  \
-    __MU_USED__                                                         \
     MuTest __mu_t_##_suite##_##_name =                                  \
     {                                                                   \
         .suite = #_suite,                                               \
@@ -200,10 +194,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_LIBRARY_SETUP                        \
-    __MU_USED__                                 \
 	__MU_HIDDEN_TEST__                          \
     void __mu_f_ls();                           \
-    __MU_USED__                                 \
     __MU_HIDDEN_TEST__                          \
     MuLibrarySetup __mu_ls =                    \
     {                                           \
@@ -234,10 +226,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_LIBRARY_TEARDOWN                     \
-    __MU_USED__                                 \
 	__MU_HIDDEN_TEST__                          \
     void __mu_f_lt();                           \
-    __MU_USED__                                 \
     __MU_HIDDEN_TEST__                          \
     MuLibraryTeardown __mu_lt =                 \
     {                                           \
@@ -280,10 +270,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_FIXTURE_SETUP(_name)                         \
-    __MU_USED__                                         \
 	__MU_HIDDEN_TEST__                                  \
     void __mu_f_fs_##_name(MuTestToken* __mu_token__);  \
-    __MU_USED__                                         \
     __MU_HIDDEN_TEST__                                  \
     MuFixtureSetup __mu_fs_##_name =                    \
     {                                                   \
@@ -333,10 +321,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_FIXTURE_TEARDOWN(_name)                      \
-    __MU_USED__                                         \
 	__MU_HIDDEN_TEST__                                  \
     void __mu_f_ft_##_name(MuTestToken* __mu__token__); \
-    __MU_USED__                                         \
     __MU_HIDDEN_TEST__                                  \
     MuFixtureTeardown __mu_ft_##_name =                 \
     {                                                   \

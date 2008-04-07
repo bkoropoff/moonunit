@@ -158,7 +158,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         switch (summary->status)
         {
         case MU_STATUS_SUCCESS:
-            result_str = "PASS";
+            result_str = "PASS ";
             break;
 		case MU_STATUS_FAILURE:
 		case MU_STATUS_ASSERTION:
@@ -167,7 +167,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             result_str = "XFAIL";
             break;
         case MU_STATUS_SKIPPED:
-            result_str = "SKIP";
+            result_str = "SKIP ";
             result_code = 33;
             break;
         }
@@ -185,10 +185,10 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 		case MU_STATUS_ASSERTION:
 		case MU_STATUS_CRASH:
         case MU_STATUS_TIMEOUT:
-            result_str = "FAIL";
+            result_str = "FAIL ";
             break;
         case MU_STATUS_SKIPPED:
-            result_str = "SKIP";
+            result_str = "SKIP ";
             result_code = 33;
             break;
         }

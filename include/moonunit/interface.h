@@ -389,6 +389,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * <li>MU_TYPE_INTEGER</li>
  * <li>MU_TYPE_FLOAT</li>
  * <li>MU_TYPE_STRING</li>
+ * <li>MU_TYPE_POINTER</li>
+ * <li>MU_TYPE_BOOLEAN</li>
  * </ul>
  *
  * This macro may only be used in the body of a test,
@@ -407,6 +409,48 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #define MU_ASSERT_EQUAL(type, expr, expected)               \
 	MU_TOKEN->method.assert_equal(MU_TOKEN,                 \
                                   #expr, #expected, 1,      \
+                                  __FILE__, __LINE__,       \
+                                  type, (expr), (expected)) \
+
+/**
+ * @brief Confirm inequality of values or fail
+ *
+ * This macro asserts that the values of two expressions
+ * are not equal.  If the assertion succeeds, execution of the
+ * current test will continue as usual.  If it fails,
+ * the test will immediately fail and be terminated; the
+ * expressions, their values, and the source filename and 
+ * line number will be reported as part of the cause of
+ * failure.
+ *
+ * The type of the two expressions must be specified as
+ * the first argument of this macro.  The expressions
+ * must have the same type. The following are legal
+ * values of the type argument:
+ * <ul>
+ * <li>MU_TYPE_INTEGER</li>
+ * <li>MU_TYPE_FLOAT</li>
+ * <li>MU_TYPE_STRING</li>
+ * <li>MU_TYPE_POINTER</li>
+ * <li>MU_TYPE_BOOLEAN</li>
+ * </ul>
+ *
+ * This macro may only be used in the body of a test,
+ * fixture setup, or fixture teardown routine.
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_ASSERT_NOT_EQUAL(MU_TYPE_INTEGER, 2 + 2, 5);
+ * @endcode
+ *
+ * @param type the type of the two expressions
+ * @param expr the first expression
+ * @param expected the second expression
+ * @hideinitializer
+ */
+#define MU_ASSERT_NOT_EQUAL(type, expr, expected)           \
+	MU_TOKEN->method.assert_equal(MU_TOKEN,                 \
+                                  #expr, #expected, 0,      \
                                   __FILE__, __LINE__,       \
                                   type, (expr), (expected)) \
 

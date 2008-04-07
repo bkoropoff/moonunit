@@ -58,6 +58,11 @@ MU_TEST(Arithmetic, add)
 	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x + y, 5);
 }
 
+MU_TEST(Arithmetic, add2)
+{
+    MU_ASSERT_NOT_EQUAL(MU_TYPE_INTEGER, x + y, 6);
+}
+
 MU_TEST(Arithmetic, subtract)
 {
 	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x - y, -1);

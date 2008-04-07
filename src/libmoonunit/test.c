@@ -140,6 +140,40 @@ assert_equal_float(const char* expr, const char* expected, va_list ap, int* resu
     }
 }
 
+static void
+assert_equal_pointer(const char* expr, const char* expected, va_list ap, int* result, int sense, char** reason)
+{
+	void* a = va_arg(ap, void*);
+	void* b = va_arg(ap, void*);
+	
+	*result = a == b;
+	if (*result != sense)
+    {
+        if (sense)
+            *reason = format("Assertion '%s == %s' failed (%p != %p)", expr, expected, a, b);
+        else
+            *reason = format("Assertion '%s != %s' failed (both %p)", expr, expected, a);
+    }
+}
+
+static void
+assert_equal_boolean(const char* expr, const char* expected, va_list ap, int* result, int sense, char** reason)
+{
+	bool a = (bool) va_arg(ap, int);
+	bool b = (bool) va_arg(ap, int);
+    const char* a_str = a ? "true" : "false";
+    const char* b_str = b ? "true" : "false";
+
+	*result = a == b;
+	if (*result != sense)
+    {
+        if (sense)
+            *reason = format("Assertion '%s == %s' failed (%s != %s)", expr, expected, a_str, b_str);
+        else
+            *reason = format("Assertion '%s != %s' failed (both %s)", expr, expected, a_str);
+    }
+}
+
 void
 __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, int sense,
                   const char* file, unsigned int line, MuType type, ...)
@@ -161,8 +195,13 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, in
         break;
     case MU_TYPE_FLOAT:
         assert_equal_float(expr, expected, ap, &result, sense, &reason);
+        break;
     case MU_TYPE_POINTER:
+        assert_equal_pointer(expr, expected, ap, &result, sense, &reason);
+        break;
     case MU_TYPE_BOOLEAN:
+        assert_equal_boolean(expr, expected, ap, &result, sense, &reason);
+        break;
     case MU_TYPE_UNKNOWN:
     default:
         result = !sense;

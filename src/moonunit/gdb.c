@@ -34,9 +34,9 @@
 
 void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoint)
 {
+    int result;
     char *command;
     char template[] = "/tmp/mu_gdbinit_XXXXXX";
-
     int fd = mkstemp(template);
 
     if (fd < 0)
@@ -51,7 +51,9 @@ void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoi
 
     command = format("gdb '%s' %lu -x '%s' -q", program, (unsigned long) pid, template);
 
-    system(command);
+    result = system(command);
+    if (result)
+	fprintf(stderr, "WARNING: failed to create interactive gdb session");
 
     unlink(template);
 

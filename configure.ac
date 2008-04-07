@@ -42,6 +42,7 @@ AC_CONFIG_HEADERS(include/config.h)
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
+AC_PATH_PROG(BASH, bash)
 
 AC_CHECK_SIZEOF(void*)
 
@@ -188,10 +189,10 @@ AC_SUBST(DOCBOOK_XSL_DIR)
 AM_CONDITIONAL([HAVE_DOCBOOK], [test x"$XSLTPROC" != x"false" -a x"$DOCBOOK_XSL_DIR" != x && HAVE_DOCBOOK=yes])
 
 AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile
-                src/moonunit/moonunit-lt.sh
-		include/Makefile include/moonunit/Makefile src/libuipc/Makefile
-	  	src/plugins/Makefile include/uipc/Makefile doc/Makefile doc/Doxyfile
-		doc/docbook-html.xsl doc/docbook-man.xsl extra/Makefile])
+		src/moonunit/moonunit-lt.sh src/moonunit/moonunit-stub.sh
+		src/moonunit/moonunit-strip.sh include/Makefile include/moonunit/Makefile
+		src/libuipc/Makefile src/plugins/Makefile include/uipc/Makefile doc/Makefile
+		doc/Doxyfile doc/docbook-html.xsl doc/docbook-man.xsl extra/Makefile])
 
 AC_OUTPUT
 

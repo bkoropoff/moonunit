@@ -46,6 +46,6 @@ CHECK_PLUGINS= \
 	--plugin $(top_builddir)/src/plugins/console.la \
 	--plugin $(top_builddir)/src/plugins/xml.la	
 
-check-local: moonunit-lt libexample_mu.la
+check-local: moonunit-lt example.la
 	./moonunit-lt $(CHECK_ARGS) $(CHECK_PLUGINS) example.la
 

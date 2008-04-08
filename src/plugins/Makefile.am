@@ -21,13 +21,13 @@ endif
 
 if CPLUSPLUS_ENABLED
 unix_la_SOURCES += cplusplus.cpp
-unix_la_LINK = $(CXXLINK)
+unix_la_LINK = $(CXXLINK) $(unix_la_LDFLAGS)
 else
 # Automake will always try to link with the C++ linker
 # since C++ sources are included in some conditions.  Force
 # it to use the C linker when C++ support is disabled.  This
 # fixes building on HP-UX
-unix_la_LINK = $(LINK)
+unix_la_LINK = $(LINK) $(unix_la_LDFLAGS)
 endif
 
 EXTRA_DIST = elfscan.h

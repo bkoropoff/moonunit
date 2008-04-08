@@ -20,6 +20,10 @@ case "$target_os" in
 	        moduleext=".sl"
 	        LDFLAGS="$LDFLAGS -Wl,+s"
 	        ;;
+            ia64)
+                moduleext=".so"
+                LDFLAGS="$LDFLAGS -Wl,+s"
+		;;
 	    *)
 	        AC_MSG_ERROR([Unsupported architecture: $target_cpu])
 		;;

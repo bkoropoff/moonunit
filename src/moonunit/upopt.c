@@ -364,7 +364,7 @@ Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
                 
                 if (ws)
                 {
-                    while (isspace(*ws)) ws++;
+                    while (isspace((int) *ws)) ws++;
                     cur = *ws ? ws : NULL;
                 }
                 else

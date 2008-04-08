@@ -48,7 +48,7 @@ WANT_LIBELF="true"
 AC_ARG_ENABLE([cpp],
 	[AC_HELP_STRING([--disable-cpp], [disable C++ support (default: enabled)])],
 	[
-		if test x"$enableval" == x"no"
+		if test x"$enableval" = x"no"
 		then
 			WANT_CPLUSPLUS="false"
 		fi
@@ -57,7 +57,7 @@ AC_ARG_ENABLE([cpp],
 AC_ARG_ENABLE([debug],
 	[AC_HELP_STRING([--enable-debug], [enable debugging])],
 	[
-		if test x"$enableval" == x"yes"
+		if test x"$enableval" = x"yes"
 		then
 			AC_DEFINE([DEBUG], [], [Debugging enabled])
 			CFLAGS="$CFLAGS -O0 -g"

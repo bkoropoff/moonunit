@@ -222,19 +222,10 @@ array_from_generic(void** g)
 void*
 mu_dlopen(const char* path, int flags)
 {
+#ifdef RTLD_MEMBER
+    void* handle = dlopen(path, flags | RTLD_MEMBER);
+#else
     void* handle = dlopen(path, flags);
-
-#if defined(RTLD_MEMBER) && defined(PLUGIN_MEMBER_EXTENSION)
-    if (!handle && ends_with(path, PLUGIN_EXTENSION))
-    {
-        char* base = strdup(basename_pure(path));
-        if (strlen(base) > strlen(PLUGIN_EXTENSION))
-            base[strlen(base) - strlen(PLUGIN_EXTENSION)] = '\0';
-        char* newpath = format("%s(%s%s)", path, base, PLUGIN_MEMBER_EXTENSION);
-        handle = dlopen(newpath, flags | RTLD_MEMBER);
-        free(base);
-        free(newpath);
-    }
 #endif
 
     return handle;

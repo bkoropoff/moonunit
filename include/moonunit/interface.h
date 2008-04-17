@@ -128,29 +128,29 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * }
  * @endcode
  *
- * @param suite the (unquoted) name of the test suite which
+ * @param suite_name the (unquoted) name of the test suite which
  * this test should be part of
- * @param name the (unquoted) name of this test
+ * @param test_name the (unquoted) name of this test
  * @hideinitializer
  */
-#define MU_TEST(_suite, _name)                                          \
+#define MU_TEST(suite_name, test_name)					\
     __MU_SECTION_TEXT__                                                 \
     __MU_HIDDEN_TEST__                                                  \
-    void __mu_f_##_suite##_##_name(MuTestToken*);                       \
-    C_DECL MuTest __mu_t_##_suite##_##_name;                            \
+    void __mu_f_##suite_name##_##test_name(MuTestToken*);		\
+    C_DECL MuTest __mu_t_##suite_name##_##test_name;			\
     __MU_SECTION_DATA__                                                 \
     __MU_HIDDEN_TEST__                                                  \
-    MuTest __mu_t_##_suite##_##_name =                                  \
+    MuTest __mu_t_##suite_name##_##test_name =				\
     {                                                                   \
-        FIELD(suite, #_suite),                                          \
-        FIELD(name, #_name),                                            \
+        FIELD(suite, #suite_name),					\
+        FIELD(name, #test_name),					\
         FIELD(file, __FILE__),                                          \
         FIELD(line, __LINE__),                                          \
         FIELD(loader, NULL),                                            \
         FIELD(library, NULL),                                           \
-        FIELD(run, __mu_f_##_suite##_##_name)                           \
+        FIELD(run, __mu_f_##suite_name##_##test_name)			\
     };                                                                  \
-    void __mu_f_##_suite##_##_name(MuTestToken* __mu_token__)
+    void __mu_f_##suite_name##_##test_name(MuTestToken* __mu_token__)
 
 /**
  * @brief Define library setup routine
@@ -172,16 +172,16 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_SETUP                        \
-	__MU_HIDDEN_TEST__                          \
-    void __mu_f_ls();                           \
-    __MU_HIDDEN_TEST__                          \
-    MuLibrarySetup __mu_ls =                    \
-    {                                           \
-        .file = __FILE__,                       \
-        .line = __LINE__,                       \
-        .run = __mu_f_ls;                       \
-    };                                          \
+#define MU_LIBRARY_SETUP			    \
+    __MU_HIDDEN_TEST__				    \
+    void __mu_f_ls();				    \
+    __MU_HIDDEN_TEST__				    \
+    MuLibrarySetup __mu_ls =			    \
+    {						    \
+        .file = __FILE__,			    \
+        .line = __LINE__,			    \
+        .run = __mu_f_ls;			    \
+    };						    \
    void __mu_f_ls()
         
 /**
@@ -204,16 +204,16 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_TEARDOWN                     \
-	__MU_HIDDEN_TEST__                          \
-    void __mu_f_lt();                           \
-    __MU_HIDDEN_TEST__                          \
-    MuLibraryTeardown __mu_lt =                 \
-    {                                           \
-        .file = __FILE__,                       \
-        .line = __LINE__,                       \
-        .run = __mu_f_lt;                       \
-    };                                          \
+#define MU_LIBRARY_TEARDOWN			    \
+    __MU_HIDDEN_TEST__				    \
+    void __mu_f_lt();				    \
+    __MU_HIDDEN_TEST__				    \
+    MuLibraryTeardown __mu_lt =			    \
+    {						    \
+        .file = __FILE__,			    \
+        .line = __LINE__,			    \
+        .run = __mu_f_lt;			    \
+    };						    \
     void __mu_f_lt()
 
 /**
@@ -244,22 +244,22 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * }
  * @endcode
  *
- * @param name the (unquoted) name of the test suite for
+ * @param suite_name the (unquoted) name of the test suite for
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_SETUP(_name)                         \
-	__MU_HIDDEN_TEST__                                  \
-    void __mu_f_fs_##_name(MuTestToken* __mu_token__);  \
-    __MU_HIDDEN_TEST__                                  \
-    MuFixtureSetup __mu_fs_##_name =                    \
-    {                                                   \
-        .name = #_name,                                 \
-        .file = __FILE__,                               \
-        .line = __LINE__,                               \
-        .run = __mu_f_fs_##_name                        \
-    };                                                  \
-    void __mu_f_fs_##_name(MuTestToken* __mu_token__)
+#define MU_FIXTURE_SETUP(suite_name)				    \
+    __MU_HIDDEN_TEST__						    \
+    void __mu_f_fs_##suite_name(MuTestToken* __mu_token__);	    \
+    __MU_HIDDEN_TEST__						    \
+    MuFixtureSetup __mu_fs_##suite_name =			    \
+    {								    \
+        .name = #suite_name,					    \
+        .file = __FILE__,					    \
+        .line = __LINE__,					    \
+        .run = __mu_f_fs_##suite_name				    \
+    };								    \
+    void __mu_f_fs_##suite_name(MuTestToken* __mu_token__)
 
 /**
  * @brief Define test fixture teardown routine
@@ -295,22 +295,22 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * }
  * @endcode
  *
- * @param name the (unquoted) name of the test suite for
+ * @param suite_name the (unquoted) name of the test suite for
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_TEARDOWN(_name)                      \
-	__MU_HIDDEN_TEST__                                  \
-    void __mu_f_ft_##_name(MuTestToken* __mu__token__); \
-    __MU_HIDDEN_TEST__                                  \
-    MuFixtureTeardown __mu_ft_##_name =                 \
-    {                                                   \
-        .name = #_name,                                 \
-        .file = __FILE__,                               \
-        .line = __LINE__,                               \
-        .run = __mu_f_ft_##_name                        \
-    };                                                  \
-    void __mu_f_ft_##_name(MuTestToken* __mu_token__)
+#define MU_FIXTURE_TEARDOWN(suite_name)				\
+    __MU_HIDDEN_TEST__						\
+    void __mu_f_ft_##suite_name(MuTestToken* __mu__token__);	\
+    __MU_HIDDEN_TEST__						\
+    MuFixtureTeardown __mu_ft_##suite_name =			\
+    {								\
+        .name = #suite_name,					\
+        .file = __FILE__,					\
+        .line = __LINE__,					\
+        .run = __mu_f_ft_##suite_name				\
+    };								\
+    void __mu_f_ft_##suite_name(MuTestToken* __mu_token__)
 
 /*@}*/
 
@@ -335,9 +335,6 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * expression, filename, and line number will be reported
  * as part of the cause of failure.
  *
- * This macro may only be used in the body of a test,
- * fixture setup, or fixture teardown routine.
- *
  * <b>Example:</b>
  * @code
  * MU_ASSERT(foo != NULL && bar > baz);
@@ -346,7 +343,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expr the expression to test
  * @hideinitializer
  */
-#define MU_ASSERT(expr) \
+#define MU_ASSERT(expr)							\
     MU_TOKEN->method.assert(MU_TOKEN, expr, 1, #expr, __FILE__, __LINE__)
 
 /**
@@ -372,9 +369,6 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * <li>MU_TYPE_BOOLEAN</li>
  * </ul>
  *
- * This macro may only be used in the body of a test,
- * fixture setup, or fixture teardown routine.
- *
  * <b>Example:</b>
  * @code
  * MU_ASSERT_EQUAL(MU_TYPE_INTEGER, 2 * 2, 2 + 2);
@@ -385,12 +379,12 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expected the second expression
  * @hideinitializer
  */
-#define MU_ASSERT_EQUAL(type, expr, expected)               \
-	MU_TOKEN->method.assert_equal(MU_TOKEN,                 \
-                                  #expr, #expected, 1,      \
-                                  __FILE__, __LINE__,       \
-                                  type, (expr), (expected)) \
-
+#define MU_ASSERT_EQUAL(type, expr, expected)			\
+    MU_TOKEN->method.assert_equal(MU_TOKEN,			\
+                                  #expr, #expected, 1,		\
+                                  __FILE__, __LINE__,		\
+                                  type, (expr), (expected))	\
+    
 /**
  * @brief Confirm inequality of values or fail
  *
@@ -414,9 +408,6 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * <li>MU_TYPE_BOOLEAN</li>
  * </ul>
  *
- * This macro may only be used in the body of a test,
- * fixture setup, or fixture teardown routine.
- *
  * <b>Example:</b>
  * @code
  * MU_ASSERT_NOT_EQUAL(MU_TYPE_INTEGER, 2 + 2, 5);
@@ -427,20 +418,17 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expected the second expression
  * @hideinitializer
  */
-#define MU_ASSERT_NOT_EQUAL(type, expr, expected)           \
-	MU_TOKEN->method.assert_equal(MU_TOKEN,                 \
-                                  #expr, #expected, 0,      \
-                                  __FILE__, __LINE__,       \
-                                  type, (expr), (expected)) \
+#define MU_ASSERT_NOT_EQUAL(type, expr, expected)		\
+    MU_TOKEN->method.assert_equal(MU_TOKEN,			\
+                                  #expr, #expected, 0,		\
+                                  __FILE__, __LINE__,		\
+                                  type, (expr), (expected))	\
 
 /**
- * @brief Causes immediate success
+ * @brief Succeed immediately
  *
  * Use of this macro will cause the current test to
  * terminate and succeed immediately.
- *
- * This macro may only be used in the body of a test,
- * fixture setup, or fixture teardown routine.
  *
  * <b>Example:</b>
  * @code
@@ -448,11 +436,11 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @endcode
  * @hideinitializer
  */
-#define MU_SUCCESS \
+#define MU_SUCCESS				\
     MU_TOKEN->method.success(MU_TOKEN)
 
 /**
- * @brief Causes immediate failure
+ * @brief Fail immediately
  *
  * Use of this macro will cause the current test to
  * terminate and fail immediately.  This macro takes
@@ -460,9 +448,6 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * of trailing arguments; the expansion of this string
  * will become the explanation reported for the test
  * failing.
- *
- * This macro may only be used in the body of a test,
- * fixture setup, or fixture teardown routine.
  *
  * <b>Example:</b>
  * @code
@@ -474,41 +459,115 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * message
  * @hideinitializer
  */
-#define MU_FAILURE(...) \
+#ifdef DOXYGEN
+#  define MU_FAILURE(format, ...)
+#else
+#  define MU_FAILURE(...) \
     (MU_TOKEN->method.failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+#endif
 
-#define MU_SKIP(...) \
+/**
+ * @brief Skip test
+ *
+ * Use of this macro will cause the current test to
+ * terminate immediately and be reported as skipped.
+ * Skipped tests are not counted as failures but are
+ * reported differently from successful tests.
+ * This macro takes a printf format string
+ * and an arbitrary number of trailing arguments;
+ * the expansion of this string will serve as an
+ * explanation for the test being skipped.
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_SKIP("This test is not applicable to the current system");
+ * @endcode
+ *
+ * @param format a printf format string for the explanation
+ * message
+ * @hideinitializer
+ */
+#ifdef DOXYGEN
+#    define MU_SKIP(format, ...)
+#else
+#    define MU_SKIP(...)						\
     (MU_TOKEN->method.skip(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+#endif
 
+/**
+ * @brief Specify expected result
+ *
+ * Use of this macro indicates the expected result
+ * of the current test.  By default, all tests are
+ * expected to succeed (MU_STATUS_SUCCESS).  However,
+ * some tests are most naturally written in a way such
+ * that they fail, e.g. by throwing an uncaught exception.
+ * In these cases, MU_EXPECT may be used to indicate
+ * the expected test status before proceeding.  If the
+ * indicated status is not MU_STATUS_SUCCESS, test
+ * results will be classified as follows:
+ * <ul>
+ * <li>If the test result is the same as that given to
+ * MU_EXPECT, it will be classified as an expected failure</li>
+ * <li>If the test result is different from that given to
+ * MU_EXPECT but is not MU_STATUS_SUCCESS, it will be classified
+ * as a failure</li>
+ * <li>If the test result is MU_STATUS_SUCCESS, it will be
+ * classified as an unexpected success</li>
+ * </ul>
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_EXPECT(MU_STATUS_EXCEPTION);
+ * @endcode
+ *
+ * @param result the expected MuTestStatus value
+ * @hideinitializer
+ */
 #define MU_EXPECT(result) \
     (MU_TOKEN->method.expect(MU_TOKEN, result))
 
+/**
+ * @brief Set or reset time allowance
+ *
+ * Use of this macro sets the time allowance
+ * for the current test.  If the time allowance is
+ * exceeded before the test completes, the test will
+ * be forcefully terminated and reported as timing out.
+ * Time is counted down starting from the last use of MU_TIMEOUT.
+ *
+ * <b>Example:</b>
+ * @code
+ * // This test should complete in at most 5 seconds
+ * MU_TIMEOUT(5000);
+ * @endcode
+ *
+ * @param ms the time allowance in milliseconds
+ * @hideinitializer
+ */
 #define MU_TIMEOUT(ms) \
     (MU_TOKEN->method.timeout(MU_TOKEN, ms))
 
 /**
- * @brief Logs non-fatal messages
+ * @brief Log non-fatal message
  *
  * It is sometimes desirable for a unit test to be able to
- * report information which is orthoganol to the actual
+ * report information which is orthogonal to the actual
  * test result.  This macro will log a message in the test
  * results without causing the current test to succeed or fail.
  *
  * MU_LOG supports 4 different logging levels of decreasing
  * severity and increasing verbosity:
  * <ul>
- * <li>MU_LOG_WARNING - indicates a worrisome but non-fatal condition</li>
- * <li>MU_LOG_INFO - indicates an important informational message</li>
- * <li>MU_LOG_VERBOSE - indicates information that is usually extraneous but sometimes relevant</li>
- * <li>MU_LOG_TRACE - indicates a message designed to help trace the execution of a test</li>
+ * <li>MU_LEVEL_WARNING - indicates a worrisome but non-fatal condition</li>
+ * <li>MU_LEVEL_INFO - indicates an important informational message</li>
+ * <li>MU_LEVEL_VERBOSE - indicates information that is usually extraneous but sometimes relevant</li>
+ * <li>MU_LEVEL_TRACE - indicates a message designed to help trace the execution of a test</li>
  * </ul>
- *
- * This macro may only be used in the body of a test,
- * fixture setup, or fixture teardown routine.
  *
  * <b>Example:</b>
  * @code
- * MU_LOG(MU_LOG_TRACE, "About to call foo()");
+ * MU_LOG(MU_LEVEL_TRACE, "About to call foo()");
  * MU_ASSERT(foo() != NULL);
  * @endcode
  * @param level the logging level
@@ -520,28 +579,28 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 /**
  * @brief Log a warning
  *
- * Equivalent to MU_LOG(MU_LOG_WARNING, ...)
+ * Equivalent to MU_LOG(MU_LEVEL_WARNING, ...)
  * @hideinitializer
  */
 #define MU_WARNING(...) (MU_LOG(MU_LEVEL_WARNING, __VA_ARGS__))
 /**
  * @brief Log an informational message
  *
- * Equivalent to MU_LOG(MU_LOG_INFO, ...)
+ * Equivalent to MU_LOG(MU_LEVEL_INFO, ...)
  * @hideinitializer
  */
 #define MU_INFO(...) (MU_LOG(MU_LEVEL_INFO, __VA_ARGS__))
 /**
  * @brief Log a verbose message
  *
- * Equivalent to MU_LOG(MU_LOG_VERBOSE, ...)
+ * Equivalent to MU_LOG(MU_LEVEL_VERBOSE, ...)
  * @hideinitializer
  */
 #define MU_VERBOSE(...) (MU_LOG(MU_LEVEL_VERBOSE, __VA_ARGS__))
 /**
  * @brief Log a trace message
  *
- * Equivalent to MU_LOG(MU_LOG_TRACE, ...)
+ * Equivalent to MU_LOG(MU_LEVEL_TRACE, ...)
  * @hideinitializer
  */
 #define MU_TRACE(...) (MU_LOG(MU_LEVEL_TRACE, __VA_ARGS__))
@@ -565,10 +624,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * structure for the currently running test.  Modification
  * of this structure is strongly discouraged, but access
  * to information contained therein may be useful in
- * some applications
- *
- * This macro may only be used in the body of a test,
- * fixture setup, or fixture teardown routine.
+ * some applications.
  *
  * <b>Example:</b>
  * @code

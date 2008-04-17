@@ -4,11 +4,11 @@
  * @section overview Overview
  * MoonUnit is a unit test framework for C and C++ which aims
  * to reduce boilerplate code to an absolute mininum -- you can
- * add a unit test to an existing library in about 4 lines of 
- * code and run it immediately. MoonUnit takes advantage of
- * symbol information in shared libraries to automatically
- * identify and run unit tests without any additional effort
- * on the part of the programmer.
+ * add a new unit test to an existing library in about 2-4 lines of 
+ * code and run it immediately. MoonUnit takes advantage of either
+ * symbol tables in shared objects or information gleaned directly
+ * from your source code to automatically identify and run unit
+ * tests without any additional bookkeeping.
  * @section motivation Motivation
  * MoonUnit was conceived on the premise that unit testing is
  * only effective if programmers feel that writing and
@@ -26,18 +26,19 @@
  * <li><b>Brevity</b>
  *
  *     Introducing a new unit test takes a minimal amount of code.
- *     No copy-and-paste, no templates. Time is better spent
- *     writing test logic rather than slogging through boilerplate.
+ *     No copying and pasting templates, no mysterious incantions.
+ *     Time is better spent writing test logic rather than slogging
+ *     through boilerplate.
  * </li>
  * <li><b>Centralization</b>
  *     
  *     Information is located in precisely one place.  No updating
- *     makefiles, test scripts, or external lists of tests.  Adding
+ *     makefiles, test scripts, or lists of tests.  Adding
  *     a test should involve editing exactly one place in one file.
  * </li>
  * <li><b>Locality</b>
  *
- *     Tests are close to the code they exercise and are compiled
+ *     Tests can be close to the code they exercise and be compiled
  *     at the same time, immediately revealing any breakage after
  *     code changes.  If any need updating or refactoring,
  *     they are always near at hand.

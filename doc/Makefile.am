@@ -13,7 +13,11 @@ if HAVE_DOXYGEN
 HTML_TARGETS += doc-doxygen
 HTML_INSTALL_TARGETS += install-doc-doxygen
 
-html/index.html: Doxyfile @top_srcdir@/include/moonunit/test.h
+DOXY_DEPS = \
+	@top_srcdir@/include/moonunit/interface.h \
+	@top_srcdir@/include/moonunit/test.h
+
+html/index.html: Doxyfile $(DOXY_DEPS) main.doxy
 	( cat $<; echo GENERATE_HTML=yes ) | $(DOXYGEN) -
 
 doc-doxygen: html/index.html

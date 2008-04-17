@@ -31,38 +31,60 @@
 #include <moonunit/boilerplate.h>
 #include <moonunit/type.h>
 
+/**
+ * @file test.h
+ * @brief Test-related types, enums, and structures
+ */
+
+/**
+ * @defgroup test_bits Types, enumerations, and structures
+ * @ingroup test
+ */
+/* @{ */
+
 C_BEGIN_DECLS
 
 /* Forward declarations */
 struct MuTestToken;
 struct MuTest;
 
+/**
+ * Represents the result of a test
+ */
 typedef enum MuTestStatus
 {
-    // Success
+    /** Success */
     MU_STATUS_SUCCESS = 0,
-    // Generic failure
-    MU_STATUS_FAILURE = 1,
-    // Failure due to assertion
-    MU_STATUS_ASSERTION = 2,
-    // Failure due to crash (segfault, usually)
-    MU_STATUS_CRASH = 3,
-    // Failure due to timeout (infinite loop, etc.)
-    MU_STATUS_TIMEOUT = 4,
-    // Skipped test
-    MU_STATUS_SKIPPED = 5,
-    // Exception (probably C++)
-    MU_STATUS_EXCEPTION = 6
+    /** Generic failure */
+    MU_STATUS_FAILURE,
+    /** Failure due to assertion */
+    MU_STATUS_ASSERTION,
+    /** Failure due to crash */
+    MU_STATUS_CRASH,
+    /** Failure due to test exceeding time allowance */
+    MU_STATUS_TIMEOUT,
+    /** Failure due to uncaught exception */
+    MU_STATUS_EXCEPTION,
+    /** Test skipped */
+    MU_STATUS_SKIPPED,
 } MuTestStatus;
 
+/**
+ * Represents the stage at which a failure occured
+ */
 typedef enum MuTestStage
 {
-    MU_STAGE_SETUP = 0,
-    MU_STAGE_TEST = 1,
-    MU_STAGE_TEARDOWN = 2,
-    MU_STAGE_UNKNOWN = 3
+    /** Fixture setup */
+    MU_STAGE_SETUP,
+    /** Test */
+    MU_STAGE_TEST,
+    /** Fixture teardown */
+    MU_STAGE_TEARDOWN,
+    /** Stage unknown */
+    MU_STAGE_UNKNOWN
 } MuTestStage;
 
+#ifndef DOXYGEN
 typedef struct MuBacktrace
 {
     unsigned long ret_addr;
@@ -89,15 +111,24 @@ typedef struct MuTestResult
     /** Backtrace, if available */
     MuBacktrace* backtrace;
 } MuTestResult;
+#endif
 
+/**
+ * Indicates the level of a log event
+ */
 typedef enum
 {
+    /** Warning */
     MU_LEVEL_WARNING,
+    /** Informational message */
     MU_LEVEL_INFO,
+    /** Verbose message */
     MU_LEVEL_VERBOSE,
+    /** Trace message */
     MU_LEVEL_TRACE
 } MuLogLevel;
 
+#ifndef DOXYGEN
 typedef struct MuLogEvent
 {
     /** Stage at which event occurred */
@@ -196,7 +227,10 @@ typedef void (*MuTestThunk) (MuTestToken*);
 void Mu_TestToken_FillMethods(MuTestToken* token);
 
 const char* Mu_TestStatus_ToString(MuTestStatus status);
+#endif
 
 C_END_DECLS
+
+/* @} */
 
 #endif

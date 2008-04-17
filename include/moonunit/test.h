@@ -115,6 +115,7 @@ typedef struct MuLogEvent
 typedef struct MuTestMethods
 {
     void (*expect)(struct MuTestToken*, MuTestStatus status);
+    void (*timeout)(struct MuTestToken*, long ms);
     void (*event)(struct MuTestToken*, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
     void (*assert)(struct MuTestToken*, int result, int sense, const char* expr, const char* file, unsigned int line);
     void (*assert_equal)(struct MuTestToken*, const char* expr, const char* expected, int sense,
@@ -126,7 +127,8 @@ typedef struct MuTestMethods
 
 typedef enum MuTestMeta
 {
-    MU_META_EXPECT
+    MU_META_EXPECT,
+    MU_META_TIMEOUT
 } MuTestMeta;
 
 typedef struct MuTestToken
@@ -150,9 +152,7 @@ typedef struct MuTest
     const char* file;
     /** First line of test definition */
     unsigned int line;
-    /** Expected result of test */
-    MuTestStatus expected;
-	/** Loader which loaded this test */
+    /** Loader which loaded this test */
     struct MuLoader* loader;
     /** Library which contains this test */
     struct MuLibrary* library;

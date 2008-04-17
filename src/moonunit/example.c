@@ -83,19 +83,25 @@ MU_TEST(Arithmetic, skip)
     MU_SKIP("This test is skipped");
 }
 
-MU_TEST_EX(Arithmetic, bad, MU_STATUS_ASSERTION)
+MU_TEST(Arithmetic, bad)
 {
-	MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x + y, 4);	
+    MU_EXPECT(MU_STATUS_ASSERTION);
+
+    MU_ASSERT_EQUAL(MU_TYPE_INTEGER, x + y, 4);	
 }
 
-MU_TEST_EX(Arithmetic, bad2, MU_STATUS_ASSERTION)
+MU_TEST(Arithmetic, bad2)
 {
-	MU_ASSERT(x > y);
+    MU_EXPECT(MU_STATUS_ASSERTION);
+
+    MU_ASSERT(x > y);
 }
 
-MU_TEST_EX(Arithmetic, crash, MU_STATUS_CRASH)
+MU_TEST(Arithmetic, crash)
 {
-	MU_ASSERT(x / (y - 3) == x);
+    MU_EXPECT(MU_STATUS_CRASH);
+    
+    MU_ASSERT(x / (y - 3) == x);
 }
 
 #if MU_LINK_STYLE != MU_LINK_NONE
@@ -106,41 +112,50 @@ unsigned int divide(int a, int b)
     return a / b;
 }
 
-MU_TEST_EX(Arithmetic, bad_link, MU_STATUS_ASSERTION)
+MU_TEST(Arithmetic, bad_link)
 {
+    MU_EXPECT(MU_STATUS_ASSERTION);
+
     divide(5, 0);
 }
 #endif
 
-MU_TEST_EX(Crash, segfault, MU_STATUS_CRASH)
+MU_TEST(Crash, segfault)
 {
-	*(int*)0 = 42;
+    MU_EXPECT(MU_STATUS_CRASH);
+    
+    *(int*)0 = 42;
 }
 
-MU_TEST_EX(Crash, segfault_teardown, MU_STATUS_CRASH)
+MU_TEST(Crash, segfault_teardown)
 {
-	// The teardown function for this harness will crash
-	// when this test is run
+    MU_EXPECT(MU_STATUS_CRASH);
+    // The teardown function for this fixture will crash
+    // when this test is run
 }
 
-MU_TEST_EX(Crash, pipe, MU_STATUS_CRASH)
+MU_TEST(Crash, pipe)
 {
-	int fd[2];
-	
-	pipe(fd);
-	
-	close(fd[0]);
-	
-	write(fd[1], fd, sizeof(int)*2);
+    int fd[2];
+    
+    MU_EXPECT(MU_STATUS_CRASH);
+    
+    pipe(fd);
+    close(fd[0]);
+    write(fd[1], fd, sizeof(int)*2);
 }
 
-MU_TEST_EX(Crash, abort, MU_STATUS_CRASH)
+MU_TEST(Crash, abort)
 {
-	abort();
+    MU_EXPECT(MU_STATUS_CRASH);
+    abort();
 }
 
-MU_TEST_EX(Crash, timeout, MU_STATUS_TIMEOUT)
+MU_TEST(Crash, timeout)
 {
+    MU_EXPECT(MU_STATUS_TIMEOUT);
+    MU_TIMEOUT(100);
+
     pause();
 }
 

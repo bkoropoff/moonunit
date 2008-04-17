@@ -134,34 +134,6 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_TEST(_suite, _name)                                          \
-    MU_TEST_EX(_suite, _name, MU_STATUS_SUCCESS)                        \
-
-/**
- * @brief Defines a unit test (extended options)
- *
- * This macro expands to the definition of several global
- * structures and functions which can be detected and
- * extracted by the Moonunit test loader; it must be
- * followed by the test body enclosed in curly braces.
- * It should only be used at the top level of a C file.
- * In order to preserve expected symbol names, C++ code
- * must wrap all unit test definitions with extern "C" { ... }
- *
- * <b>Example:</b>
- * @code
- * MU_TEST_EX(Arithmetic, fail, MU_STATUS_ASSERTION)
- * {
- *     MU_ASSERT(2 + 2 == 5);
- * }
- * @endcode
- *
- * @param suite the (unquoted) name of the test suite which
- * this test should be part of
- * @param name the (unquoted) name of this test
- * @param expected the expected result of this test (MuTestStatus)
- * @hideinitializer
- */
-#define MU_TEST_EX(_suite, _name, _expected)                            \
     __MU_SECTION_TEXT__                                                 \
     __MU_HIDDEN_TEST__                                                  \
     void __mu_f_##_suite##_##_name(MuTestToken*);                       \
@@ -174,7 +146,6 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
         FIELD(name, #_name),                                            \
         FIELD(file, __FILE__),                                          \
         FIELD(line, __LINE__),                                          \
-        FIELD(expected, _expected),                                     \
         FIELD(loader, NULL),                                            \
         FIELD(library, NULL),                                           \
         FIELD(run, __mu_f_##_suite##_##_name)                           \
@@ -511,6 +482,9 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 
 #define MU_EXPECT(result) \
     (MU_TOKEN->method.expect(MU_TOKEN, result))
+
+#define MU_TIMEOUT(ms) \
+    (MU_TOKEN->method.timeout(MU_TOKEN, ms))
 
 /**
  * @brief Logs non-fatal messages

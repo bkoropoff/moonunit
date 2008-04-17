@@ -46,13 +46,17 @@ namespace MoonUnit
     };
 };
 
-MU_TEST_EX(Crash, exception, MU_STATUS_EXCEPTION)
+MU_TEST(Crash, exception)
 {
+    MU_EXPECT(MU_STATUS_EXCEPTION);
+
     throw MoonUnit::example_exception("I threw an exception");
 }
 
-MU_TEST_EX(Crash, unknown_exception, MU_STATUS_EXCEPTION)
+MU_TEST(Crash, unknown_exception)
 {
+    MU_EXPECT(MU_STATUS_EXCEPTION);
+
     throw 5;
 }
 

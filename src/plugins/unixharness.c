@@ -56,6 +56,16 @@
 static long default_timeout;
 static UnixToken* current_token;
 
+typedef struct
+{
+    MuTestStatus expect_status;
+} ExpectMsg;
+
+typedef struct
+{
+    long timeout;
+} TimeoutMsg;
+
 static uipc_typeinfo backtrace_info =
 {
     .name = "MuBacktrace",
@@ -93,8 +103,30 @@ static uipc_typeinfo logevent_info =
     }
 };
 
+
+static uipc_typeinfo timeout_info =
+{
+    .size = sizeof(TimeoutMsg),
+    .members =
+    {
+	UIPC_END
+    }
+};
+
+
+static uipc_typeinfo expect_info =
+{
+    .size = sizeof(ExpectMsg),
+    .members =
+    {
+	UIPC_END
+    }
+};
+
 #define MSG_TYPE_RESULT 0
 #define MSG_TYPE_EVENT 1
+#define MSG_TYPE_TIMEOUT 2
+#define MSG_TYPE_EXPECT 3
 
 void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
 {
@@ -127,7 +159,6 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
     }
 
     ((MuTestResult*) summary)->stage = token->current_stage;
-    ((MuTestResult*) summary)->expected = token->expected;
     uipc_message* message = uipc_msg_new(MSG_TYPE_RESULT);
     uipc_msg_set_payload(message, summary, &testresult_info);
     uipc_send(ipc_handle, message, NULL);
@@ -152,8 +183,33 @@ unixtoken_meta(MuTestToken* _token, MuTestMeta type, ...)
     switch (type)
     {
     case MU_META_EXPECT:
-        token->expected = va_arg(ap, MuTestStatus);
+    {
+        uipc_handle* ipc_handle = token->ipc_handle;
+        ExpectMsg msg = { va_arg(ap, MuTestStatus) };
+	
+        if (!ipc_handle)
+            return;
+        
+        uipc_message* message = uipc_msg_new(MSG_TYPE_EXPECT);
+        uipc_msg_set_payload(message, &msg, &expect_info);
+        uipc_send(ipc_handle, message, NULL);
+        uipc_msg_free(message);
         break;
+    }
+    case MU_META_TIMEOUT:
+    {
+        uipc_handle* ipc_handle = token->ipc_handle;
+        TimeoutMsg msg = { va_arg(ap, long) };
+	
+        if (!ipc_handle)
+            return;
+        
+        uipc_message* message = uipc_msg_new(MSG_TYPE_TIMEOUT);
+        uipc_msg_set_payload(message, &msg, &timeout_info);
+        uipc_send(ipc_handle, message, NULL);
+        uipc_msg_free(message);
+        break;
+    }
     }
 
     va_end(ap);
@@ -203,7 +259,7 @@ unixtoken_new(MuTest* test)
     token->base.meta = unixtoken_meta;
     token->base.result = unixtoken_result;
     token->base.event = unixtoken_event;
-    token->expected = test->expected;
+    token->expected = MU_STATUS_SUCCESS;
 
     return token;
 }
@@ -257,16 +313,16 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
     
         if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
             INVOKE(thunk, token);
-    
+        
         token->current_stage = MU_STAGE_TEST;
-    
+        
         INVOKE(test->run, token);
-    
+        
         token->current_stage = MU_STAGE_TEARDOWN;
-    
+        
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
             INVOKE(thunk, token);
-    
+        
         token->base.method.success((MuTestToken*) token);
     
         close(sockets[1]);
@@ -306,6 +362,24 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
                     message = NULL;
                     break;
                 } 
+                case MSG_TYPE_EXPECT:
+                {
+                    ExpectMsg* msg = uipc_msg_get_payload(message, &expect_info);
+                    token->expected = msg->expect_status;
+                    uipc_msg_free_payload(msg, &expect_info);
+                    uipc_msg_free(message);
+                    message = NULL;
+                    break;
+                }
+                case MSG_TYPE_TIMEOUT:
+                {
+                    TimeoutMsg* msg = uipc_msg_get_payload(message, &timeout_info);
+                    timeleft = msg->timeout;
+                    uipc_msg_free_payload(msg, &timeout_info);
+                    uipc_msg_free(message);
+                    message = NULL;
+                    break;
+                }
                 }
             }
             else
@@ -355,6 +429,10 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
                 summary->line = 0;
                 summary->reason = strdup("Unexpected termination");
             }
+        }
+        else
+        {
+            summary->expected = token->expected;
         }
 
         if (message)

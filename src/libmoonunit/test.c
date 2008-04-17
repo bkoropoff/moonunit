@@ -41,6 +41,12 @@ __mu_expect(MuTestToken* token, MuTestStatus status)
 }
 
 void
+__mu_timeout(MuTestToken* token, long ms)
+{
+    token->meta(token, MU_META_TIMEOUT, ms);
+}
+
+void
 __mu_event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
 {
     MuLogEvent event;
@@ -284,6 +290,7 @@ __mu_skip(MuTestToken* token, const char* file, unsigned int line, const char* m
 static MuTestMethods generic_methods =
 {
     .expect = __mu_expect,
+    .timeout = __mu_timeout,
     .event = __mu_event,
 	.assert = __mu_assert,
 	.assert_equal = __mu_assert_equal,

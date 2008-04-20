@@ -29,6 +29,7 @@
 #define __UNIXTOKEN_H__
 
 #include <uipc/ipc.h>
+#include <sys/types.h>
 
 typedef struct
 {

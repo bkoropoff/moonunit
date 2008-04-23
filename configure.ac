@@ -17,6 +17,9 @@ case "$target_os" in
 	LDFLAGS="$LDFLAGS -Wl,-brtl"
 	;;
     linux-gnu)
+	STDFLAGS="-std=c99"
+	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500"
+	CC="$CC $STDFLAGS"
         moduleext=".so"
 	;;
     hpux11.*)

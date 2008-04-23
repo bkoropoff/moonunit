@@ -64,9 +64,9 @@ packet_from_message(uipc_message* message)
         return NULL;
 
     packet->header.type = PACKET_MESSAGE;
-    packet->message.type = message->type;
+    packet->u.message.type = message->type;
 
-    payload_length = uipc_marshal_payload(packet->message.payload, PAYLOAD_BUFFER_SIZE,
+    payload_length = uipc_marshal_payload(packet->u.message.payload, PAYLOAD_BUFFER_SIZE,
                                           message->payload, message->payload_type);
     
     if (payload_length > PAYLOAD_BUFFER_SIZE)
@@ -75,11 +75,11 @@ packet_from_message(uipc_message* message)
                          sizeof(uipc_packet_header) +
                          sizeof(uipc_packet_message) +
                          payload_length);
-        payload_length = uipc_marshal_payload(packet->message.payload, payload_length,
+        payload_length = uipc_marshal_payload(packet->u.message.payload, payload_length,
                                               message->payload, message->payload_type);
     }
 
-    packet->message.length = payload_length;
+    packet->u.message.length = payload_length;
     packet->header.length = 
         sizeof(uipc_packet_header) +
         sizeof(uipc_packet_message) +
@@ -91,12 +91,12 @@ packet_from_message(uipc_message* message)
 static uipc_message* 
 message_from_packet(uipc_packet* packet)
 {
-	uipc_message* message = malloc(sizeof(uipc_message));
+    uipc_message* message = malloc(sizeof(uipc_message));
 	
     if (!message)
         return NULL;
 
-    message->type = packet->message.type;
+    message->type = packet->u.message.type;
     message->packet = packet;
     message->payload = NULL;
     message->payload_type = NULL;
@@ -107,15 +107,15 @@ message_from_packet(uipc_packet* packet)
 uipc_handle* 
 uipc_attach(int socket)
 {
-	uipc_handle* handle = malloc(sizeof (uipc_handle));
+    uipc_handle* handle = malloc(sizeof (uipc_handle));
 
     if (!handle)
         return NULL;
 	
-	handle->socket = socket;
+    handle->socket = socket;
     handle->readable = handle->writeable = true;
 
-	return handle;
+    return handle;
 }
 
 uipc_status
@@ -273,7 +273,7 @@ uipc_msg_get_payload(uipc_message* message, uipc_typeinfo* info)
     if (message->packet)
     {
         void* object;
-        uipc_unmarshal_payload(&object, message->packet->message.payload, info); 
+        uipc_unmarshal_payload(&object, message->packet->u.message.payload, info); 
         return object;
     }
     else

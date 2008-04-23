@@ -53,7 +53,7 @@ typedef struct uipc_packet
 	union
 	{
 		uipc_packet_message message;
-	};
+	} u;
 } uipc_packet;
 
 uipc_status uipc_packet_send(int socket, uipc_packet* packet);

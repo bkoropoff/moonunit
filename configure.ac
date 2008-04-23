@@ -2,9 +2,14 @@ AC_INIT([moonunit],[0.3],[bkoropoff __at__ gmail_com])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
+AC_PROG_CC
+AC_PROG_CXX
+
 case "$target_os" in
     solaris2.*)
-        CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500 -D__EXTENSIONS__"
+	STDFLAGS="-std=c99"
+	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__"
+	CC="$CC $STDFLAGS"
 	moduleext=".so"
 	;;
     aix5.*|aix6.*)
@@ -90,9 +95,6 @@ AC_ARG_WITH([libelf],
 	])
 
 AC_CONFIG_HEADERS(include/config.h)
-
-AC_PROG_CC
-AC_PROG_CXX
 
 if $WANT_CPLUSPLUS
 then

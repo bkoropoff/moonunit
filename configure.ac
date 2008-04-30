@@ -40,7 +40,7 @@ case "$target_os" in
     darwin8.*)
 	moduleext=".so"
 	;;
-    freebsd6.*)
+    freebsd6.*|freebsd7.*)
 	moduleext=".so"
 	;;
     *)

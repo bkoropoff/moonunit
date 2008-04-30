@@ -27,6 +27,10 @@
 
 #include "wire.h"
 
+#ifdef HAVE_CONFIG_H
+#    include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <poll.h>
 #include <unistd.h>

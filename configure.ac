@@ -41,6 +41,9 @@ case "$target_os" in
 	moduleext=".so"
 	;;
     freebsd6.*|freebsd7.*)
+	STDFLAGS="-std=c99"
+	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L -D__BSD_VISIBLE=1"
+	CC="$CC $STDFLAGS"
 	moduleext=".so"
 	;;
     *)

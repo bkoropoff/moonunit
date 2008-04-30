@@ -37,7 +37,8 @@ moonunit-stub: moonunit-stub.sh
 example_stub.c: $(EXAMPLE_SOURCES) moonunit-stub
 	$(top_builddir)/src/moonunit/moonunit-stub $(EXAMPLE_SOURCES) -o $@ \
 		CPPFLAGS="$(CPPFLAGS) $(AM_CPPFLAGS) $(LINKSTYLE)" \
-		CPP="$(CPP)"
+		CXXCPPFLAGS="$(CPPFLAGS) $(AM_CPPFLAGS) $(LINKSTYLE)" \
+		CPP="$(CPP)" CXXCPP="$(CXXCPP)"
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 

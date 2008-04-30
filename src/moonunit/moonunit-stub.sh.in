@@ -71,9 +71,27 @@ function extract_fixture_teardown()
     extract_symbols "__mu_ft_"
 }
 
+function ends_with()
+{
+    echo "$1" | grep "$2\$" >/dev/null 2>&1
+}
+
+function is_cplusplus()
+{
+    ends_with "$1" "\.cpp" ||
+    ends_with "$1" "\.C" ||
+    ends_with "$1" "\.cc" ||
+    ends_with "$1" "\.c++"
+}
+
 function preprocess()
 {
-    ${CPP:-cpp} $CPPFLAGS "$1"
+    if is_cplusplus "$1"
+    then
+	${CXXCPP:-cpp} ${CXXCPPFLAGS:-$CPPFLAGS} "$1"
+    else
+	${CPP:-cpp} $CPPFLAGS "$1"
+    fi
 }
 
 function emit_test_prototypes()

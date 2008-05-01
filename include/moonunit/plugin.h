@@ -29,6 +29,7 @@
 #define __MU_PLUGIN_H__
 
 #include <stdbool.h>
+#include <moonunit/boilerplate.h>
 
 struct MuLogger;
 struct MuHarness;
@@ -46,6 +47,8 @@ typedef struct MuPlugin
 #define MU_PLUGIN_INIT \
     MuPlugin* __mu_p_init ()
 
+C_BEGIN_DECLS
+
 struct MuLoader* Mu_Plugin_GetLoaderWithName(const char *name);
 struct MuLoader* Mu_Plugin_GetLoaderForFile(const char *file);
 struct MuHarness* Mu_Plugin_GetHarness(const char *name);
@@ -53,5 +56,7 @@ struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
 MuPlugin** Mu_Plugin_List(void);
 MuPlugin* Mu_Plugin_GetByName(const char* name);
 void Mu_Plugin_Shutdown(void);
+
+C_END_DECLS
 
 #endif

@@ -30,6 +30,7 @@
 
 #include <stdarg.h>
 #include <moonunit/type.h>
+#include <moonunit/boilerplate.h>
 
 typedef struct MuOption
 {
@@ -42,17 +43,23 @@ typedef struct MuOption
 
 #define MU_OPTION(_name, _type, _get, _set, _description)   \
     {                                                       \
-        .type = (_type),                                    \
-        .name = (_name),                                    \
-        .set = (void*) (_set),                              \
-        .get = (void*) (_get),                              \
-        .description = (_description)                       \
+        FIELD(name, (_name)),                               \
+        FIELD(type, (_type)),                               \
+        FIELD(set, (_set)),                                 \
+        FIELD(get, (_get)),                                 \
+        FIELD(description, (_description))                  \
     }
 
-#define MU_OPTION_END                           \
-    {                                           \
-        .name = NULL,                           \
-    }                                           \
+#define MU_OPTION_END                                       \
+    {                                                       \
+        FIELD(name, NULL),                                  \
+        FIELD(type, MU_TYPE_UNKNOWN),                       \
+        FIELD(set, NULL),                                   \
+        FIELD(get, NULL),                                   \
+        FIELD(description, NULL)                            \
+    }                                                       \
+
+C_BEGIN_DECLS
 
 void Mu_Option_SetString(MuOption* table, void* object, const char *name, const char* value);
 void Mu_Option_Setv(MuOption* table, void* object, const char *name, va_list ap);
@@ -60,5 +67,7 @@ void Mu_Option_Set(MuOption* table, void* object, const char *name, ...);
 void Mu_Option_Get(MuOption* table, void* object, const char *name, void* res);
 MuType Mu_Option_Type(MuOption* table, const char* name);
 const char* Mu_Option_Description(MuOption* table, const char *name);
+
+C_END_DECLS
 
 #endif

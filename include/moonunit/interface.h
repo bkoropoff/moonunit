@@ -133,22 +133,22 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param test_name the (unquoted) name of this test
  * @hideinitializer
  */
-#define MU_TEST(suite_name, test_name)					\
+#define MU_TEST(suite_name, test_name)                                  \
     __MU_SECTION_TEXT__                                                 \
     __MU_HIDDEN_TEST__                                                  \
-    void __mu_f_##suite_name##_##test_name(MuTestToken*);		\
-    C_DECL MuTest __mu_t_##suite_name##_##test_name;			\
+    void __mu_f_##suite_name##_##test_name(MuTestToken*);               \
+    C_DECL MuTest __mu_t_##suite_name##_##test_name;                    \
     __MU_SECTION_DATA__                                                 \
     __MU_HIDDEN_TEST__                                                  \
-    MuTest __mu_t_##suite_name##_##test_name =				\
+    MuTest __mu_t_##suite_name##_##test_name =                          \
     {                                                                   \
-        FIELD(suite, #suite_name),					\
-        FIELD(name, #test_name),					\
+        FIELD(suite, #suite_name),                                      \
+        FIELD(name, #test_name),                                        \
         FIELD(file, __FILE__),                                          \
         FIELD(line, __LINE__),                                          \
         FIELD(loader, NULL),                                            \
         FIELD(library, NULL),                                           \
-        FIELD(run, __mu_f_##suite_name##_##test_name)			\
+        FIELD(run, __mu_f_##suite_name##_##test_name)                   \
     };                                                                  \
     void __mu_f_##suite_name##_##test_name(MuTestToken* __mu_token__)
 
@@ -172,15 +172,15 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_SETUP			    \
-    __MU_HIDDEN_TEST__				    \
-    void __mu_f_ls();				    \
+#define MU_LIBRARY_SETUP                    \
+    __MU_HIDDEN_TEST__                      \
+    void __mu_f_ls();                       \
     __MU_HIDDEN_TEST__                      \
     MuLibrarySetup __mu_ls =			    \
     {                                       \
-        .file = __FILE__,                   \
-        .line = __LINE__,                   \
-        .run = __mu_f_ls                    \
+        FIELD(file, __FILE__),              \
+        FILED(line, __LINE__),              \
+        FIELD(run, __mu_f_ls)               \
     };                                      \
     void __mu_f_ls()
 
@@ -210,9 +210,9 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
     __MU_HIDDEN_TEST__                      \
     MuLibraryTeardown __mu_lt =			    \
     {                                       \
-        .file = __FILE__,                   \
-        .line = __LINE__,                   \
-        .run = __mu_f_lt                    \
+        FIELD(file, __FILE__),              \
+        FIELD(line, __LINE__),              \
+        FIELD(run, __mu_f_lt)               \
     };                                      \
     void __mu_f_lt()
 
@@ -248,17 +248,17 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_SETUP(suite_name)				    \
-    __MU_HIDDEN_TEST__						    \
+#define MU_FIXTURE_SETUP(suite_name)                            \
+    __MU_HIDDEN_TEST__                                          \
     void __mu_f_fs_##suite_name(MuTestToken* __mu_token__);	    \
-    __MU_HIDDEN_TEST__						    \
-    MuFixtureSetup __mu_fs_##suite_name =			    \
-    {								    \
-        .name = #suite_name,					    \
-        .file = __FILE__,					    \
-        .line = __LINE__,					    \
-        .run = __mu_f_fs_##suite_name				    \
-    };								    \
+    __MU_HIDDEN_TEST__                                          \
+    MuFixtureSetup __mu_fs_##suite_name =                       \
+    {                                                           \
+        FIELD(name, #suite_name),                               \
+        FIELD(file, __FILE__),                                  \
+        FIELD(line, __LINE__),                                  \
+        FIELD(run, __mu_f_fs_##suite_name)                      \
+    };                                                          \
     void __mu_f_fs_##suite_name(MuTestToken* __mu_token__)
 
 /**
@@ -299,17 +299,17 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_TEARDOWN(suite_name)				\
-    __MU_HIDDEN_TEST__						\
+#define MU_FIXTURE_TEARDOWN(suite_name)                         \
+    __MU_HIDDEN_TEST__                                          \
     void __mu_f_ft_##suite_name(MuTestToken* __mu__token__);	\
-    __MU_HIDDEN_TEST__						\
-    MuFixtureTeardown __mu_ft_##suite_name =			\
-    {								\
-        .name = #suite_name,					\
-        .file = __FILE__,					\
-        .line = __LINE__,					\
-        .run = __mu_f_ft_##suite_name				\
-    };								\
+    __MU_HIDDEN_TEST__                                          \
+    MuFixtureTeardown __mu_ft_##suite_name =                    \
+    {                                                           \
+        FIELD(name, #suite_name),                               \
+        FIELD(file, __FILE__),                                  \
+        FIELD(line, __LINE__),                                  \
+        FIELD(run, __mu_f_ft_##suite_name)                      \
+    };                                                          \
     void __mu_f_ft_##suite_name(MuTestToken* __mu_token__)
 
 /*@}*/
@@ -343,8 +343,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expr the expression to test
  * @hideinitializer
  */
-#define MU_ASSERT(expr)							\
-    MU_TOKEN->method.assert(MU_TOKEN, expr, 1, #expr, __FILE__, __LINE__)
+#define MU_ASSERT(expr)                                                 \
+    (MU_TOKEN->method.assert(MU_TOKEN, expr, 1, #expr, __FILE__, __LINE__))
 
 /**
  * @brief Confirm equality of values or fail
@@ -379,11 +379,11 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expected the second expression
  * @hideinitializer
  */
-#define MU_ASSERT_EQUAL(type, expr, expected)			\
-    MU_TOKEN->method.assert_equal(MU_TOKEN,			\
-                                  #expr, #expected, 1,		\
-                                  __FILE__, __LINE__,		\
-                                  type, (expr), (expected))	\
+#define MU_ASSERT_EQUAL(type, expr, expected)                   \
+    (MU_TOKEN->method.assert_equal(MU_TOKEN,                    \
+                                   #expr, #expected, 1,         \
+                                   __FILE__, __LINE__,          \
+                                   type, (expr), (expected)))   \
     
 /**
  * @brief Confirm inequality of values or fail
@@ -418,12 +418,12 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expected the second expression
  * @hideinitializer
  */
-#define MU_ASSERT_NOT_EQUAL(type, expr, expected)		\
-    MU_TOKEN->method.assert_equal(MU_TOKEN,			\
-                                  #expr, #expected, 0,		\
-                                  __FILE__, __LINE__,		\
-                                  type, (expr), (expected))	\
-
+#define MU_ASSERT_NOT_EQUAL(type, expr, expected)               \
+    (MU_TOKEN->method.assert_equal(MU_TOKEN,                    \
+                                   #expr, #expected, 0,         \
+                                   __FILE__, __LINE__,          \
+                                   type, (expr), (expected)))	\
+    
 /**
  * @brief Succeed immediately
  *
@@ -436,8 +436,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @endcode
  * @hideinitializer
  */
-#define MU_SUCCESS				\
-    MU_TOKEN->method.success(MU_TOKEN)
+#define MU_SUCCESS                              \
+    (MU_TOKEN->method.success(MU_TOKEN))
 
 /**
  * @brief Fail immediately
@@ -462,7 +462,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #ifdef DOXYGEN
 #  define MU_FAILURE(format, ...)
 #else
-#  define MU_FAILURE(...) \
+#  define MU_FAILURE(...)                                               \
     (MU_TOKEN->method.failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
 #endif
 
@@ -490,7 +490,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #ifdef DOXYGEN
 #    define MU_SKIP(format, ...)
 #else
-#    define MU_SKIP(...)						\
+#    define MU_SKIP(...)                                                \
     (MU_TOKEN->method.skip(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
 #endif
 
@@ -574,7 +574,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param ... a printf-style format string and trailing arguments for the message to log
  * @hideinitializer
  */
-#define MU_LOG(level, ...) (MU_TOKEN->method.event(MU_TOKEN, (level), __FILE__, __LINE__, __VA_ARGS__))
+#define MU_LOG(level, ...)                                              \
+    (MU_TOKEN->method.event(MU_TOKEN, (level), __FILE__, __LINE__, __VA_ARGS__))
 
 /**
  * @brief Log a warning
@@ -582,28 +583,32 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * Equivalent to MU_LOG(MU_LEVEL_WARNING, ...)
  * @hideinitializer
  */
-#define MU_WARNING(...) (MU_LOG(MU_LEVEL_WARNING, __VA_ARGS__))
+#define MU_WARNING(...)                         \
+    (MU_LOG(MU_LEVEL_WARNING, __VA_ARGS__))
 /**
  * @brief Log an informational message
  *
  * Equivalent to MU_LOG(MU_LEVEL_INFO, ...)
  * @hideinitializer
  */
-#define MU_INFO(...) (MU_LOG(MU_LEVEL_INFO, __VA_ARGS__))
+#define MU_INFO(...)                            \
+    (MU_LOG(MU_LEVEL_INFO, __VA_ARGS__))
 /**
  * @brief Log a verbose message
  *
  * Equivalent to MU_LOG(MU_LEVEL_VERBOSE, ...)
  * @hideinitializer
  */
-#define MU_VERBOSE(...) (MU_LOG(MU_LEVEL_VERBOSE, __VA_ARGS__))
+#define MU_VERBOSE(...)                         \
+    (MU_LOG(MU_LEVEL_VERBOSE, __VA_ARGS__))
 /**
  * @brief Log a trace message
  *
  * Equivalent to MU_LOG(MU_LEVEL_TRACE, ...)
  * @hideinitializer
  */
-#define MU_TRACE(...) (MU_LOG(MU_LEVEL_TRACE, __VA_ARGS__))
+#define MU_TRACE(...)                           \
+    (MU_LOG(MU_LEVEL_TRACE, __VA_ARGS__))
 
 /*@}*/
 

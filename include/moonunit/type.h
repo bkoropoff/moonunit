@@ -28,6 +28,8 @@
 #ifndef __MU_TYPE_H__
 #define __MU_TYPE_H__
 
+#include <moonunit/boilerplate.h>
+
 typedef enum MuType
 {
     MU_TYPE_INTEGER,
@@ -38,6 +40,10 @@ typedef enum MuType
     MU_TYPE_UNKNOWN
 } MuType;
 
+C_BEGIN_DECLS
+
 const char* Mu_Type_ToString(MuType type);
+
+C_END_DECLS
 
 #endif

@@ -48,6 +48,8 @@ typedef struct MuLogger
     MuOption* options;
 } MuLogger;
 
+C_BEGIN_DECLS
+
 void Mu_Logger_SetOption(MuLogger* logger, const char *name, ...);
 void Mu_Logger_SetOptionString(MuLogger* logger, const char *name, const char *value);
 MuType Mu_Logger_OptionType(MuLogger* logger, const char *name);
@@ -64,5 +66,6 @@ void Mu_Logger_TestLeave (struct MuLogger*,
                           struct MuTest*, struct MuTestResult*);
 void Mu_Logger_Destroy(MuLogger* logger);
 
+C_END_DECLS
 
 #endif

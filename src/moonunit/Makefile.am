@@ -18,7 +18,7 @@ else
 example_la_LINK = $(LINK) $(example_la_LDFLAGS)
 endif
 
-EXTRA_DIST = moonunit-lt.sh moonunit-strip.sh moonunit-stub.sh option.h run.h gdb.h multilog.h
+EXTRA_DIST = moonunit-lt.sh.in moonunit-strip.sh.in moonunit-stub.sh.in option.h run.h gdb.h multilog.h upopt.h
 BUILT_SOURCES = example_stub.c
 CLEANFILES = example_stub.c
 

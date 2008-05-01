@@ -30,7 +30,7 @@ else
 unix_la_LINK = $(LINK) $(unix_la_LDFLAGS)
 endif
 
-EXTRA_DIST = elfscan.h
+EXTRA_DIST = elfscan.h backtrace.h unixtoken.h cplusplus.h
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 

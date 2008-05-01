@@ -1,4 +1,4 @@
-AC_INIT([moonunit],[0.3],[bkoropoff __at__ gmail_com])
+AC_INIT([moonunit],[0.4],[bkoropoff __at__ gmail_com])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 

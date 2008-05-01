@@ -37,6 +37,11 @@
  *
  * This module contains the essential ingredients to add unit tests
  * to your code which Moonunit can discover and run.
+ *
+ * @warning As unit tests are not intended for installation on end
+ * user systems, the APIs defined in these modules are not guaranteed to
+ * remain ABI compatible across releases.  Source compatibility will
+ * be maintained within the same major version of MoonUnit.
  */
 /*@{*/
 
@@ -112,13 +117,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 /**
  * @brief Defines a unit test
  *
- * This macro expands to the definition of several global
- * structures and functions which can be detected and
- * extracted by the Moonunit test loader; it must be
+ * This macro defines a unit test; it must be
  * followed by the test body enclosed in curly braces.
- * It should only be used at the top level of a C file.
- * In order to preserve expected symbol names, C++ code
- * must wrap all unit test definitions with extern "C" { ... }
  *
  * <b>Example:</b>
  * @code
@@ -163,6 +163,12 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * instance of this macro should appear in a given
  * library.
  *
+ * @warning A routine defined in this manner will
+ * <i>not</i> be executed in a separate process by
+ * the default harness plugin.  Care must be taken
+ * to avoid crashing or otherwise interfering with
+ * the operation of the harness.
+ *
  * <b>Example:</b>
  * @code
  * MU_LIBRARY_SETUP
@@ -195,6 +201,12 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * resources.  Only one instance of this macro should
  * appear in a given library.
  *
+ * @warning A routine defined in this manner will
+ * <i>not</i> be executed in a separate process by
+ * the default harness plugin.  Care must be taken
+ * to avoid crashing or otherwise interfering with
+ * the operation of the harness.
+ *
  * <b>Example:</b>
  * @code
  * MU_LIBRARY_TEARDOWN
@@ -222,10 +234,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * Defines the setup routine for a test fixture --
  * an environment common to all tests in a particular
  * suite.  This routine will be run immediately before
- * each test in the given suite.  All macros available
- * during the body of a test are also available during
- * the setup routine.  The setup routine may signal
- * success or failure before the test itself
+ * each test in the given suite. The setup routine may
+ * signal success or failure before the test itself
  * is executed; in this case, the test itself will
  * not be run.
  *
@@ -267,20 +277,17 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * Defines the teardown routine for a test fixture --
  * an environment common to all tests in a particular
  * suite.  This routine will be run immediately after
- * each test in the given suite.  All macros available
- * during the body of a test are also available during
- * the teardown routine.  A teardown routine may
- * signal failure, causing the test to reported as 
+ * each test in the given suite.  A teardown routine may
+ * signal failure, causing the test to be reported as 
  * failing even if the test itself did not.  This
  * may be used to enforce a common postcondition for
- * a suite of tests.  However, the primary purpose is
- * to free any resources allocated by the matching
- * fixture setup routine.
+ * a suite of tests, free resources acquired in the
+ * setup routine, etc.
  *
  * This macro should be followed by the body of the
  * setup routine enclosed in curly braces.
  *
- * <i>Note</i>: If tests are run in a separate process,
+ * @note If tests are run in a separate process,
  * explicit deallocation of resources is not necessary.
  *
  * <b>Example:</b>
@@ -501,11 +508,12 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * of the current test.  By default, all tests are
  * expected to succeed (MU_STATUS_SUCCESS).  However,
  * some tests are most naturally written in a way such
- * that they fail, e.g. by throwing an uncaught exception.
- * In these cases, MU_EXPECT may be used to indicate
- * the expected test status before proceeding.  If the
- * indicated status is not MU_STATUS_SUCCESS, test
- * results will be classified as follows:
+ * that they normally fail, such as by throwing
+ * an uncaught exception. In these cases, MU_EXPECT may
+ * be used to indicate the expected test status before 
+ * proceeding.  If the indicated status is not
+ * MU_STATUS_SUCCESS, test results will be classified
+ * as follows:
  * <ul>
  * <li>If the test result is the same as that given to
  * MU_EXPECT, it will be classified as an expected failure</li>
@@ -623,19 +631,25 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 /*@{*/
 
 /**
- * @brief Access current unit test
+ * @brief Access interface to test harness
  *
- * This macro expands to a pointer to the MuTest
- * structure for the currently running test.  Modification
- * of this structure is strongly discouraged, but access
- * to information contained therein may be useful in
- * some applications.
+ * This macro expands to a pointer to the MuToken
+ * structure for the currently running test.  This
+ * allows direct access to methods for communication
+ * with the test harness, information about the current
+ * test, etc.
+ *
+ * @warning This macro is useful only in rare
+ * circumstances and its use is highly discouraged.
+ * It is subject to incompatible changes or deprecation
+ * in future versions without notice.
  *
  * <b>Example:</b>
  * @code
  * MU_FIXTURE_SETUP(SuiteName)
  * {
- *     CustomLogMessage("Entering test '%s'\n", MU_CURRENT_TEST->name);
+ *     // Access and print the name of the current test
+ *     MU_TRACE("Entering test '%s'\n", MU_TOKEN->test->name);
  * }
  * @endcode
  * @hideinitializer

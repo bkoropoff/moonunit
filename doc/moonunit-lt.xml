@@ -17,39 +17,44 @@
       <arg choice='opt'>--wrap <replaceable>command_prefix</replaceable></arg>
       <group choice="plain" rep="repeat">
 	<arg choice='plain'><replaceable>moonunit_parameter</replaceable></arg>
-	<arg choice='plain'><replaceable>libtool_archive</replaceable></arg>
+	<arg choice='plain'><replaceable>libtool_library</replaceable></arg>
       </group>
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id='description'>
     <title>Description</title>
     <para>
-      <command>moonunit-lt</command> allows uninstalled libtool archive (.la) files
+      <command>moonunit-lt</command> allows libtool library (.la) files
       to be used with <command>moonunit</command>. Libraries will be relinked as
-      necessary and parameters rewritten before invoking <command>moonunit</command>.
+      necessary and a modified set of parameters will be passed to <command>moonunit</command>.
     </para>
     <para>
       This script allows <emphasis>MoonUnit</emphasis> tests to be compiled and run
       as part of a project built with <command>libtool</command>.  All types of
-      libraries, including static, are supported.
+      libraries -- including static -- are supported.  Non-libtool libraries will
+      still work as expected.
+    </para>
+    <para>
+      As a convenience to plugin writers, <command>moonunit-lt</command> also
+      supports loading additional libtool libraries as plugins.
     </para>
   </refsect1>
   <refsect1 id='options'>
     <title>Options</title>
     <para>
       <command>moonunit-lt</command> expects a list of parameters as appropriate for
-      <command>moonunit</command>, with the exception that libtool archive files may
+      <command>moonunit</command>, with the exception that libtool library files may
       safely be specified.
     </para> 
     <para>
-      In addition, the following options are available
+      In addition, the following options are available:
     </para>
     <variablelist>
       <varlistentry>
 	<term><option>--plugin</option> <replaceable>module</replaceable></term>
 	<listitem>
 	  <para>
-	    Allows <replaceable>module</replaceable> (which should be a libtool archive) to be
+	    Allows <replaceable>module</replaceable> (which should be a libtool library) to be
 	    found and loaded as a <emphasis>MoonUnit</emphasis> plugin.  This is useful
 	    for testing a new plugin within its own build tree.
 	  </para>
@@ -66,7 +71,6 @@
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>-?</option></term>
 	<term><option>-h</option></term>
 	<term><option>--help</option></term>
 	<listitem>

@@ -23,9 +23,7 @@
     <para>
       <command>moonunit</command> detects, loads and invokes 
       <emphasis>MoonUnit</emphasis> unit tests in dynamic shared
-      objects.  By default test results are formatted and printed
-      to the console in real time, but alternate logging plugins
-      are supported.
+      objects and logs the results.
     </para>
   </refsect1>
   
@@ -94,7 +92,7 @@
             Attempts to load and use the logger plugin <replaceable>name</replaceable>.
             <replaceable>name</replaceable> may be followed by a colon and a comma-separated
             list of key-value pairs to pass configuration options to the logger.
-            To obtain a list of configuration options, see <xref linkend="option-plugin-info"/> 
+            To obtain a list of configuration options, see <xref linkend="option-plugin-info"/>. 
             The default is equivalent to <literal>console:ansi=true,columns=60</literal>, which
             produces colored, human-readable output on stdout.
           </para>
@@ -156,7 +154,7 @@
         <listitem>
           <para>
             Run all tests in <literal>library.so</literal>, printing results to the console without
-            ANSI color or fonts codes.
+            ANSI color.
           </para>
         </listitem>
       </varlistentry>
@@ -164,8 +162,8 @@
         <term><literal>moonunit -l xml:file=out.xml library.so</literal></term>
         <listitem>
           <para>
-            Run all tests in <literal>library.so</literal>, printing an XML-formatted test summary
-            suitable for postprocessing (e.g. with an XSLT stylesheet) to out.xml.
+            Run all tests in <literal>library.so</literal>, writing the results
+	    as XML to out.xml.
           </para>
         </listitem>
       </varlistentry>

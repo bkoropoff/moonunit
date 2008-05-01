@@ -8,7 +8,7 @@
   </refmeta>
   <refnamediv id='name'>
     <refname>moonunit-strip</refname>
-    <refpurpose>Removes MoonUnit tests from libraries and object files</refpurpose>
+    <refpurpose>Removes MoonUnit tests from libraries and object files *EXPERIMENTAL*</refpurpose>
   </refnamediv>
   <refsynopsisdiv id='synopsis'>
     <cmdsynopsis>
@@ -21,13 +21,12 @@
   <refsect1 id='description'><title>Description</title>
     <para>
       <command>moonunit-strip</command> removes <emphasis>MoonUnit</emphasis>
-      function and data sections from libraries, executables and object files
-      and strips related symbols, effectively excising all unit tests from a
-      binary.
+      function and data sections from libraries and strips related symbols,
+      removing all traces of unit tests.
     </para>
     <para>
       This permits unit tests to be compiled directly into
-      libraries and executables, run, and subsequently stripped,
+      libraries, run, and subsequently be stripped,
       yielding a binary suitable for distribution.
     </para>
   </refsect1>
@@ -42,7 +41,6 @@
     </para>
     <variablelist>
       <varlistentry>
-	<term><option>-?</option></term>
 	<term><option>-h</option></term>
 	<term><option>--help</option></term>
 	<listitem>
@@ -54,26 +52,51 @@
 
   <refsect1 id='caveats'><title>Caveats</title>
     <para>
+      This script is considered experimental.  Differences
+      between object file formats and linkers preclude
+      a functional implementation on all platforms.  A project
+      which aims for portability should either compile unit
+      tests as separate, discardable modules or allow them to
+      be filtered out at compile time using the preprocessor.
+    </para>
+    <para>
       Relocations will typically prevent symbols from being
       stripped in intermediate files such as static libraries
       and object files; however, the data and functions
-      themselves will be removed, and the vestigal symbols
+      themselves will be removed, and any vestigal symbols
       should be cleaned up by ordinary stripping of the final
-      library or executable.
+      library.
     </para>
     <para>
       If a shared library was compiled with exported
       unit tests (that is, present in the dynamic symbol table),
       the symbols cannot be stripped.  To allow stripping, define
       <literal>MU_HIDE_TESTS</literal> before including
-      <filename>moonunit/test.h</filename> or as part of your
-      compiler invocation.  Note that on ELF systems, 
+      <emphasis>MoonUnit</emphasis> headers.  Note that on ELF systems, 
       <command>moonunit</command> will still generally be able to
       locate unit tests in shared libraries even if they are
       hidden in this manner; other platforms may require the use
       of <command>moonunit-stub</command> to allow the loader access to
       hidden tests.
     </para>  
+    <para>
+      The <emphasis>MoonUnit</emphasis> test interface was designed
+      to minimize or eliminate external symbol references, obviating
+      the need to link against <literal>libmoonunit</literal> in most
+      cases.  To ensure that no other references to
+      <literal>libmoonunit</literal> symbols exist in your library,
+      define <literal>MU_LINK_STYLE</literal> to <literal>MU_LINK_NONE</literal>
+      before including <emphasis>MoonUnit</emphasis> headers.  Note that this
+      will change the mechanism used to communicate with the harness such
+      that test macros may not appear outside the immediate bodies of
+      unit tests.
+    </para>
+    <para>
+      If these steps are followed, it should be possible (on some platforms)
+      to remove all traces of unit tests, leaving behind a working library with no
+      <literal>libmoonunit</literal> dependencies.  In the future, a custom program
+      to process library files may eliminate these restrictions and complications.
+    </para>
     <para>
       <command>moonunit-strip</command> requires GNU <command>objcopy</command>.
     </para>

@@ -25,36 +25,23 @@
       <command>moonunit-stub</command> scans C and C++ source files for
       <emphasis>MoonUnit</emphasis> unit tests and generates a C stub file
       which assists the default test loader.  Scanned files
-      are first processed by the C preprocessor as specified
-      by the <literal>CPP</literal> and <literal>CPPFLAGS</literal>
-      environment variables.
+      are first processed by the C or C++ preprocessor.
     </para>
   </refsect1>
 
   <refsect1 id='rationale'>
     <title>Rationale</title>
-    <para>Ordinarily, the default <emphasis>MoonUnit</emphasis> test loader depends
-      on the availability of symbol information read from
-      a shared library to locate and access all unit tests.
-      This symbol scanning process is highly platform-dependent
-      and suffers from other limitations besides portability --
-      unit tests must be located in a shared, <function>dlopen</function>-able library
-      and have exported symbols (barring clever hacks
-      available on some platforms).  These limitations are not
-      an issue if the unit tests in question are in a separate
-      compilation unit and excercise a well-defined public
-      interface in the code to be tested -- however, unit tests
-      within the same compliation unit would not be feasible
-      in this scenario.
+    <para>
+      The default <emphasis>MoonUnit</emphasis> test loader
+      can use symbol information read from dynamic libraries
+      to locate and access all unit tests. This symbol
+      scanning process allows for convenient, rapid prototyping,
+      but works only on some platforms.
     </para>
     <para>
       By scanning the source code for unit tests prior to compilation,
-      <command>moonunit-stub</command> skirts portability issues and also
-      allows more flexibility in build organization.  For example, unit
-      tests may be present as non-exported symbols in a static library; the
-      the generated stub code, however, can be compiled into a dynamic
-      module that links against the static library and exposes test
-      symbols to the loader.
+      <command>moonunit-stub</command> allows unit test modules to
+      be loadable on all supported platforms.
     </para>
   </refsect1>
   
@@ -78,11 +65,10 @@
 	</listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>-?</option></term>
 	<term><option>-h</option></term>
 	<term><option>--help</option></term>
 	<listitem>
-	  <para>Lists brief usage and option information and exits.</para>
+	  <para>List brief usage and option information and exit.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -105,7 +91,16 @@
       <term><literal>CPP</literal></term>
       <listitem>
 	<para>
-	  The C preprocessor which will be invoked to process source files
+	  The C preprocessor which will be invoked to process C source files
+	  before scanning for unit tests.  Defaults to <command>cpp</command>.
+	</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>CXXCPP</literal></term>
+      <listitem>
+	<para>
+	  The C++ preprocessor which will be invoked to process C++ source files
 	  before scanning for unit tests.  Defaults to <command>cpp</command>.
 	</para>
       </listitem>
@@ -115,6 +110,15 @@
       <listitem>
 	<para>
 	  Additional arguments which will be passed to the C preprocessor.
+	</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><literal>CXXCPPFLAGS</literal></term>
+      <listitem>
+	<para>
+	  Additional arguments which will be passed to the C++ preprocessor.
+	  Defaults to the value of CPPFLAGS.
 	</para>
       </listitem>
     </varlistentry>

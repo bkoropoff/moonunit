@@ -258,13 +258,16 @@ unixloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
 {
 	unsigned int i;
 	
-	for (i = 0; handle->fixture_setups[i]; i++)
-	{
-		if (!strcmp(name, handle->fixture_setups[i]->name))
+    if (handle->fixture_setups)
+    {
+        for (i = 0; handle->fixture_setups[i]; i++)
         {
-			return handle->fixture_setups[i]->run;
+            if (!strcmp(name, handle->fixture_setups[i]->name))
+            {
+                return handle->fixture_setups[i]->run;
+            }
         }
-	}
+    }
     
 	return NULL;
 }
@@ -274,13 +277,16 @@ unixloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handl
 {
 	unsigned int i;
 	
-	for (i = 0; handle->fixture_teardowns[i]; i++)
-	{
-		if (!strcmp(name, handle->fixture_teardowns[i]->name))
+    if (handle->fixture_teardowns)
+    {
+        for (i = 0; handle->fixture_teardowns[i]; i++)
         {
-			return handle->fixture_teardowns[i]->run;
+            if (!strcmp(name, handle->fixture_teardowns[i]->name))
+            {
+                return handle->fixture_teardowns[i]->run;
+            }
         }
-	}
+    }
 	
 	return NULL;
 }

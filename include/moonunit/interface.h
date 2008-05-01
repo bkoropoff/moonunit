@@ -175,15 +175,15 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #define MU_LIBRARY_SETUP			    \
     __MU_HIDDEN_TEST__				    \
     void __mu_f_ls();				    \
-    __MU_HIDDEN_TEST__				    \
+    __MU_HIDDEN_TEST__                      \
     MuLibrarySetup __mu_ls =			    \
-    {						    \
-        .file = __FILE__,			    \
-        .line = __LINE__,			    \
-        .run = __mu_f_ls;			    \
-    };						    \
-   void __mu_f_ls()
-        
+    {                                       \
+        .file = __FILE__,                   \
+        .line = __LINE__,                   \
+        .run = __mu_f_ls                    \
+    };                                      \
+    void __mu_f_ls()
+
 /**
  * @brief Define library teardown routine
  *
@@ -204,16 +204,16 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_TEARDOWN			    \
-    __MU_HIDDEN_TEST__				    \
-    void __mu_f_lt();				    \
-    __MU_HIDDEN_TEST__				    \
+#define MU_LIBRARY_TEARDOWN                 \
+    __MU_HIDDEN_TEST__                      \
+    void __mu_f_lt();                       \
+    __MU_HIDDEN_TEST__                      \
     MuLibraryTeardown __mu_lt =			    \
-    {						    \
-        .file = __FILE__,			    \
-        .line = __LINE__,			    \
-        .run = __mu_f_lt;			    \
-    };						    \
+    {                                       \
+        .file = __FILE__,                   \
+        .line = __LINE__,                   \
+        .run = __mu_f_lt                    \
+    };                                      \
     void __mu_f_lt()
 
 /**

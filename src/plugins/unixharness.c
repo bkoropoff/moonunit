@@ -415,6 +415,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
             // Couldn't get message or an error occurred, try to figure out what happend
             else if (WIFSIGNALED(status))
             {
+		summary->expected = token->expected;
                 summary->status = MU_STATUS_CRASH;
                 summary->stage = MU_STAGE_UNKNOWN;
                 summary->line = 0;

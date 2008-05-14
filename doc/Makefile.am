@@ -1,6 +1,6 @@
 HTML_TARGETS =
 HTML_INSTALL_TARGETS =
-DOCBOOK_XML = index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml moonunit-strip.xml
+DOCBOOK_XML = index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml
 DOCBOOK_XML_INDEXLESS = $(DOCBOOK_XML:index.xml=)
 DOCBOOK_HTML = $(DOCBOOK_XML:.xml=.html)
 DOCBOOK_MAN = $(DOCBOOK_XML_INDEXLESS:.xml=.1)

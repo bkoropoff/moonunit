@@ -1,5 +1,5 @@
 bin_PROGRAMS = moonunit
-bin_SCRIPTS = moonunit-lt moonunit-strip moonunit-stub
+bin_SCRIPTS = moonunit-lt moonunit-stub
 
 check_LTLIBRARIES = example.la
 

@@ -143,19 +143,6 @@ typedef struct MuLogEvent
     const char* message;
 } MuLogEvent;
 
-typedef struct MuTestMethods
-{
-    void (*expect)(struct MuTestToken*, MuTestStatus status);
-    void (*timeout)(struct MuTestToken*, long ms);
-    void (*event)(struct MuTestToken*, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
-    void (*assert)(struct MuTestToken*, int result, int sense, const char* expr, const char* file, unsigned int line);
-    void (*assert_equal)(struct MuTestToken*, const char* expr, const char* expected, int sense,
-                         const char* file, unsigned int line, MuType type, ...);
-    void (*success)(struct MuTestToken*);
-    void (*failure)(struct MuTestToken*, const char* file, unsigned int line, const char* message, ...);
-    void (*skip)(struct MuTestToken*, const char* file, unsigned int line, const char* message, ...);
-} MuTestMethods;
-
 typedef enum MuTestMeta
 {
     MU_META_EXPECT,
@@ -167,9 +154,8 @@ typedef struct MuTestToken
     /* Basic operations */
     void (*result)(struct MuTestToken*, const MuTestResult*);
     void (*event)(struct MuTestToken*, const MuLogEvent* event);
+    /* Extensible meta-data channel */
     void (*meta)(struct MuTestToken*, MuTestMeta type, ...);
-    /* Generic operations */
-    MuTestMethods method;
     struct MuTest* test;
 } MuTestToken;
 
@@ -224,9 +210,16 @@ typedef struct MuLibraryTeardown
 typedef void (*MuThunk) (void);
 typedef void (*MuTestThunk) (MuTestToken*);
 
-void Mu_TestToken_FillMethods(MuTestToken* token);
-
 const char* Mu_TestStatus_ToString(MuTestStatus status);
+void Mu_Test_Expect(MuTestToken* token, MuTestStatus status);
+void Mu_Test_Timeout(MuTestToken* token, long ms);
+void Mu_Test_Event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
+void Mu_Test_Assert(MuTestToken* token, int result, int sense, const char* expr, const char* file, unsigned int line);
+void Mu_Test_AssertEqual(MuTestToken* token, const char* expr, const char* expected, int sense, const char* file, unsigned int line, MuType type, ...);
+void Mu_Test_Success(MuTestToken* token);
+void Mu_Test_Failure(MuTestToken* token, const char* file, unsigned int line, const char* message, ...);
+void Mu_Test_Skip(MuTestToken* token, const char* file, unsigned int line, const char* message, ...);
+
 #endif
 
 C_END_DECLS

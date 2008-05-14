@@ -28,16 +28,21 @@
 #include <moonunit/interface.h>
 #include <stdlib.h>
 
-static MuTestToken* current_token = NULL;
+static MuTestToken* (*current_callback) (void* data) = NULL;
+static void* current_callback_data = NULL;
 
 MuTestToken*
-__mu_current_token(void)
+Mu_Interface_CurrentToken()
 {
-    return current_token;
+    if (current_callback)
+        return current_callback(current_callback_data);
+    else
+        return NULL;
 }
 
 void
-Mu_Interface_SetCurrentToken(MuTestToken* token)
+Mu_Interface_SetCurrentTokenCallback(MuTestToken* (*cb) (void* data), void* data)
 {
-    current_token = token;
+    current_callback = cb;
+    current_callback_data = data;
 }

@@ -27,7 +27,7 @@
 
 /**
  * @file interface.h
- * @brief MoonUnit unit test API
+ * @brief MoonUnit C/C++ testing API
  */
 
 /**
@@ -82,25 +82,6 @@ C_BEGIN_DECLS
 #else
 #    define __MU_HIDDEN_TEST__
 #endif
-
-#define MU_LINK_NONE 0
-#define MU_LINK_WEAK 1
-#define MU_LINK_UNDEFINED 2
-#define MU_LINK_STRONG 3
-
-#ifndef MU_LINK_STYLE
-#define MU_LINK_STYLE MU_LINK_UNDEFINED
-#endif
-
-#if MU_LINK_STYLE == MU_LINK_WEAK
-#    define __MU_LINK__(proto) proto __MU_WEAK__
-#elif MU_LINK_STYLE == MU_LINK_UNDEFINED || MU_LINK_STYLE == MU_LINK_STRONG
-#    define __MU_LINK__(proto) proto
-#else
-#    define __MU_LINK__(proto)
-#endif
-
-__MU_LINK__(MuTestToken* __mu_current_token(void));
 
 #endif
 
@@ -350,8 +331,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @param expr the expression to test
  * @hideinitializer
  */
-#define MU_ASSERT(expr)                                                 \
-    (MU_TOKEN->method.assert(MU_TOKEN, expr, 1, #expr, __FILE__, __LINE__))
+#define MU_ASSERT(expr)                                             \
+    (Mu_Test_Assert(MU_TOKEN, expr, 1, #expr, __FILE__, __LINE__))
 
 /**
  * @brief Confirm equality of values or fail
@@ -387,10 +368,10 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_ASSERT_EQUAL(type, expr, expected)                   \
-    (MU_TOKEN->method.assert_equal(MU_TOKEN,                    \
-                                   #expr, #expected, 1,         \
-                                   __FILE__, __LINE__,          \
-                                   type, (expr), (expected)))   \
+    (Mu_Test_AssertEqual(MU_TOKEN,                              \
+                         #expr, #expected, 1,                   \
+                         __FILE__, __LINE__,                    \
+                         type, (expr), (expected)))             \
     
 /**
  * @brief Confirm inequality of values or fail
@@ -426,10 +407,10 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_ASSERT_NOT_EQUAL(type, expr, expected)               \
-    (MU_TOKEN->method.assert_equal(MU_TOKEN,                    \
-                                   #expr, #expected, 0,         \
-                                   __FILE__, __LINE__,          \
-                                   type, (expr), (expected)))	\
+    (Mu_Test_AssertEqual(MU_TOKEN,                              \
+                         #expr, #expected, 0,                   \
+                         __FILE__, __LINE__,                    \
+                         type, (expr), (expected)))             \
     
 /**
  * @brief Succeed immediately
@@ -444,7 +425,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_SUCCESS                              \
-    (MU_TOKEN->method.success(MU_TOKEN))
+    (Mu_Test_Success(MU_TOKEN))
 
 /**
  * @brief Fail immediately
@@ -469,8 +450,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #ifdef DOXYGEN
 #  define MU_FAILURE(format, ...)
 #else
-#  define MU_FAILURE(...)                                               \
-    (MU_TOKEN->method.failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+#  define MU_FAILURE(...)                                           \
+    (Mu_Test_Failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
 #endif
 
 /**
@@ -497,8 +478,8 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #ifdef DOXYGEN
 #    define MU_SKIP(format, ...)
 #else
-#    define MU_SKIP(...)                                                \
-    (MU_TOKEN->method.skip(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+#    define MU_SKIP(...)                                        \
+    (Mu_Test_Skip(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
 #endif
 
 /**
@@ -533,7 +514,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_EXPECT(result) \
-    (MU_TOKEN->method.expect(MU_TOKEN, result))
+    (Mu_Test_Expect(MU_TOKEN, result))
 
 /**
  * @brief Set or reset time allowance
@@ -554,7 +535,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_TIMEOUT(ms) \
-    (MU_TOKEN->method.timeout(MU_TOKEN, ms))
+    (Mu_Test_Timeout(MU_TOKEN, ms))
 
 /**
  * @brief Log non-fatal message
@@ -583,7 +564,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @hideinitializer
  */
 #define MU_LOG(level, ...)                                              \
-    (MU_TOKEN->method.event(MU_TOKEN, (level), __FILE__, __LINE__, __VA_ARGS__))
+    (Mu_Test_Event(MU_TOKEN, (level), __FILE__, __LINE__, __VA_ARGS__))
 
 /**
  * @brief Log a warning
@@ -654,11 +635,7 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
  * @endcode
  * @hideinitializer
  */
-#if MU_LINK_STYLE == MU_LINK_NONE
-#    define MU_TOKEN (__mu_token__)
-#else
-#    define MU_TOKEN (__mu_current_token())
-#endif
+#define MU_TOKEN (Mu_Interface_CurrentToken())
 
 /*@}*/
 
@@ -668,7 +645,9 @@ __MU_LINK__(MuTestToken* __mu_current_token(void));
 #define MU_FS_PREFIX "__mu_fs_"
 #define MU_FT_PREFIX "__mu_ft_"
 
-void Mu_Interface_SetCurrentToken(MuTestToken* token);
+MuTestToken* Mu_Interface_CurrentToken();
+void Mu_Interface_SetCurrentTokenCallback(MuTestToken* (*cb) (void* data), void* data);
+
 
 C_END_DECLS
 

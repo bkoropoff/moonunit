@@ -6,5 +6,4 @@
   <xi:include href="moonunit.xml"/>
   <xi:include href="moonunit-lt.xml"/>
   <xi:include href="moonunit-stub.xml"/>
-  <xi:include href="moonunit-strip.xml"/>
 </reference>

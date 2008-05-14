@@ -128,6 +128,12 @@ static uipc_typeinfo expect_info =
 #define MSG_TYPE_TIMEOUT 2
 #define MSG_TYPE_EXPECT 3
 
+static MuTestToken*
+unixtoken_current(void* data)
+{
+    return (MuTestToken*) data;
+}
+
 void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
 {
     UnixToken* token = (UnixToken*) _token;
@@ -254,8 +260,6 @@ unixtoken_new(MuTest* test)
 {
     UnixToken* token = calloc(1, sizeof(UnixToken));
 
-    Mu_TestToken_FillMethods((MuTestToken*) token);
-
     token->base.meta = unixtoken_meta;
     token->base.result = unixtoken_result;
     token->base.event = unixtoken_event;
@@ -302,7 +306,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
         token->base.test = test;
         token->ipc_handle = ipc_test;
     
-        Mu_Interface_SetCurrentToken((MuTestToken*) token);
+        Mu_Interface_SetCurrentTokenCallback(unixtoken_current, token);
         
         signal(SIGSEGV, signal_handler);
         signal(SIGPIPE, signal_handler);
@@ -323,7 +327,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
             INVOKE(thunk, token);
         
-        token->base.method.success((MuTestToken*) token);
+        Mu_Test_Success((MuTestToken*) token);
     
         close(sockets[1]);
         
@@ -466,7 +470,7 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
         close(sockets[0]);
 
         token->base.test = test;
-        Mu_Interface_SetCurrentToken((MuTestToken*) token);
+        Mu_Interface_SetCurrentTokenCallback(unixtoken_current, token);
 
         select(0, NULL, NULL, NULL, NULL);
         
@@ -484,7 +488,7 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
             thunk((MuTestToken*) token);
         
-        token->base.method.success((MuTestToken*) token);
+        Mu_Test_Success((MuTestToken*) token);
     
         exit(0);
     }

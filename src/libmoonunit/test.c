@@ -35,19 +35,20 @@
 #include <stdio.h>
 
 void
-__mu_expect(MuTestToken* token, MuTestStatus status)
+Mu_Test_Expect(MuTestToken* token, MuTestStatus status)
 {
     token->meta(token, MU_META_EXPECT, status);
 }
 
 void
-__mu_timeout(MuTestToken* token, long ms)
+Mu_Test_Timeout(MuTestToken* token, long ms)
 {
     token->meta(token, MU_META_TIMEOUT, ms);
 }
 
 void
-__mu_event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...)
+Mu_Test_Event(MuTestToken* token, MuLogLevel level, const char* file,
+              unsigned int line, const char* fmt, ...)
 {
     MuLogEvent event;
     va_list ap;
@@ -67,8 +68,8 @@ __mu_event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int 
 }
 
 void
-__mu_assert(MuTestToken* token, int result, int sense, const char* expr,
-            const char* file, unsigned int line)
+Mu_Test_Assert(MuTestToken* token, int result, int sense, const char* expr,
+               const char* file, unsigned int line)
 {
     result = result ? 1 : 0;
     sense = sense ? 1 : 0;
@@ -181,8 +182,10 @@ assert_equal_boolean(const char* expr, const char* expected, va_list ap, int* re
 }
 
 void
-__mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, int sense,
-                  const char* file, unsigned int line, MuType type, ...)
+Mu_Test_AssertEqual(MuTestToken* token, const char* expr, 
+                    const char* expected, int sense,
+                    const char* file, unsigned int line, 
+                    MuType type, ...)
 {
 	int result;
 	char* reason;
@@ -236,7 +239,7 @@ __mu_assert_equal(MuTestToken* token, const char* expr, const char* expected, in
 }
 
 void
-__mu_success(MuTestToken* token)
+Mu_Test_Success(MuTestToken* token)
 {
     MuTestResult summary;
 
@@ -250,7 +253,8 @@ __mu_success(MuTestToken* token)
 }
  
 void   
-__mu_failure(MuTestToken* token, const char* file, unsigned int line, const char* message, ...)
+Mu_Test_Failure(MuTestToken* token, const char* file, 
+                unsigned int line, const char* message, ...)
 {
     va_list ap;
     MuTestResult summary;
@@ -268,7 +272,8 @@ __mu_failure(MuTestToken* token, const char* file, unsigned int line, const char
 }
 
 void   
-__mu_skip(MuTestToken* token, const char* file, unsigned int line, const char* message, ...)
+Mu_Test_Skip(MuTestToken* token, const char* file, unsigned int line,
+             const char* message, ...)
 {
     va_list ap;
     MuTestResult summary;
@@ -286,24 +291,6 @@ __mu_skip(MuTestToken* token, const char* file, unsigned int line, const char* m
     free((void*) summary.reason);
     va_end(ap);
 }
-
-static MuTestMethods generic_methods =
-{
-    .expect = __mu_expect,
-    .timeout = __mu_timeout,
-    .event = __mu_event,
-	.assert = __mu_assert,
-	.assert_equal = __mu_assert_equal,
-	.success = __mu_success,
-	.failure = __mu_failure,
-    .skip = __mu_skip
-};
-
-void Mu_TestToken_FillMethods(MuTestToken* token)
-{
-    token->method = generic_methods;
-}
-
 
 const char*
 Mu_TestStatus_ToString(MuTestStatus status)

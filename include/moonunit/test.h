@@ -87,11 +87,14 @@ typedef enum MuTestStage
 #ifndef DOXYGEN
 typedef struct MuBacktrace
 {
-    unsigned long ret_addr;
-    unsigned long ip_offset;
+    unsigned long return_addr;
+    unsigned long func_addr;
     const char* file_name;
     const char* func_name;
     struct MuBacktrace* up;
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuBacktrace;
 
 typedef struct MuTestResult
@@ -110,6 +113,9 @@ typedef struct MuTestResult
     unsigned int line;
     /** Backtrace, if available */
     MuBacktrace* backtrace;
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuTestResult;
 #endif
 
@@ -129,6 +135,7 @@ typedef enum
 } MuLogLevel;
 
 #ifndef DOXYGEN
+
 typedef struct MuLogEvent
 {
     /** Stage at which event occurred */
@@ -141,6 +148,9 @@ typedef struct MuLogEvent
     MuLogLevel level;
     /** Logged message */
     const char* message;
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuLogEvent;
 
 typedef enum MuTestMeta
@@ -156,55 +166,90 @@ typedef struct MuTestToken
     void (*event)(struct MuTestToken*, const MuLogEvent* event);
     /* Extensible meta-data channel */
     void (*meta)(struct MuTestToken*, MuTestMeta type, ...);
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
+    // FIXME: data member
     struct MuTest* test;
 } MuTestToken;
 
 typedef struct MuTest
 {
+    // FIXME: data member
     /** Test suite name */
     const char* suite;
+    // FIXME: data member
     /** Test name */
     const char* name;
+    // FIXME: data member
     /** Source file where test is located */
     const char* file;
+    // FIXME: data member
     /** First line of test definition */
     unsigned int line;
+    // FIXME: data member
     /** Loader which loaded this test */
     struct MuLoader* loader;
+    // FIXME: data member
     /** Library which contains this test */
     struct MuLibrary* library;
     /** Function to run the test */
     void (*run) (MuTestToken* token);
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuTest;
 
 typedef struct MuFixtureSetup
 {
+    // FIXME: data member
     const char* name;
+    // FIXME: data member
     const char* file;
+    // FIXME: data member
     unsigned int line;
     void (*run) (MuTestToken* token);
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuFixtureSetup;
 
 typedef struct MuFixtureTeardown
 {
+    // FIXME: data member
     const char* name;
+    // FIXME: data member
     const char* file;
+    // FIXME: data member
     unsigned int line;
     void (*run) (MuTestToken* token);
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuFixtureTeardown;
 
 typedef struct MuLibrarySetup
 {
+    // FIXME: data member
     const char* file;
+    // FIXME: data member
     unsigned int line;
     void (*run) (void);
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuLibrarySetup;
 
 typedef struct MuLibraryTeardown
 {
+    // FIXME: data member
     const char* file;
+    // FIXME: data member
     unsigned int line;
     void (*run) (void);
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
 } MuLibraryTeardown;
 
 typedef void (*MuThunk) (void);

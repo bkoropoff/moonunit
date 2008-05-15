@@ -196,14 +196,21 @@ static void test_leave(MuLogger* _self,
         {
             fprintf(out, "          <frame");
             if (frame->file_name)
+            {
                 fprintf(out, " binary_file=\"%s\"", frame->file_name);
+            }
             if (frame->func_name)
             {
                 fprintf(out, " function=\"%s\"", frame->func_name);
-                fprintf(out, " ip_offset=\"%lx\"", frame->ip_offset);
             }
-            if (frame->ret_addr)
-                fprintf(out, " ret_addr=\"%lx\"", frame->ret_addr);
+            if (frame->func_addr)
+            {
+                fprintf(out, " func_addr=\"%lx\"", frame->func_addr);
+            }
+            if (frame->return_addr)
+            {
+                fprintf(out, " return_addr=\"%lx\"", frame->return_addr);
+            }
             fprintf(out, "/>\n");
         }
         fprintf(out, "        </backtrace>\n");

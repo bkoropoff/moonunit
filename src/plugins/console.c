@@ -251,9 +251,9 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
                 {
                     fprintf(out, "in %s", basename_pure(frame->file_name));
                 }
-                else if (frame->ret_addr)
+                else if (frame->return_addr)
                 {
-                    fprintf(out, "[0x%lx]", frame->ret_addr);
+                    fprintf(out, "[0x%lx]", frame->return_addr);
                 }
                                
                 fprintf(out, "\n");

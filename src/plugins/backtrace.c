@@ -49,7 +49,7 @@ fill_backtrace(MuBacktrace* trace, char* info)
     open_brace = strchr(info, '[');
     if (open_brace)
     {
-        trace->ret_addr = strtoul(open_brace + 3, NULL, 16);
+        trace->return_addr = strtoul(open_brace + 3, NULL, 16);
     }
 
     if (open_brace > info)
@@ -64,11 +64,11 @@ fill_backtrace(MuBacktrace* trace, char* info)
             {
                 *plus = '\0';
                 trace->func_name = strdup(open_paren+1);
-                trace->ip_offset = strtoul(plus + 3, NULL, 16);
+                trace->func_addr = strtoul(plus + 3, NULL, 16) + trace->return_addr;
             }
             else
             {
-                trace->ip_offset = strtoul(open_paren+1, NULL, 16);
+                trace->func_addr = strtoul(open_paren+1, NULL, 16) + trace->return_addr;
             }
         }
         trace->file_name = strdup(info);

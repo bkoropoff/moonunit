@@ -106,7 +106,6 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     unsigned int failed = 0;
     MuLogger* logger = settings->logger;
     MuLoader* loader = settings->loader;
-    MuHarness* harness = settings->harness;
     MuLibrary* library = Mu_Loader_Open(loader, path, &err);
     MuTest** tests = NULL;
     MuThunk thunk;
@@ -150,18 +149,18 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             Mu_Logger_TestEnter(logger, test);
             for (count = 0; count < settings->iterations; count++)
             {
-                summary = harness->dispatch(harness, test, event_proxy_cb, logger);
+                summary = loader->dispatch(loader, test, event_proxy_cb, logger);
                 if (summary->status != MU_STATUS_SUCCESS)
                     break;
                 else if (count + 1 < settings->iterations)
-                    harness->free_result(harness, summary);
+                    loader->free_result(loader, summary);
             }
 
             Mu_Logger_TestLeave(logger, test, summary);
             
             if (summary->status != summary->expected && settings->debug)
             {
-                pid_t pid = harness->debug(harness, test);
+                pid_t pid = loader->debug(loader, test);
                 char* breakpoint = NULL;
 
                 /* FIXME: use some sort of interface to acquire
@@ -183,7 +182,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
 	    if (summary->status != summary->expected)
 	      failed++;
 
-            harness->free_result(harness, summary);
+            loader->free_result(loader, summary);
         }
         
         if (current_suite)

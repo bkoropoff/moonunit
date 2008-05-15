@@ -31,13 +31,18 @@
 #include <moonunit/error.h>
 #include <moonunit/test.h>
 #include <moonunit/plugin.h>
+#include <moonunit/option.h>
 #include <stdbool.h>
+#include <sys/types.h>
 
 typedef struct MuLibrary MuLibrary;
+
+typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 
 typedef struct MuLoader
 {
     struct MuPlugin* plugin;
+    MuOption* options;
     // Determines if a library can be opened by this loader
     bool (*can_open) (struct MuLoader*, const char* path);
     // Opens a library and returns a handle
@@ -55,11 +60,18 @@ typedef struct MuLoader
                                        const char* name, MuLibrary* handle);
     // Returns the fixture teardown routine for suite name in handle
     MuTestThunk (*fixture_teardown)(struct MuLoader*,
-                                          const char* name, MuLibrary* handle);
+                                    const char* name, MuLibrary* handle);
     // Closes a library
     void (*close) (struct MuLoader*, MuLibrary* handle);
     // Get name of a library
     const char * (*name) (struct MuLoader*, MuLibrary* handle);
+    // Called to run a single unit test
+    MuTestResult* (*dispatch)(struct MuLoader*, struct MuTest*, MuLogCallback, void*);
+    void (*free_result)(struct MuLoader*, MuTestResult*);
+    // Called to run and immediately suspend a unit test in
+    // a separate process.  The test can then be traced by
+    // a debugger.
+    pid_t (*debug)(struct MuLoader*, struct MuTest*);
 } MuLoader;
 
 bool Mu_Loader_CanOpen(struct MuLoader* loader, const char* path);
@@ -72,5 +84,8 @@ MuTestThunk Mu_Loader_FixtureSetup(struct MuLoader* loader, MuLibrary* handle, c
 MuTestThunk Mu_Loader_FixtureTeardown(struct MuLoader* loader, MuLibrary* handle, const char* name);
 void Mu_Loader_Close(struct MuLoader* loader, MuLibrary* handle);
 const char* Mu_Loader_Name(struct MuLoader* loader, MuLibrary* handle);
+void Mu_Loader_SetOption(MuLoader* loader, const char *name, ...);
+void Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value);
+MuType Mu_Loader_OptionType(MuLoader* loader, const char *name);
 
 #endif

@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/harness.h>
 #include <moonunit/logger.h>
 #include <moonunit/plugin.h>
 #include <moonunit/test.h>

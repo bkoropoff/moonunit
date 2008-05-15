@@ -119,8 +119,8 @@ test_add(symbol* sym, void* _library, MuError **_err)
     return true;
 }
 
-static bool
-unixloader_scan (MuLoader* _self, MuLibrary* handle, MuError ** _err)
+bool
+cloader_scan (MuLoader* _self, MuLibrary* handle, MuError ** _err)
 {
     MuError* err = NULL;
 
@@ -138,8 +138,8 @@ error:
 
 #endif
 
-static bool
-unixloader_can_open(MuLoader* self, const char* path)
+bool
+cloader_can_open(MuLoader* self, const char* path)
 {
     bool result;
     void* handle = mu_dlopen(path, RTLD_LAZY);
@@ -152,8 +152,8 @@ unixloader_can_open(MuLoader* self, const char* path)
     return result;
 }
 
-static MuLibrary*
-unixloader_open(MuLoader* _self, const char* path, MuError** _err)
+MuLibrary*
+cloader_open(MuLoader* _self, const char* path, MuError** _err)
 {
 	MuLibrary* library = malloc(sizeof (MuLibrary));
 #ifdef HAVE_LIBELF
@@ -204,7 +204,7 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
         library->stub = true;
     }
 #ifdef HAVE_LIBELF
-    else if (!unixloader_scan(_self, library, &err))
+    else if (!cloader_scan(_self, library, &err))
     {
         dlclose(library->dlhandle);
         free(library);
@@ -222,21 +222,21 @@ unixloader_open(MuLoader* _self, const char* path, MuError** _err)
 	return library;
 }
 
-static MuTest**
-unixloader_get_tests (MuLoader* _self, MuLibrary* handle)
+MuTest**
+cloader_get_tests (MuLoader* _self, MuLibrary* handle)
 {
 	return (MuTest**) array_dup((array*) handle->tests);
 }
     
-static void
-unixloader_free_tests (MuLoader* _self, MuLibrary* handle, MuTest** tests)
+void
+cloader_free_tests (MuLoader* _self, MuLibrary* handle, MuTest** tests)
 {
     array_free((array*) tests);
 }
 
 // Returns the library setup routine for handle
-static MuThunk
-unixloader_library_setup (MuLoader* _self, MuLibrary* handle)
+MuThunk
+cloader_library_setup (MuLoader* _self, MuLibrary* handle)
 {
     if (handle->library_setup)
     	return handle->library_setup->run;
@@ -244,8 +244,8 @@ unixloader_library_setup (MuLoader* _self, MuLibrary* handle)
         return NULL;
 }
 
-static MuThunk
-unixloader_library_teardown (MuLoader* _self, MuLibrary* handle)
+MuThunk
+cloader_library_teardown (MuLoader* _self, MuLibrary* handle)
 {
     if (handle->library_teardown)
     	return handle->library_teardown->run;
@@ -253,8 +253,8 @@ unixloader_library_teardown (MuLoader* _self, MuLibrary* handle)
         return NULL;
 }
 
-static MuTestThunk
-unixloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
+MuTestThunk
+cloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
 {
 	unsigned int i;
 	
@@ -272,8 +272,8 @@ unixloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
 	return NULL;
 }
 
-static MuTestThunk
-unixloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handle)
+MuTestThunk
+cloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handle)
 {
 	unsigned int i;
 	
@@ -291,8 +291,8 @@ unixloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handl
 	return NULL;
 }
    
-static void
-unixloader_close (MuLoader* _self, MuLibrary* handle)
+void
+cloader_close (MuLoader* _self, MuLibrary* handle)
 {
 	dlclose(handle->dlhandle);
 	free((void*) handle->path);
@@ -304,22 +304,8 @@ unixloader_close (MuLoader* _self, MuLibrary* handle)
    	free(handle);
 }
 
-static const char*
-unixloader_name (MuLoader* _self, MuLibrary* handle)
+const char*
+cloader_name (MuLoader* _self, MuLibrary* handle)
 {
 	return basename_pure(handle->path);
 }
-
-MuLoader mu_unixloader =
-{
-    .can_open = unixloader_can_open,
-	.open = unixloader_open,
-	.get_tests = unixloader_get_tests,
-	.free_tests = unixloader_free_tests,
-	.library_setup = unixloader_library_setup,
-	.library_teardown = unixloader_library_teardown,
-	.fixture_setup = unixloader_fixture_setup,
-	.fixture_teardown = unixloader_fixture_teardown,
-	.close = unixloader_close,
-	.name = unixloader_name
-};

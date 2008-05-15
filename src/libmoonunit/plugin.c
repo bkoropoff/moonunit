@@ -29,7 +29,6 @@
 #include <moonunit/util.h>
 #include <moonunit/loader.h>
 #include <moonunit/logger.h>
-#include <moonunit/harness.h>
 
 #include <config.h>
 #include <string.h>
@@ -212,28 +211,6 @@ Mu_Plugin_GetLoaderForFile(const char* file)
     }
 
     return NULL;
-}
-
-struct MuHarness*
-Mu_Plugin_GetHarness(const char *name)
-{
-    MuPlugin* plugin = get_plugin(name);
-    MuHarness* harness;
-
-    if (!plugin)
-        return NULL;
-
-    if (!plugin->harness)
-        return NULL;
-
-    harness = plugin->harness();
-
-    if (!harness)
-        return NULL;
-
-    harness->plugin = plugin;
-
-    return harness;
 }
 
 struct MuLogger*

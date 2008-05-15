@@ -26,7 +26,6 @@
  */
 
 #include <moonunit/test.h>
-#include <moonunit/harness.h>
 #include <moonunit/util.h>
 
 #include <stdlib.h>
@@ -292,26 +291,38 @@ Mu_Test_Skip(MuTestToken* token, const char* file, unsigned int line,
     va_end(ap);
 }
 
-const char*
-Mu_TestStatus_ToString(MuTestStatus status)
-{
-    switch (status)
-    {
-    case MU_STATUS_SUCCESS:
-        return "success";
-    case MU_STATUS_ASSERTION:
-        return "failed assertion";
-    case MU_STATUS_FAILURE:
-        return "generic failure";
-    case MU_STATUS_TIMEOUT:
-        return "timeout";
-    case MU_STATUS_CRASH:
-        return "crash";
-    case MU_STATUS_SKIPPED:
-        return "skipped test";
-    case MU_STATUS_EXCEPTION:
-        return "exception";
-    }
 
-    return "unknown";
+const char*
+Mu_TestStatusToString(MuTestStatus result)
+{
+	switch (result)
+	{
+		case MU_STATUS_SUCCESS:
+			return "success";
+		case MU_STATUS_FAILURE:
+			return "failure";
+    	case MU_STATUS_ASSERTION:
+    		return "assertion failure";
+    	case MU_STATUS_CRASH:
+    		return "crash";
+    	default:
+    		return "unknown";
+	}
+}
+
+const char*
+Mu_TestStageToString(MuTestStage stage)
+{
+	switch (stage)
+	{
+		case MU_STAGE_SETUP:
+			return "setup";
+		case MU_STAGE_TEST:
+			return "test";
+		case MU_STAGE_TEARDOWN:
+			return "teardown";
+		case MU_STAGE_UNKNOWN:	
+		default:
+			return "unknown stage";
+	}
 }

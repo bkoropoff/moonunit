@@ -255,7 +255,8 @@ typedef struct MuLibraryTeardown
 typedef void (*MuThunk) (void);
 typedef void (*MuTestThunk) (MuTestToken*);
 
-const char* Mu_TestStatus_ToString(MuTestStatus status);
+const char* Mu_TestStatusToString(MuTestStatus status);
+const char* Mu_TestStageToString(MuTestStage stage);
 void Mu_Test_Expect(MuTestToken* token, MuTestStatus status);
 void Mu_Test_Timeout(MuTestToken* token, long ms);
 void Mu_Test_Event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);

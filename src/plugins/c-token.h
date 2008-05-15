@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/plugin.h>
-#include <moonunit/loader.h>
-#include <moonunit/harness.h>
+#ifndef __CTOKEN_H__
+#define __CTOKEN_H__
 
-#include <stdlib.h>
+#include <uipc/ipc.h>
+#include <sys/types.h>
+#include <pthread.h>
 
-extern struct MuLoader mu_unixloader;
-extern struct MuHarness mu_unixharness;
-
-static struct MuLoader*
-get_unixloader()
+typedef struct
 {
-    return &mu_unixloader;
-}
+    MuTestToken base;
+    MuTestStage current_stage;
+    MuTestStatus expected;
+    MuTest* current_test;
+    uipc_handle* ipc_handle;
+    pid_t child;
+    pthread_mutex_t lock;
+} CToken;
 
-static struct MuHarness*
-get_unixharness()
-{
-    return &mu_unixharness;
-}
-
-static MuPlugin plugin =
-{
-    .name = "unix",
-    .loader = get_unixloader,
-    .harness = get_unixharness,
-};
-
-MU_PLUGIN_INIT
-{
-    return &plugin;
-}
+#endif

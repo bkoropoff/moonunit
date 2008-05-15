@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/harness.h>
+#ifndef __MU_C_LOAD_H__
+#define __MU_C_LOAD_H__
 
-const char*
-Mu_TestStatusToString(MuTestStatus result)
-{
-	switch (result)
-	{
-		case MU_STATUS_SUCCESS:
-			return "success";
-		case MU_STATUS_FAILURE:
-			return "failure";
-    	case MU_STATUS_ASSERTION:
-    		return "assertion failure";
-    	case MU_STATUS_CRASH:
-    		return "crash";
-    	default:
-    		return "unknown";
-	}
-}
+bool cloader_scan (MuLoader* _self, MuLibrary* handle, MuError ** _err);
+bool cloader_can_open(MuLoader* self, const char* path);
+MuLibrary* cloader_open(MuLoader* _self, const char* path, MuError** _err);
+MuTest** cloader_get_tests (MuLoader* _self, MuLibrary* handle);
+void cloader_free_tests (MuLoader* _self, MuLibrary* handle, MuTest** tests);
+MuThunk cloader_library_setup (MuLoader* _self, MuLibrary* handle);
+MuThunk cloader_library_teardown (MuLoader* _self, MuLibrary* handle);
+MuTestThunk cloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle);
+MuTestThunk cloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handle);
+void cloader_close (MuLoader* _self, MuLibrary* handle);
+const char* cloader_name (MuLoader* _self, MuLibrary* handle);
 
-const char*
-Mu_TestStageToString(MuTestStage stage)
-{
-	switch (stage)
-	{
-		case MU_STAGE_SETUP:
-			return "setup";
-		case MU_STAGE_TEST:
-			return "test";
-		case MU_STAGE_TEARDOWN:
-			return "teardown";
-		case MU_STAGE_UNKNOWN:	
-		default:
-			return "unknown stage";
-	}
-}
-
-void
-Mu_Harness_SetOption(MuHarness* harness, const char *name, ...)
-{
-    va_list ap;
-
-    va_start(ap, name);
-
-    Mu_Option_Setv(harness->options, harness, name, ap);
-
-    va_end(ap);
-}
-
-void 
-Mu_Harness_SetOptionString(MuHarness* harness, const char *name, const char *value)
-{
-    Mu_Option_SetString(harness->options, harness, name, value);
-}
-
-MuType
-Mu_Harness_OptionType(MuHarness* harness, const char *name)
-{
-    return Mu_Option_Type(harness->options, name);
-}
+#endif

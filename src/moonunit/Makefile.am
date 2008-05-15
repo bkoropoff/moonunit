@@ -43,7 +43,7 @@ example_stub.c: $(EXAMPLE_SOURCES) moonunit-stub
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 CHECK_PLUGINS= \
-	--plugin $(top_builddir)/src/plugins/unix.la \
+	--plugin $(top_builddir)/src/plugins/c.la \
 	--plugin $(top_builddir)/src/plugins/console.la \
 	--plugin $(top_builddir)/src/plugins/xml.la	
 

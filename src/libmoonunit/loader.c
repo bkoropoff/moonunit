@@ -86,3 +86,27 @@ Mu_Loader_Name(struct MuLoader* loader, MuLibrary* handle)
 {
     return loader->name(loader, handle);
 }
+
+void
+Mu_Loader_SetOption(MuLoader* loader, const char *name, ...)
+{
+    va_list ap;
+
+    va_start(ap, name);
+
+    Mu_Option_Setv(loader->options, loader, name, ap);
+
+    va_end(ap);
+}
+
+void 
+Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value)
+{
+    Mu_Option_SetString(loader->options, loader, name, value);
+}
+
+MuType
+Mu_Loader_OptionType(MuLoader* loader, const char *name)
+{
+    return Mu_Option_Type(loader->options, name);
+}

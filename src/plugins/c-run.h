@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_HARNESS_H__
-#define __MU_HARNESS_H__
+#ifndef __MU_C_RUN_H__
+#define __MU_C_RUN_H__
 
-#include <sys/types.h>
-#include <moonunit/boilerplate.h>
-#include <moonunit/test.h>
-#include <moonunit/plugin.h>
-#include <moonunit/option.h>
-
-C_BEGIN_DECLS
-
-typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
-
-typedef struct MuHarness
-{
-    struct MuPlugin* plugin;
-    // Called to run a single unit test.  Results should be stored
-    // in the passed in MuTestResult structure.
-    MuTestResult* (*dispatch)(struct MuHarness*, struct MuTest*, MuLogCallback, void*);
-    void (*free_result)(struct MuHarness*, MuTestResult*);
-    // Called to run and immediately suspend a unit test in
-    // a separate process.  The test can then be traced by
-    // a debugger.
-    pid_t (*debug)(struct MuHarness*, struct MuTest*);
-    MuOption* options;
-} MuHarness;
-
-const char* Mu_TestStatusToString(MuTestStatus status);
-const char* Mu_TestStageToString(MuTestStage stage);
-
-void Mu_Harness_SetOption(MuHarness* harness, const char *name, ...);
-void Mu_Harness_SetOptionString(MuHarness* harness, const char *name, const char *value);
-MuType Mu_Harness_OptionType(MuHarness* harness, const char *name);
-
-C_END_DECLS
+MuTestResult* cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data);
+void cloader_free_result(MuLoader* _self, MuTestResult* result);
+pid_t cloader_debug(MuLoader* _self, MuTest* test);
+extern MuOption cloader_options[];
 
 #endif

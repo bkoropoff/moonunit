@@ -26,7 +26,6 @@
  */
 
 #include <moonunit/loader.h>
-#include <moonunit/harness.h>
 #include <moonunit/util.h>
 #include <moonunit/logger.h>
 

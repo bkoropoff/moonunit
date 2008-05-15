@@ -28,7 +28,6 @@
 #ifndef __MOONUNIT_RUN_H__
 #define __MOONUNIT_RUN_H__
 
-#include <moonunit/harness.h>
 #include <moonunit/logger.h>
 #include <moonunit/loader.h>
 
@@ -36,7 +35,6 @@ typedef struct
 {
     const char* self;
     MuLoader* loader;
-    MuHarness* harness;
     MuLogger* logger;
     bool debug;
     unsigned int iterations;

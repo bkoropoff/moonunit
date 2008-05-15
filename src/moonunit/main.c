@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <moonunit/harness.h>
 #include <moonunit/logger.h>
 #include <moonunit/test.h>
 #include <moonunit/loader.h>
@@ -60,21 +59,20 @@ list_plugins()
     static const char* yes = "yes";
     static const char* no = "no";
 
-    printf("|-------------+--------+---------+--------|\n");
-    printf("| Plugin      | Loader | Harness | Logger |\n");
-    printf("|-------------+--------+---------+--------|\n");
+    printf("|-------------+--------+--------|\n");
+    printf("| Plugin      | Loader | Logger |\n");
+    printf("|-------------+--------+--------|\n");
     
     for (i = 0; plugins[i]; i++)
     {
         MuPlugin* plugin = plugins[i];
 
-        printf("| %11s | %6s | %7s | %6s |\n",
+        printf("| %11s | %6s | %6s |\n",
                plugin->name,
                plugin->loader ? yes : no,
-               plugin->harness ? yes : no,
                plugin->create_logger ? yes : no);
                 
-        printf("|-------------+--------+---------+--------|\n");
+        printf("|-------------+--------+--------|\n");
     }
 
     return 0;
@@ -103,12 +101,12 @@ plugin_info(const char* name)
 
     printf("Plugin: %s\n", plugin->name);
 
-    if (plugin->harness)
+    if (plugin->loader)
     {
-        MuHarness* harness = plugin->harness();
+        MuLoader* loader = plugin->loader();
 
-        printf("  Harness:\n");
-        print_options(harness->options);
+        printf("  Loader:\n");
+        print_options(loader->options);
     }
 
     if (plugin->create_logger)
@@ -158,16 +156,6 @@ run(char* self)
         settings.logger = create_multilogger(loggers);
     }
 
-    if (!(settings.harness = Mu_Plugin_GetHarness("unix")))
-    {
-        die("Error: Could not create harness 'unix'");
-    }
-
-    if (Mu_Harness_OptionType(settings.harness, "timeout") == MU_TYPE_INTEGER)
-    {
-        Mu_Harness_SetOption(settings.harness, "timeout", (int) option.timeout);
-    }
-
     Mu_Logger_Enter(settings.logger);
 
     for (file_index = 0; file_index < array_size(option.files); file_index++)
@@ -179,6 +167,11 @@ run(char* self)
         if (!settings.loader)
         {
             die("Error: Could not find loader for file %s", basename_pure(file));
+        }
+
+        if (Mu_Loader_OptionType(settings.loader, "timeout") == MU_TYPE_INTEGER)
+        {
+            Mu_Loader_SetOption(settings.loader, "timeout", option.timeout);
         }
         
         if (option.all || array_size(option.tests) == 0)

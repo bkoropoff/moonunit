@@ -28,7 +28,6 @@
 #include <moonunit/logger.h>
 #include <moonunit/util.h>
 #include <moonunit/test.h>
-#include <moonunit/harness.h>
 
 typedef struct
 {

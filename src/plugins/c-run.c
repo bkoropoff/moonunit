@@ -32,7 +32,6 @@
 #endif
 
 #include <moonunit/test.h>
-#include <moonunit/harness.h>
 #include <moonunit/loader.h>
 #include <moonunit/util.h>
 #include <moonunit/interface.h>
@@ -48,14 +47,14 @@
 #include <pthread.h>
 
 #include "backtrace.h"
-#include "unixtoken.h"
+#include "c-token.h"
 
 #ifdef CPLUSPLUS_ENABLED
 #    include "cplusplus.h"
 #endif
 
 static long default_timeout;
-static UnixToken* current_token;
+static CToken* current_token;
 
 typedef struct
 {
@@ -130,15 +129,15 @@ static uipc_typeinfo expect_info =
 #define MSG_TYPE_EXPECT 3
 
 static MuTestToken*
-unixtoken_current(void* data)
+ctoken_current(void* data)
 {
     return (MuTestToken*) data;
 }
 
 void
-unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
+ctoken_event(MuTestToken* _token, const MuLogEvent* event)
 {
-    UnixToken* token = (UnixToken*) _token;
+    CToken* token = (CToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
 
     if (!ipc_handle)
@@ -158,11 +157,11 @@ unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
     pthread_mutex_unlock(&token->lock);
 }
 
-static void unixtoken_free(UnixToken* token);
+static void ctoken_free(CToken* token);
 
-void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
+void ctoken_result(MuTestToken* _token, const MuTestResult* summary)
 {    
-    UnixToken* token = (UnixToken*) _token;
+    CToken* token = (CToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
 
     pthread_mutex_lock(&token->lock);
@@ -181,7 +180,7 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
 done:
     if (ipc_handle)
         uipc_detach(ipc_handle);
-    unixtoken_free(token); 
+    ctoken_free(token); 
 
     exit(0);
 
@@ -189,9 +188,9 @@ done:
 }
 
 void
-unixtoken_meta(MuTestToken* _token, MuTestMeta type, ...)
+ctoken_meta(MuTestToken* _token, MuTestMeta type, ...)
 {
-    UnixToken* token = (UnixToken*) _token;
+    CToken* token = (CToken*) _token;
     va_list ap;
 
     pthread_mutex_lock(&token->lock);
@@ -269,14 +268,14 @@ signal_handler(int sig)
     }
 }
 
-static UnixToken*
-unixtoken_new(MuTest* test)
+static CToken*
+ctoken_new(MuTest* test)
 {
-    UnixToken* token = calloc(1, sizeof(UnixToken));
+    CToken* token = calloc(1, sizeof(CToken));
 
-    token->base.meta = unixtoken_meta;
-    token->base.result = unixtoken_result;
-    token->base.event = unixtoken_event;
+    token->base.meta = ctoken_meta;
+    token->base.result = ctoken_result;
+    token->base.event = ctoken_event;
     token->expected = MU_STATUS_SUCCESS;
     pthread_mutex_init(&token->lock, NULL);
 
@@ -284,7 +283,7 @@ unixtoken_new(MuTest* test)
 }
 
 static void
-unixtoken_free(UnixToken* token)
+ctoken_free(CToken* token)
 {
     pthread_mutex_destroy(&token->lock);
     free(token);
@@ -297,11 +296,11 @@ unixtoken_free(UnixToken* token)
 #endif
 
 MuTestResult*
-unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* data)
+cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
 {
     int sockets[2];
     pid_t pid;
-    UnixToken* token = current_token = unixtoken_new(test);
+    CToken* token = current_token = ctoken_new(test);
     
     socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
     
@@ -322,7 +321,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
         token->base.test = test;
         token->ipc_handle = ipc_test;
     
-        Mu_Interface_SetCurrentTokenCallback(unixtoken_current, token);
+        Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
         
         signal(SIGSEGV, signal_handler);
         signal(SIGPIPE, signal_handler);
@@ -351,7 +350,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
     }
     else
     {
-        uipc_handle* ipc_harness = uipc_attach(sockets[0]);
+        uipc_handle* ipc_loader = uipc_attach(sockets[0]);
         MuTestResult *summary = NULL;
         uipc_message* message = NULL;
         int status;
@@ -363,7 +362,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
         
         while (!done)
         {    
-            uipc_result = uipc_recv(ipc_harness, &message, &timeleft);
+            uipc_result = uipc_recv(ipc_loader, &message, &timeleft);
             
             if (uipc_result == UIPC_SUCCESS)
             {
@@ -408,7 +407,7 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
             }
         }
         
-        uipc_detach(ipc_harness); 
+        uipc_detach(ipc_loader); 
         close(sockets[0]);
         
         if (uipc_result == UIPC_TIMEOUT)
@@ -459,23 +458,23 @@ unixharness_dispatch(MuHarness* _self, MuTest* test, MuLogCallback cb, void* dat
         if (message)
             uipc_msg_free(message);
 
-        unixtoken_free(token);
+        ctoken_free(token);
 
         return summary;
     }
 }
 
 void
-unixharness_free_result(MuHarness* _self, MuTestResult* result)
+cloader_free_result(MuLoader* _self, MuTestResult* result)
 {
     uipc_msg_free_payload(result, &testresult_info);
 }
 
-pid_t unixharness_debug(MuHarness* _self, MuTest* test)
+pid_t cloader_debug(MuLoader* _self, MuTest* test)
 {
     int sockets[2];
     pid_t pid;
-    UnixToken* token = current_token = unixtoken_new(test);
+    CToken* token = current_token = ctoken_new(test);
     
     socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
     
@@ -486,7 +485,7 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
         close(sockets[0]);
 
         token->base.test = test;
-        Mu_Interface_SetCurrentTokenCallback(unixtoken_current, token);
+        Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
 
         select(0, NULL, NULL, NULL, NULL);
         
@@ -515,18 +514,18 @@ pid_t unixharness_debug(MuHarness* _self, MuTest* test)
 }
   
 static void
-timeout_set(MuHarness* self, int timeout)
+timeout_set(MuLoader* self, int timeout)
 {
     default_timeout = timeout;
 }
 
 static int
-timeout_get(MuHarness* self)
+timeout_get(MuLoader* self)
 {
     return default_timeout;
 }
 
-MuOption unixharness_options[] =
+MuOption cloader_options[] =
 {
     MU_OPTION("timeout", MU_TYPE_INTEGER, timeout_get, timeout_set,
               "Time in milliseconds before tests automatically "
@@ -534,11 +533,3 @@ MuOption unixharness_options[] =
     MU_OPTION_END
 };
 
-MuHarness mu_unixharness =
-{
-    .plugin = NULL,
-    .dispatch = unixharness_dispatch,
-    .free_result = unixharness_free_result,
-    .debug = unixharness_debug,
-    .options = unixharness_options
-};

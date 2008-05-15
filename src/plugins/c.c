@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Brian Koropoff
+ * Copyright (c) 2007, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __UNIXTOKEN_H__
-#define __UNIXTOKEN_H__
+#include <moonunit/plugin.h>
+#include <moonunit/loader.h>
 
-#include <uipc/ipc.h>
-#include <sys/types.h>
-#include <pthread.h>
+#include <stdlib.h>
 
-typedef struct
+#include "c-load.h"
+#include "c-run.h"
+
+MuLoader mu_cloader =
 {
-    MuTestToken base;
-    MuTestStage current_stage;
-    MuTestStatus expected;
-    MuTest* current_test;
-    uipc_handle* ipc_handle;
-    pid_t child;
-    pthread_mutex_t lock;
-} UnixToken;
+    .plugin = NULL,
+    .can_open = cloader_can_open,
+	.open = cloader_open,
+	.get_tests = cloader_get_tests,
+	.free_tests = cloader_free_tests,
+	.library_setup = cloader_library_setup,
+	.library_teardown = cloader_library_teardown,
+	.fixture_setup = cloader_fixture_setup,
+	.fixture_teardown = cloader_fixture_teardown,
+	.close = cloader_close,
+	.name = cloader_name,
+    .dispatch = cloader_dispatch,
+    .free_result = cloader_free_result,
+    .debug = cloader_debug,
+    .options = cloader_options
+};
 
-#endif
+static struct MuLoader*
+get_cloader()
+{
+    return &mu_cloader;
+}
+
+static MuPlugin plugin =
+{
+    .name = "c",
+    .loader = get_cloader
+};
+
+MU_PLUGIN_INIT
+{
+    return &plugin;
+}

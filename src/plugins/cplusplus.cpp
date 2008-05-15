@@ -37,13 +37,13 @@
 #include <moonunit/test.h>
 #include <moonunit/util.h>
 
-#include "unixtoken.h"
+#include "c-token.h"
 #include "cplusplus.h"
 
 extern "C" void
 cplusplus_trampoline(MuTestThunk thunk, MuTestToken* _token)
 {
-    UnixToken* token = reinterpret_cast<UnixToken*>(_token);
+    CToken* token = reinterpret_cast<CToken*>(_token);
 
     try
     {

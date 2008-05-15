@@ -195,11 +195,11 @@ __PRE__
 
     if [ -n "$library_setup" ]
     then
-        echo "    *ls = &$library_setup";
+        echo "    *ls = &$library_setup;";
     fi
     if [ -n "$library_teardown" ]
     then
-        echo "    *ls = &$library_teardown";
+        echo "    *ls = &$library_teardown;";
     fi
 
     echo "    *fss = fixture_setups;"

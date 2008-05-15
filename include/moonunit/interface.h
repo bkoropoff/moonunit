@@ -166,7 +166,7 @@ C_BEGIN_DECLS
     MuLibrarySetup __mu_ls =			    \
     {                                       \
         FIELD(file, __FILE__),              \
-        FILED(line, __LINE__),              \
+        FIELD(line, __LINE__),              \
         FIELD(run, __mu_f_ls)               \
     };                                      \
     void __mu_f_ls()

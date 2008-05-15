@@ -162,19 +162,22 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             if (summary->status != summary->expected && settings->debug)
             {
                 pid_t pid = harness->debug(harness, test);
-                char* breakpoint;
-                
-                if (summary->line)
-                    breakpoint = format("%s:%u", test->file, summary->line);
-                else if (summary->stage == MU_STAGE_SETUP)
+                char* breakpoint = NULL;
+
+                /* FIXME: use some sort of interface to acquire
+                   breakpoints rather than assuming it is the
+                   same as the run function */
+                if (summary->stage == MU_STAGE_SETUP)
                     breakpoint = format("*%p", Mu_Loader_FixtureSetup(loader, library, test->suite));
                 else if (summary->stage == MU_STAGE_TEARDOWN)
                     breakpoint = format("*%p", Mu_Loader_FixtureTeardown(loader, library, test->suite));
                 else
-                    /* FIXME: this isn't guaranteed to be meaningful */
                     breakpoint = format("*%p", test->run);
                 
                 gdb_attach_interactive(settings->self, pid, breakpoint);
+
+                if (breakpoint)
+                    free(breakpoint);
             }
             
 	    if (summary->status != summary->expected)

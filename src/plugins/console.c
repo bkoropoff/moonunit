@@ -402,6 +402,7 @@ create_consolelogger()
 static MuPlugin plugin =
 {
     .name = "console",
+    .type = MU_PLUGIN_LOGGER,
     .create_logger = create_consolelogger
 };
 

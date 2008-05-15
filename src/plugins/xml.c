@@ -327,6 +327,7 @@ create_xmllogger()
 static MuPlugin plugin =
 {
     .name = "xml",
+    .type = MU_PLUGIN_LOGGER,
     .create_logger = create_xmllogger,
 };
 

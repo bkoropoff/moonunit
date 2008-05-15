@@ -180,6 +180,9 @@ Mu_Plugin_GetLoaderWithName(const char *name)
     if (!plugin)
         return NULL;
 
+    if (plugin->type != MU_PLUGIN_LOADER)
+        return NULL;
+
     if (!plugin->loader)
         return NULL;
 
@@ -201,10 +204,10 @@ Mu_Plugin_GetLoaderForFile(const char* file)
     for (index = 0; index < array_size(plugin_list); index++)
     {
         MuPlugin* plugin = plugin_list[index];
-        if (plugin->loader)
+        if (plugin->type == MU_PLUGIN_LOADER && plugin->loader)
         {
             MuLoader* loader = plugin->loader();
-
+            
             if (loader && Mu_Loader_CanOpen(loader, file))
                 return loader;
         }
@@ -219,8 +222,10 @@ Mu_Plugin_CreateLogger(const char* name)
     MuPlugin* plugin = get_plugin(name);
     MuLogger* logger;
 
-
     if (!plugin)
+        return NULL;
+
+    if (plugin->type != MU_PLUGIN_LOGGER)
         return NULL;
 
     if (!plugin->create_logger)

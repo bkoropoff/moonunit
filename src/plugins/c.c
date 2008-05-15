@@ -61,6 +61,7 @@ get_cloader()
 static MuPlugin plugin =
 {
     .name = "c",
+    .type = MU_PLUGIN_LOADER,
     .loader = get_cloader
 };
 

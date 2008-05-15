@@ -37,6 +37,11 @@ struct MuLoader;
 typedef struct MuPlugin
 {
     const char* name;
+    enum
+    {
+        MU_PLUGIN_LOADER,
+        MU_PLUGIN_LOGGER
+    } type;
     
     struct MuLoader*  (*loader) ();
     struct MuLogger*  (*create_logger) ();

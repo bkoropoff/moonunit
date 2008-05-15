@@ -56,24 +56,29 @@ list_plugins()
 {
     MuPlugin** plugins = Mu_Plugin_List();
     unsigned int i;
-    static const char* yes = "yes";
-    static const char* no = "no";
 
-    printf("|-------------+--------+--------|\n");
-    printf("| Plugin      | Loader | Logger |\n");
-    printf("|-------------+--------+--------|\n");
+    printf("Loader plugins:\n  ");
     
     for (i = 0; plugins[i]; i++)
     {
         MuPlugin* plugin = plugins[i];
 
-        printf("| %11s | %6s | %6s |\n",
-               plugin->name,
-               plugin->loader ? yes : no,
-               plugin->create_logger ? yes : no);
-                
-        printf("|-------------+--------+--------|\n");
+        if (plugin->type == MU_PLUGIN_LOADER)
+            printf("- %s\n  ", plugin->name);
     }
+
+    printf("\n");
+    printf("Logger plugins:\n  ");
+
+    for (i = 0; plugins[i]; i++)
+    {
+        MuPlugin* plugin = plugins[i];
+
+        if (plugin->type == MU_PLUGIN_LOGGER)
+            printf("- %s\n  ", plugin->name);
+    }
+
+    printf("\n");
 
     return 0;
 }
@@ -85,9 +90,9 @@ print_options(MuOption* options)
 
     for (i = 0; options[i].name; i++)
     {
-        printf("    Option: %s\n", options[i].name);
-        printf("      Type: %s\n", Mu_Type_ToString(options[i].type));
-        printf("      Description: %s\n", options[i].description);
+        printf("  Option: %s\n", options[i].name);
+        printf("    Type: %s\n", Mu_Type_ToString(options[i].type));
+        printf("    Description: %s\n", options[i].description);
     }
 }
 
@@ -99,22 +104,24 @@ plugin_info(const char* name)
     if (!plugin)
         die("No such plugin: %s\n", name);
 
-    printf("Plugin: %s\n", plugin->name);
-
-    if (plugin->loader)
+    switch (plugin->type)
+    {
+    case MU_PLUGIN_LOADER:
     {
         MuLoader* loader = plugin->loader();
-
-        printf("  Loader:\n");
+        
+        printf("Loader plugin: %s\n", plugin->name);
         print_options(loader->options);
+        break;
     }
-
-    if (plugin->create_logger)
+    case MU_PLUGIN_LOGGER:
     {
         MuLogger* logger = plugin->create_logger();
-        printf("  Logger:\n");
+        printf("Logger plugin: %s\n", plugin->name);
         print_options(logger->options);
         Mu_Logger_Destroy(logger);
+        break;
+    }
     }
 
     return 0;

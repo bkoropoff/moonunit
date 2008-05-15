@@ -30,6 +30,7 @@
 
 #include <uipc/ipc.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 typedef struct
 {
@@ -39,6 +40,7 @@ typedef struct
     MuTest* current_test;
     uipc_handle* ipc_handle;
     pid_t child;
+    pthread_mutex_t lock;
 } UnixToken;
 
 #endif

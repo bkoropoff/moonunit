@@ -37,6 +37,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <errno.h>
 
 static int x = 0;
 static int y = 0;
@@ -177,6 +179,73 @@ MU_TEST(Log, verbose)
 MU_TEST(Log, trace)
 {
     MU_TRACE("This is trace output");
+}
+
+typedef struct
+{
+    int needed, waiting;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+} barrier_t;
+
+static void
+barrier_init(barrier_t* barrier, int needed)
+{
+    barrier->needed = needed;
+    barrier->waiting = 0;
+    pthread_mutex_init(&barrier->lock, NULL);
+    pthread_cond_init(&barrier->cond, NULL);
+}
+
+static int
+barrier_wait(barrier_t* barrier)
+{
+    pthread_mutex_lock(&barrier->lock);
+
+    barrier->waiting++;
+
+    if (barrier->waiting == barrier->needed)
+    {
+        barrier->waiting = 0;
+        pthread_cond_broadcast(&barrier->cond);
+        pthread_mutex_unlock(&barrier->lock);
+        return 1;
+    }
+    else
+    {
+        pthread_cond_wait(&barrier->cond, &barrier->lock);
+        pthread_mutex_unlock(&barrier->lock);
+        return 0;
+    }
+}
+
+static barrier_t barrier;
+
+
+static void*
+racer(void* number)
+{
+    barrier_wait(&barrier);
+    MU_VERBOSE("Racer #%lu at the finish line", (unsigned long) number);
+    MU_SUCCESS;
+    return NULL;
+}
+
+MU_TEST(Thread, race)
+{
+    pthread_t racer1, racer2;
+
+    barrier_init(&barrier, 3);
+    
+    if (pthread_create(&racer1, NULL, racer, (void*) 0x1))
+        MU_FAILURE("Failed to create thread: %s\n", strerror(errno));
+    if (pthread_create(&racer2, NULL, racer, (void*) 0x2))
+        MU_FAILURE("Failed to create thread: %s\n", strerror(errno));
+
+    barrier_wait(&barrier);
+
+    pthread_join(racer1, NULL);
+    pthread_join(racer2, NULL);
 }
 
 /** \endcond */

@@ -45,6 +45,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 #include "backtrace.h"
 #include "unixtoken.h"
@@ -134,7 +135,8 @@ unixtoken_current(void* data)
     return (MuTestToken*) data;
 }
 
-void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
+void
+unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
 {
     UnixToken* token = (UnixToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
@@ -144,12 +146,16 @@ void unixtoken_event(MuTestToken* _token, const MuLogEvent* event)
         exit(0);
     }
 
+    pthread_mutex_lock(&token->lock);
+
     ((MuLogEvent*) event)->stage = token->current_stage;    
 
     uipc_message* message = uipc_msg_new(MSG_TYPE_EVENT);
     uipc_msg_set_payload(message, event, &logevent_info);
     uipc_send(ipc_handle, message, NULL);
     uipc_msg_free(message);
+
+    pthread_mutex_unlock(&token->lock);
 }
 
 static void unixtoken_free(UnixToken* token);
@@ -158,6 +164,8 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
 {    
     UnixToken* token = (UnixToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
+
+    pthread_mutex_lock(&token->lock);
     
     if (!ipc_handle)
     {
@@ -173,9 +181,11 @@ void unixtoken_result(MuTestToken* _token, const MuTestResult* summary)
 done:
     if (ipc_handle)
         uipc_detach(ipc_handle);
-    unixtoken_free(token);
-    
+    unixtoken_free(token); 
+
     exit(0);
+
+    pthread_mutex_unlock(&token->lock);
 }
 
 void
@@ -183,6 +193,8 @@ unixtoken_meta(MuTestToken* _token, MuTestMeta type, ...)
 {
     UnixToken* token = (UnixToken*) _token;
     va_list ap;
+
+    pthread_mutex_lock(&token->lock);
     
     va_start(ap, type);
 
@@ -219,6 +231,8 @@ unixtoken_meta(MuTestToken* _token, MuTestMeta type, ...)
     }
 
     va_end(ap);
+
+    pthread_mutex_unlock(&token->lock);
 }
 
 static char*
@@ -264,6 +278,7 @@ unixtoken_new(MuTest* test)
     token->base.result = unixtoken_result;
     token->base.event = unixtoken_event;
     token->expected = MU_STATUS_SUCCESS;
+    pthread_mutex_init(&token->lock, NULL);
 
     return token;
 }
@@ -271,6 +286,7 @@ unixtoken_new(MuTest* test)
 static void
 unixtoken_free(UnixToken* token)
 {
+    pthread_mutex_destroy(&token->lock);
     free(token);
 }
 

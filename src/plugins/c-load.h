@@ -28,16 +28,37 @@
 #ifndef __MU_C_LOAD_H__
 #define __MU_C_LOAD_H__
 
-bool cloader_scan (MuLoader* _self, MuLibrary* handle, MuError ** _err);
+#include <moonunit/interface.h>
+
+typedef struct CTest
+{
+    MuTest base;
+    MuEntryInfo* entry;
+} CTest;
+
+typedef struct CLibrary
+{
+    MuLibrary base;
+	const char* path;
+	void* dlhandle;
+	CTest** tests;
+	MuEntryInfo* library_setup;
+    MuEntryInfo* library_teardown;
+    MuEntryInfo** fixture_setups;
+    MuEntryInfo** fixture_teardowns;
+} CLibrary;
+
 bool cloader_can_open(MuLoader* self, const char* path);
 MuLibrary* cloader_open(MuLoader* _self, const char* path, MuError** _err);
 MuTest** cloader_get_tests (MuLoader* _self, MuLibrary* handle);
 void cloader_free_tests (MuLoader* _self, MuLibrary* handle, MuTest** tests);
+void cloader_close (MuLoader* _self, MuLibrary* handle);
+const char* cloader_library_name (MuLoader* _self, MuLibrary* handle);
+const char* cloader_test_name (struct MuLoader* _loader, struct MuTest* _test);
+const char* cloader_test_suite (struct MuLoader* _loader, struct MuTest* _test);
 MuThunk cloader_library_setup (MuLoader* _self, MuLibrary* handle);
 MuThunk cloader_library_teardown (MuLoader* _self, MuLibrary* handle);
-MuTestThunk cloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle);
-MuTestThunk cloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handle);
-void cloader_close (MuLoader* _self, MuLibrary* handle);
-const char* cloader_name (MuLoader* _self, MuLibrary* handle);
+MuThunk cloader_fixture_setup (MuLoader* _self, MuTest* test);
+MuThunk cloader_fixture_teardown (MuLoader* _self, MuTest* test);
 
 #endif

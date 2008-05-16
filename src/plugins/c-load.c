@@ -42,89 +42,83 @@
 #include "elfscan.h"
 #endif
 
-// Opens a library and returns a handle
+#include "c-load.h"
 
-struct MuLibrary
-{
-    MuLoader* loader;
-	const char* path;
-	void* dlhandle;
-	MuTest** tests;
-	MuLibrarySetup* library_setup;
-    MuLibraryTeardown* library_teardown;
-    MuFixtureSetup** fixture_setups;
-    MuFixtureTeardown** fixture_teardowns;
-    bool stub;
-};
+extern MuLoader mu_cloader;
 
-static void
-test_init(MuTest* test, MuLibrary* library)
+static CTest*
+ctest_new(CLibrary* library, MuEntryInfo* entry)
 {
-    test->loader = library->loader;
-    test->library = library;
+    CTest* test = calloc(1, sizeof(CTest));
+
+    if (!test)
+        return NULL;
+
+    test->base.loader = (MuLoader*) &mu_cloader;
+    test->base.library = (MuLibrary*) library;
+    test->entry = entry;
+
+    return test;
+}
+
+static bool
+add(MuEntryInfo* entry, CLibrary* library, MuError **_err)
+{
+    switch (entry->type)
+    {
+    case MU_ENTRY_TEST:
+    {
+        CTest* test = ctest_new(library, entry);
+
+        if (!test)
+            MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+
+        library->tests = (CTest**) array_append((array*) library->tests, test);
+        
+        if (!library->tests)
+            MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+        break;
+  	}
+    case MU_ENTRY_FIXTURE_SETUP:
+        library->fixture_setups = (MuEntryInfo**) array_append((array*) library->fixture_setups, entry);
+        break;
+    case MU_ENTRY_FIXTURE_TEARDOWN:
+        library->fixture_teardowns = (MuEntryInfo**) array_append((array*) library->fixture_teardowns, entry);
+        break;
+    case MU_ENTRY_LIBRARY_SETUP:
+		library->library_setup = entry;
+        break;
+    case MU_ENTRY_LIBRARY_TEARDOWN:
+		library->library_teardown = entry;
+        break;
+    }
+
+    return true;
 }
 
 #ifdef HAVE_LIBELF
 
 static bool
-test_filter(const char* sym, void *unused)
+entry_filter(const char* sym, void *unused)
 {
-	return !strncmp("__mu_", sym, strlen("__mu_"));
+	return !strncmp("__mu_e_", sym, strlen("__mu_e_"));
 }
 
 static bool
-test_add(symbol* sym, void* _library, MuError **_err)
+entry_add(symbol* sym, void* _library, MuError **_err)
 {
-    MuLibrary* library = (MuLibrary*) _library;	
+    CLibrary* library = (CLibrary*) _library;	
+    MuEntryInfo* entry = (MuEntryInfo*) sym->addr;
 
-	if (!strncmp (MU_TEST_PREFIX, sym->name, strlen(MU_TEST_PREFIX)))
-	{
-		MuTest* test = (MuTest*) sym->addr;
-		
-		if (test->library)
-        {
-			return true; // Test was already added
-        }
-		else
-        {
-            library->tests = (MuTest**) array_append((array*) library->tests, test);
-
-            if (!library->tests)
-                MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
-	
-            test_init(test, library);
-        }
-  	}
-   	else if (!strncmp(MU_FS_PREFIX, sym->name, strlen(MU_FS_PREFIX)))
-   	{
-        MuFixtureSetup* setup = (MuFixtureSetup*) sym->addr;
-		
-        library->fixture_setups = (MuFixtureSetup**) array_append((array*) library->fixture_setups, setup);
-	}
-    else if (!strncmp(MU_FT_PREFIX, sym->name, strlen(MU_FT_PREFIX)))
-   	{
-        MuFixtureTeardown* teardown = (MuFixtureTeardown*) sym->addr;
-		
-        library->fixture_teardowns = (MuFixtureTeardown**) array_append((array*) library->fixture_teardowns, teardown);
-	}
-	else if (!strncmp("__mu_ls", sym->name, strlen("__mu_ls")))
-	{
-		library->library_setup = (MuLibrarySetup*) sym->addr;	
-	}
-	else if (!strncmp("__mu_lt", sym->name, strlen("__mu_lt")))
-	{
-		library->library_teardown = (MuLibraryTeardown*) sym->addr;
-	}
-
-    return true;
+    return add(entry, library, _err);
 }
 
-bool
-cloader_scan (MuLoader* _self, MuLibrary* handle, MuError ** _err)
+static bool
+cloader_scan (MuLoader* _self, CLibrary* handle, MuError ** _err)
 {
     MuError* err = NULL;
-
-	if (!ElfScan_GetScanner()(handle->dlhandle, test_filter, test_add, handle, &err))
+    
+	if (!ElfScan_GetScanner()(handle->dlhandle, entry_filter, entry_add, handle, &err))
     {
         MU_RERAISE_GOTO(error, _err, err);
     }
@@ -147,7 +141,7 @@ cloader_can_open(MuLoader* self, const char* path)
     result = (handle != NULL);
 
     if (handle)
-	dlclose(handle);
+        dlclose(handle);
 
     return result;
 }
@@ -155,21 +149,16 @@ cloader_can_open(MuLoader* self, const char* path)
 MuLibrary*
 cloader_open(MuLoader* _self, const char* path, MuError** _err)
 {
-	MuLibrary* library = malloc(sizeof (MuLibrary));
-#ifdef HAVE_LIBELF
+	CLibrary* library = malloc(sizeof (CLibrary));
     MuError* err = NULL;
-#endif
-    void (*stub_hook)(MuLibrarySetup** ls, MuLibraryTeardown** lt,
-                      MuFixtureSetup*** fss, MuFixtureTeardown*** fts,
-                      MuTest*** ts);
-
+    void (*stub_hook)(MuEntryInfo*** es);
 
     if (!library)
     {
-        MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
     }
 
-    library->loader = _self;
+    library->base.loader = _self;
 	library->tests = NULL;
 	library->fixture_setups = NULL;
     library->fixture_teardowns = NULL;
@@ -177,31 +166,27 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
     library->library_teardown = NULL;
 	library->path = strdup(path);
 	library->dlhandle = mu_dlopen(library->path, RTLD_LAZY);
-    library->stub = false;
 
     if (!library->dlhandle)
     {
         free(library);
-        MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, "%s", dlerror());
+        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, "%s", dlerror());
     }
 
     if ((stub_hook = dlsym(library->dlhandle, "__mu_stub_hook")))
     {
         int i;
-        stub_hook(&library->library_setup, &library->library_teardown,
-                  &library->fixture_setups, &library->fixture_teardowns,
-                  &library->tests);
+        MuEntryInfo** entries;
 
-        library->tests = (MuTest**) array_from_generic((void**) library->tests);
-        library->fixture_setups = (MuFixtureSetup**) array_from_generic((void**) library->fixture_setups);
-        library->fixture_teardowns = (MuFixtureTeardown**) array_from_generic((void**) library->fixture_teardowns);
+        stub_hook(&entries);
 
-        for (i = 0; library->tests[i]; i++)
+        for (i = 0; entries[i]; i++)
         {
-            test_init(library->tests[i], library);
+            if (!add(entries[i], library, &err))
+            {
+                MU_RERAISE_GOTO(error, _err, err);
+            }
         }
-
-        library->stub = true;
     }
 #ifdef HAVE_LIBELF
     else if (!cloader_scan(_self, library, &err))
@@ -209,22 +194,33 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
         dlclose(library->dlhandle);
         free(library);
         
-        MU_RERAISE_RETURN(NULL, _err, err);
+        MU_RERAISE_GOTO(error, _err, err);
     }
 #else
     else
     {
-        MU_RAISE_RETURN(NULL, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, 
+        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, 
                         "Library did not contain a test loading stub and no "
                         "reflection backend is available.");
     }
 #endif
-	return library;
+    return (MuLibrary*) library;
+
+error:
+    
+    if (library)
+    {
+        cloader_close(_self, (MuLibrary*) library);
+    }
+
+    return NULL;
 }
 
 MuTest**
-cloader_get_tests (MuLoader* _self, MuLibrary* handle)
+cloader_get_tests (MuLoader* _self, MuLibrary* _handle)
 {
+    CLibrary* handle = (CLibrary*) _handle;
+
 	return (MuTest**) array_dup((array*) handle->tests);
 }
     
@@ -236,8 +232,10 @@ cloader_free_tests (MuLoader* _self, MuLibrary* handle, MuTest** tests)
 
 // Returns the library setup routine for handle
 MuThunk
-cloader_library_setup (MuLoader* _self, MuLibrary* handle)
+cloader_library_setup (MuLoader* _self, MuLibrary* _handle)
 {
+    CLibrary* handle = (CLibrary*) _handle;
+
     if (handle->library_setup)
     	return handle->library_setup->run;
     else
@@ -245,24 +243,30 @@ cloader_library_setup (MuLoader* _self, MuLibrary* handle)
 }
 
 MuThunk
-cloader_library_teardown (MuLoader* _self, MuLibrary* handle)
+cloader_library_teardown (MuLoader* _self, MuLibrary* _handle)
 {
+    CLibrary* handle = (CLibrary*) _handle;
+
     if (handle->library_teardown)
     	return handle->library_teardown->run;
     else
         return NULL;
 }
 
-MuTestThunk
-cloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
+MuThunk
+cloader_fixture_setup (MuLoader* _self, MuTest* _test)
 {
 	unsigned int i;
-	
+    CTest* test = (CTest*) _test;
+    CLibrary* handle = (CLibrary*) _test->library;
+    const char* name = test->entry->container;
+
+
     if (handle->fixture_setups)
     {
         for (i = 0; handle->fixture_setups[i]; i++)
         {
-            if (!strcmp(name, handle->fixture_setups[i]->name))
+            if (!strcmp(name, handle->fixture_setups[i]->container))
             {
                 return handle->fixture_setups[i]->run;
             }
@@ -272,16 +276,19 @@ cloader_fixture_setup (MuLoader* _self, const char* name, MuLibrary* handle)
 	return NULL;
 }
 
-MuTestThunk
-cloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handle)
+MuThunk
+cloader_fixture_teardown (MuLoader* _self, MuTest* _test)
 {
 	unsigned int i;
-	
+    CTest* test = (CTest*) _test;
+    CLibrary* handle = (CLibrary*) _test->library;
+    const char* name = test->entry->container;	
+
     if (handle->fixture_teardowns)
     {
         for (i = 0; handle->fixture_teardowns[i]; i++)
         {
-            if (!strcmp(name, handle->fixture_teardowns[i]->name))
+            if (!strcmp(name, handle->fixture_teardowns[i]->container))
             {
                 return handle->fixture_teardowns[i]->run;
             }
@@ -292,10 +299,14 @@ cloader_fixture_teardown (MuLoader* _self, const char* name, MuLibrary* handle)
 }
    
 void
-cloader_close (MuLoader* _self, MuLibrary* handle)
+cloader_close (MuLoader* _self, MuLibrary* _handle)
 {
-	dlclose(handle->dlhandle);
-	free((void*) handle->path);
+    CLibrary* handle = (CLibrary*) _handle;
+
+	if (handle->dlhandle)
+        dlclose(handle->dlhandle);
+    if (handle->path)
+        free((void*) handle->path);
 
     array_free((array*) handle->tests);
     array_free((array*) handle->fixture_setups);
@@ -305,7 +316,25 @@ cloader_close (MuLoader* _self, MuLibrary* handle)
 }
 
 const char*
-cloader_name (MuLoader* _self, MuLibrary* handle)
+cloader_library_name (MuLoader* _self, MuLibrary* _handle)
 {
+    CLibrary* handle = (CLibrary*) _handle;
+
 	return basename_pure(handle->path);
+}
+
+const char*
+cloader_test_name (struct MuLoader* _loader, struct MuTest* _test)
+{
+    CTest* test = (CTest*) _test;
+
+    return test->entry->name;
+}
+
+const char*
+cloader_test_suite (struct MuLoader* _loader, struct MuTest* _test)
+{
+    CTest* test = (CTest*) _test;
+
+    return test->entry->container;
 }

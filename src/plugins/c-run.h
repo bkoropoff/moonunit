@@ -30,7 +30,7 @@
 
 MuTestResult* cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data);
 void cloader_free_result(MuLoader* _self, MuTestResult* result);
-pid_t cloader_debug(MuLoader* _self, MuTest* test);
+pid_t cloader_debug(MuLoader* _self, MuTest* test, MuTestStage stage, void** breakpoint);
 extern MuOption cloader_options[];
 
 #endif

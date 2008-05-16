@@ -27,6 +27,7 @@
 
 #include <moonunit/test.h>
 #include <moonunit/util.h>
+#include <moonunit/loader.h>
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -56,14 +57,30 @@ Mu_TestStageToString(MuTestStage stage)
 {
 	switch (stage)
 	{
-		case MU_STAGE_SETUP:
-			return "setup";
+		case MU_STAGE_FIXTURE_SETUP:
+			return "fixture setup";
+		case MU_STAGE_FIXTURE_TEARDOWN:
+			return "fixture teardown";
+		case MU_STAGE_LIBRARY_SETUP:
+			return "library setup";
+		case MU_STAGE_LIBRARY_TEARDOWN:
+			return "library teardown";
 		case MU_STAGE_TEST:
 			return "test";
-		case MU_STAGE_TEARDOWN:
-			return "teardown";
 		case MU_STAGE_UNKNOWN:	
 		default:
 			return "unknown stage";
 	}
+}
+
+const char*
+Mu_Test_Name(MuTest* test)
+{
+    return test->loader->test_name(test->loader, test);
+}
+
+const char*
+Mu_Test_Suite(MuTest* test)
+{
+    return test->loader->test_suite(test->loader, test);
 }

@@ -58,33 +58,6 @@
 
 C_BEGIN_DECLS
 
-#ifndef DOXYGEN
-
-#ifdef __GNUC__
-#    if defined(__APPLE__) || (defined(__hpux__) && defined(__hppa__))
-#        define __MU_SECTION__(name)
-#    else
-#        define __MU_SECTION__(name) __attribute__((section(name)))
-#    endif
-#    define __MU_HIDDEN__ __attribute__((visibility("hidden")))
-#    define __MU_WEAK__ __attribute__((weak))
-#else
-#    define __MU_USED__
-#    define __MU_SECTION__(name)
-#    define __MU_HIDDEN__
-#endif
-
-#define __MU_SECTION_TEXT__ __MU_SECTION__(".moonunit_text")
-#define __MU_SECTION_DATA__ __MU_SECTION__(".moonunit_data")
-
-#ifdef MU_HIDE_TESTS
-#    define __MU_HIDDEN_TEST__ __MU_HIDDEN__
-#else
-#    define __MU_HIDDEN_TEST__
-#endif
-
-#endif
-
 /**
  * @defgroup test_def Definition
  * @ingroup test
@@ -115,23 +88,18 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_TEST(suite_name, test_name)                                  \
-    __MU_SECTION_TEXT__                                                 \
-    __MU_HIDDEN_TEST__                                                  \
-    void __mu_f_##suite_name##_##test_name(void);                       \
-    C_DECL MuTest __mu_t_##suite_name##_##test_name;                    \
-    __MU_SECTION_DATA__                                                 \
-    __MU_HIDDEN_TEST__                                                  \
-    MuTest __mu_t_##suite_name##_##test_name =                          \
+    void __mu_f_test_##suite_name##_##test_name(void);                  \
+    C_DECL MuEntryInfo __mu_e_test_##suite_name##_##test_name;          \
+    MuEntryInfo __mu_e_test_##suite_name##_##test_name =                \
     {                                                                   \
-        FIELD(suite, #suite_name),                                      \
+        FIELD(type, MU_ENTRY_TEST),                                     \
         FIELD(name, #test_name),                                        \
+        FIELD(container, #suite_name),                                  \
         FIELD(file, __FILE__),                                          \
         FIELD(line, __LINE__),                                          \
-        FIELD(loader, NULL),                                            \
-        FIELD(library, NULL),                                           \
-        FIELD(run, __mu_f_##suite_name##_##test_name)                   \
+        FIELD(run, __mu_f_test_##suite_name##_##test_name)              \
     };                                                                  \
-    void __mu_f_##suite_name##_##test_name(void)
+    void __mu_f_test_##suite_name##_##test_name(void)
 
 /**
  * @brief Define library setup routine
@@ -159,17 +127,19 @@ C_BEGIN_DECLS
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_SETUP                    \
-    __MU_HIDDEN_TEST__                      \
-    void __mu_f_ls();                       \
-    __MU_HIDDEN_TEST__                      \
-    MuLibrarySetup __mu_ls =			    \
-    {                                       \
-        FIELD(file, __FILE__),              \
-        FIELD(line, __LINE__),              \
-        FIELD(run, __mu_f_ls)               \
-    };                                      \
-    void __mu_f_ls()
+#define MU_LIBRARY_SETUP                                                \
+    void __mu_f_library_setup();                                        \
+    C_DECL MuEntryInfo __mu_e_library_setup;                            \
+    MuEntryInfo __mu_e_library_setup =                                  \
+    {                                                                   \
+        FIELD(type, MU_ENTRY_LIBRARY_SETUP),                            \
+        FIELD(name, NULL),                                              \
+        FIELD(container, NULL),                                         \
+        FIELD(file, __FILE__),                                          \
+        FIELD(line, __LINE__),                                          \
+        FIELD(run, __mu_f_library_setup)                                \
+    };                                                                  \
+    void __mu_f_library_setup()
 
 /**
  * @brief Define library teardown routine
@@ -197,17 +167,19 @@ C_BEGIN_DECLS
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_TEARDOWN                 \
-    __MU_HIDDEN_TEST__                      \
-    void __mu_f_lt();                       \
-    __MU_HIDDEN_TEST__                      \
-    MuLibraryTeardown __mu_lt =			    \
-    {                                       \
-        FIELD(file, __FILE__),              \
-        FIELD(line, __LINE__),              \
-        FIELD(run, __mu_f_lt)               \
-    };                                      \
-    void __mu_f_lt()
+#define MU_LIBRARY_TEARDOWN                                             \
+    void __mu_f_library_teardown();                                     \
+    C_DECL MuEntryInfo __mu_e_library_teardown;                         \
+    MuEntryInfo __mu_e_library_teardown =                               \
+    {                                                                   \
+        FIELD(type, MU_ENTRY_LIBRARY_TEARDOWN),                         \
+        FIELD(name, NULL),                                              \
+        FIELD(container, NULL),                                         \
+        FIELD(file, __FILE__),                                          \
+        FIELD(line, __LINE__),                                          \
+        FIELD(run, __mu_f_library_teardown)                             \
+    };                                                                  \
+    void __mu_f_library_teardown()
 
 /**
  * @brief Define test fixture setup routine
@@ -239,18 +211,19 @@ C_BEGIN_DECLS
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_SETUP(suite_name)                            \
-    __MU_HIDDEN_TEST__                                          \
-    void __mu_f_fs_##suite_name(void);                          \
-    __MU_HIDDEN_TEST__                                          \
-    MuFixtureSetup __mu_fs_##suite_name =                       \
-    {                                                           \
-        FIELD(name, #suite_name),                               \
-        FIELD(file, __FILE__),                                  \
-        FIELD(line, __LINE__),                                  \
-        FIELD(run, __mu_f_fs_##suite_name)                      \
-    };                                                          \
-    void __mu_f_fs_##suite_name(void)
+#define MU_FIXTURE_SETUP(suite_name)                                    \
+    void __mu_f_fixture_setup_##suite_name(void);                       \
+    C_DECL MuEntryInfo __mu_e_fixture_setup_##suite_name;               \
+    MuEntryInfo __mu_e_fixture_setup_##suite_name =                     \
+    {                                                                   \
+        FIELD(type, MU_ENTRY_FIXTURE_SETUP),                            \
+        FIELD(name, NULL),                                              \
+        FIELD(container, #suite_name),                                  \
+        FIELD(file, __FILE__),                                          \
+        FIELD(line, __LINE__),                                          \
+        FIELD(run, __mu_f_fixture_setup_##suite_name)                   \
+    };                                                                  \
+    void __mu_f_fixture_setup_##suite_name(void)                        \
 
 /**
  * @brief Define test fixture teardown routine
@@ -287,19 +260,19 @@ C_BEGIN_DECLS
  * which the setup routine is being defined
  * @hideinitializer
  */
-#define MU_FIXTURE_TEARDOWN(suite_name)                         \
-    __MU_HIDDEN_TEST__                                          \
-    void __mu_f_ft_##suite_name(void);                          \
-    __MU_HIDDEN_TEST__                                          \
-    MuFixtureTeardown __mu_ft_##suite_name =                    \
-    {                                                           \
-        FIELD(name, #suite_name),                               \
-        FIELD(file, __FILE__),                                  \
-        FIELD(line, __LINE__),                                  \
-        FIELD(run, __mu_f_ft_##suite_name)                      \
-    };                                                          \
-    void __mu_f_ft_##suite_name(void)
-
+#define MU_FIXTURE_TEARDOWN(suite_name)                                 \
+    void __mu_f_fixture_teardown_##suite_name(void);                    \
+    C_DECL MuEntryInfo __mu_e_fixture_teardown_##suite_name;            \
+    MuEntryInfo __mu_e_fixture_teardown_##suite_name =                  \
+    {                                                                   \
+        FIELD(type, MU_ENTRY_FIXTURE_TEARDOWN),                         \
+        FIELD(name, NULL),                                              \
+        FIELD(container, #suite_name),                                  \
+        FIELD(file, __FILE__),                                          \
+        FIELD(line, __LINE__),                                          \
+        FIELD(run, __mu_f_fixture_teardown_##suite_name)                \
+    };                                                                  \
+    void __mu_f_fixture_teardown_##suite_name(void)                     \
 /*@}*/
 
 /**
@@ -645,8 +618,26 @@ void Mu_Interface_AssertEqual(const char* file, unsigned int line, const char* e
 void Mu_Interface_Result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...);
 MuTest* Mu_Interface_CurrentTest(void);
 
-C_END_DECLS
+typedef enum MuEntryType
+{
+    MU_ENTRY_TEST,
+    MU_ENTRY_LIBRARY_SETUP,
+    MU_ENTRY_LIBRARY_TEARDOWN,
+    MU_ENTRY_FIXTURE_SETUP,
+    MU_ENTRY_FIXTURE_TEARDOWN,
+} MuEntryType;
 
+typedef struct MuEntryInfo
+{
+    MuEntryType type;
+    const char* name;
+    const char* container;
+    const char* file;
+    unsigned int line;
+    void (*run)(void);
+} MuEntryInfo;
 #endif
+
+C_END_DECLS
 
 #endif

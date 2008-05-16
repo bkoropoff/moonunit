@@ -141,13 +141,15 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     ConsoleLogger* self = (ConsoleLogger*) _self;
     FILE* out = self->out;
 	int i;
-	const char* reason, * stage;
+	const char* reason, *stage, *name;
 	char* failure_message;
     bool result = summary->status == MU_STATUS_SKIPPED || summary->status == summary->expected;
     const char* result_str = NULL;
     unsigned int result_code;
 
-	fprintf(out, "    %s:", test->name);
+    name = Mu_Test_Name(test);
+
+	fprintf(out, "    %s:", name);
 	
     
     if (result)
@@ -197,7 +199,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 
     if (summary->status == MU_STATUS_SUCCESS || (result && !self->details))
     {
-        for (i = self->align - strlen(test->name) - 5 - strlen(result_str); i > 0; i--)
+        for (i = self->align - strlen(name) - 5 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
         if (self->ansi)
             fprintf(out, "\e[%um\e[1m%s\e[22m\e[0m\n", result_code, result_str);
@@ -208,7 +210,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     {
         stage = Mu_TestStageToString(summary->stage);
 		
-        for (i = self->align - strlen(test->name) - strlen(stage) - 3 - 5 - strlen(result_str); i > 0; i--)
+        for (i = self->align - strlen(name) - strlen(stage) - 3 - 5 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
         
         reason = summary->reason ? summary->reason : "unknown";
@@ -221,9 +223,18 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             fprintf(out, "(%s) %s\n", stage, result_str);
         }
         
-        failure_message = summary->line != 0 
-            ? format("%s:%i: %s", basename_pure(test->file), summary->line, reason)
-            : format("%s", reason);
+        if (summary->file && summary->line)
+        {
+            failure_message = format("%s:%i: %s", summary->file, summary->line, reason);
+        }
+        else if (summary->file)
+        {
+            failure_message = format("%s: %s", summary->file, summary->line, reason);
+        }
+        else
+        {
+            failure_message = format("%s", reason);
+        }
         
         fprintf(out, "      %s\n", failure_message);
         

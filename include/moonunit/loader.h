@@ -35,7 +35,12 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-typedef struct MuLibrary MuLibrary;
+struct MuLoader;
+
+typedef struct MuLibrary
+{
+    struct MuLoader* loader;
+} MuLibrary;
 
 typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
 
@@ -51,39 +56,30 @@ typedef struct MuLoader
     struct MuTest** (*get_tests) (struct MuLoader*, MuLibrary* handle);
     // Frees a list of unit tests that had been returned by get_tests
     void (*free_tests) (struct MuLoader*, MuLibrary* handle, struct MuTest** list);
-    // Returns the library setup routine for handle
-    MuThunk (*library_setup)(struct MuLoader*, MuLibrary* handle);
-    // Returns the library teardown routine for handle
-    MuThunk (*library_teardown)(struct MuLoader*, MuLibrary* handle);
-    // Returns the fixture setup routine for suite name in handle
-    MuTestThunk (*fixture_setup)(struct MuLoader*, 
-                                       const char* name, MuLibrary* handle);
-    // Returns the fixture teardown routine for suite name in handle
-    MuTestThunk (*fixture_teardown)(struct MuLoader*,
-                                    const char* name, MuLibrary* handle);
     // Closes a library
     void (*close) (struct MuLoader*, MuLibrary* handle);
     // Get name of a library
-    const char * (*name) (struct MuLoader*, MuLibrary* handle);
-    // Called to run a single unit test
+    const char* (*library_name) (struct MuLoader*, MuLibrary* handle);
+    // Get the name of a test
+    const char* (*test_name) (struct MuLoader*, struct MuTest*);
+    // Get the suite of a test
+    const char* (*test_suite) (struct MuLoader*, struct MuTest*);
+    // Dispatch a single test
     MuTestResult* (*dispatch)(struct MuLoader*, struct MuTest*, MuLogCallback, void*);
+    // Free the result of a unit test
     void (*free_result)(struct MuLoader*, MuTestResult*);
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by
     // a debugger.
-    pid_t (*debug)(struct MuLoader*, struct MuTest*);
+    pid_t (*debug)(struct MuLoader*, struct MuTest*, MuTestStage, void**);
 } MuLoader;
 
-bool Mu_Loader_CanOpen(struct MuLoader* loader, const char* path);
-MuLibrary* Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err);
-struct MuTest** Mu_Loader_GetTests(struct MuLoader* loader, MuLibrary* handle);
-void Mu_Loader_FreeTests(struct MuLoader* loader, MuLibrary* handle, struct MuTest**);
-MuThunk Mu_Loader_LibrarySetup(struct MuLoader* loader, MuLibrary* handle);
-MuThunk Mu_Loader_LibraryTeardown(struct MuLoader* loader, MuLibrary* handle);
-MuTestThunk Mu_Loader_FixtureSetup(struct MuLoader* loader, MuLibrary* handle, const char* name);
-MuTestThunk Mu_Loader_FixtureTeardown(struct MuLoader* loader, MuLibrary* handle, const char* name);
-void Mu_Loader_Close(struct MuLoader* loader, MuLibrary* handle);
-const char* Mu_Loader_Name(struct MuLoader* loader, MuLibrary* handle);
+bool Mu_Loader_CanOpen(MuLoader* loader, const char* path);
+MuLibrary* Mu_Loader_Open(MuLoader* loader, const char* path, MuError** err);
+struct MuTest** Mu_Library_GetTests(MuLibrary* handle);
+void Mu_Library_FreeTests(MuLibrary* handle, struct MuTest**);
+void Mu_Library_Close(MuLibrary* handle);
+const char* Mu_Library_Name(MuLibrary* handle);
 void Mu_Loader_SetOption(MuLoader* loader, const char *name, ...);
 void Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value);
 MuType Mu_Loader_OptionType(MuLoader* loader, const char *name);

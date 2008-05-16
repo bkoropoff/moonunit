@@ -51,7 +51,7 @@ MU_FIXTURE_SETUP(Arithmetic)
 
 MU_FIXTURE_TEARDOWN(Crash)
 {
-	if (!strcmp(MU_CURRENT_TEST->name, "segfault_teardown"))
+	if (!strcmp(Mu_Test_Name(MU_CURRENT_TEST), "segfault_teardown"))
 		*(int*)0 = 42;
 }
 

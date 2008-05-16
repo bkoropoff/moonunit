@@ -44,7 +44,7 @@ test_compare(const void* _a, const void* _b)
 	MuTest* b = *(MuTest**) _b;
 	int result;
 	
-	if ((result = strcmp(a->suite, b->suite)))
+	if ((result = strcmp(Mu_Test_Suite(a), Mu_Test_Suite(b))))
 		return result;
 	else
 #ifdef SYMBOL_LAYOUT_REVERSE
@@ -77,13 +77,13 @@ in_set(MuTest* test, int setc, char** set)
 
         if (test_name)
         {
-            if (!strncmp(suite_name, test->suite, slash - suite_name) &&
-                !strcmp(test_name, test->name))
+            if (!strncmp(suite_name, Mu_Test_Suite(test), slash - suite_name) &&
+                !strcmp(test_name, Mu_Test_Name(test)))
                 return true;
         }
         else
         {
-            if (!strcmp(suite_name, test->suite))
+            if (!strcmp(suite_name, Mu_Test_Suite(test)))
                 return true;
         }
     }
@@ -108,7 +108,6 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     MuLoader* loader = settings->loader;
     MuLibrary* library = Mu_Loader_Open(loader, path, &err);
     MuTest** tests = NULL;
-    MuThunk thunk;
 
     if (err)
     {
@@ -117,7 +116,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     
     Mu_Logger_LibraryEnter(logger, basename_pure(path));
     
-    tests = Mu_Loader_GetTests(loader, library);
+    tests = Mu_Library_GetTests(library);
     
     if (tests)
     {
@@ -125,9 +124,6 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         
         unsigned int index;
         const char* current_suite = NULL;
-        
-        if ((thunk = Mu_Loader_LibrarySetup(loader, library)))
-            thunk();
         
         for (index = 0; tests[index]; index++)
         {
@@ -138,12 +134,12 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             if (set != NULL && !in_set(test, setc, set))
                 continue;
             
-            if (current_suite == NULL || strcmp(current_suite, test->suite))
+            if (current_suite == NULL || strcmp(current_suite, Mu_Test_Suite(test)))
             {
                 if (current_suite)
                     Mu_Logger_SuiteLeave(logger);
-                current_suite = test->suite;
-                Mu_Logger_SuiteEnter(logger, test->suite);
+                current_suite = Mu_Test_Suite(test);
+                Mu_Logger_SuiteEnter(logger, Mu_Test_Suite(test));
             }
             
             Mu_Logger_TestEnter(logger, test);
@@ -161,19 +157,12 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             if (summary->status != MU_STATUS_SKIPPED &&
                 summary->status != summary->expected && settings->debug)
             {
-                pid_t pid = loader->debug(loader, test);
+                void* bp;
+                pid_t pid = loader->debug(loader, test, summary->stage, &bp);
                 char* breakpoint = NULL;
 
-                /* FIXME: use some sort of interface to acquire
-                   breakpoints rather than assuming it is the
-                   same as the run function */
-                if (summary->stage == MU_STAGE_SETUP)
-                    breakpoint = format("*%p", Mu_Loader_FixtureSetup(loader, library, test->suite));
-                else if (summary->stage == MU_STAGE_TEARDOWN)
-                    breakpoint = format("*%p", Mu_Loader_FixtureTeardown(loader, library, test->suite));
-                else
-                    breakpoint = format("*%p", test->run);
-                
+                breakpoint = format("*0x%lx", (unsigned long) bp);
+
                 gdb_attach_interactive(settings->self, pid, breakpoint);
 
                 if (breakpoint)
@@ -193,15 +182,12 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     
     Mu_Logger_LibraryLeave(logger);
     
-    if ((thunk = Mu_Loader_LibraryTeardown(loader, library)))
-        thunk();
 error:
-    
-    if (library)
-        Mu_Loader_Close(loader, library);
-
     if (tests)
-        Mu_Loader_FreeTests(loader, library, tests);
+        Mu_Library_FreeTests(library, tests);
+   
+    if (library)
+        Mu_Library_Close(library);
 
     return failed;
 }

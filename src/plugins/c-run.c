@@ -48,6 +48,7 @@
 
 #include "backtrace.h"
 #include "c-token.h"
+#include "c-load.h"
 
 #ifdef CPLUSPLUS_ENABLED
 #    include "cplusplus.h"
@@ -142,7 +143,7 @@ ctoken_event(MuInterfaceToken* _token, const MuLogEvent* event)
 
     if (!ipc_handle)
     {
-        exit(0);
+        return;
     }
 
     pthread_mutex_lock(&token->lock);
@@ -164,13 +165,14 @@ void ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
     CToken* token = (CToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
 
-    pthread_mutex_lock(&token->lock);
-    
     if (!ipc_handle)
     {
+        raise(SIGTRAP);
         goto done;
     }
 
+    pthread_mutex_lock(&token->lock);
+    
     ((MuTestResult*) summary)->stage = token->current_stage;
     uipc_message* message = uipc_msg_new(MSG_TYPE_RESULT);
     uipc_msg_set_payload(message, summary, &testresult_info);
@@ -192,6 +194,11 @@ ctoken_meta(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 {
     CToken* token = (CToken*) _token;
     va_list ap;
+
+    if (!token->ipc_handle)
+    {
+        return;
+    }
 
     pthread_mutex_lock(&token->lock);
     
@@ -296,7 +303,7 @@ ctoken_free(CToken* token)
 #endif
 
 MuTestResult*
-cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
+cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, pid_t* _pid, MuTestStage debug_stage, void** breakpoint)
 {
     int sockets[2];
     pid_t pid;
@@ -312,10 +319,15 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
     
     if (!(pid = fork()))
     {
-        MuTestThunk thunk;
-        uipc_handle* ipc_test = uipc_attach(sockets[1]);
+        MuThunk thunk;
+        uipc_handle* ipc_test = NULL;
         token->child = getpid();
         
+        if (!debug)
+            ipc_test = uipc_attach(sockets[1]);
+        else
+            sleep(10);
+
         close(sockets[0]);
         
         token->base.test = test;
@@ -328,27 +340,37 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
         signal(SIGFPE, signal_handler);
         signal(SIGABRT, signal_handler);
     
-        token->current_stage = MU_STAGE_SETUP;
+        token->current_stage = MU_STAGE_LIBRARY_SETUP;
     
-        if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
+        if ((thunk = cloader_library_setup(test->loader, test->library)))
             INVOKE(thunk);
-        
+
+        token->current_stage = MU_STAGE_FIXTURE_SETUP;
+    
+        if ((thunk = cloader_fixture_setup(test->loader, test)))
+            INVOKE(thunk);
+
         token->current_stage = MU_STAGE_TEST;
-        
-        INVOKE(test->run);
-        
-        token->current_stage = MU_STAGE_TEARDOWN;
-        
-        if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
+
+        INVOKE(((CTest*) test)->entry->run);
+
+        token->current_stage = MU_STAGE_FIXTURE_TEARDOWN;
+    
+        if ((thunk = cloader_fixture_teardown(test->loader, test)))
             INVOKE(thunk);
-        
+
+        token->current_stage = MU_STAGE_LIBRARY_TEARDOWN;
+    
+        if ((thunk = cloader_library_teardown(test->loader, test->library)))
+            INVOKE(thunk);
+
         Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
     
         close(sockets[1]);
         
         exit(0);
     }
-    else
+    else if (!debug)
     {
         uipc_handle* ipc_loader = uipc_attach(sockets[0]);
         MuTestResult *summary = NULL;
@@ -462,6 +484,42 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
 
         return summary;
     }
+    else
+    {
+        CTest* ctest = (CTest*) test;
+
+        switch (debug_stage)
+        {
+        case MU_STAGE_TEST:
+            *breakpoint = ctest->entry->run;
+            break;
+        case MU_STAGE_FIXTURE_SETUP:
+            *breakpoint = cloader_fixture_setup(test->loader, test);
+            break;
+        case MU_STAGE_FIXTURE_TEARDOWN:
+            *breakpoint = cloader_fixture_teardown(test->loader, test);
+            break;
+        case MU_STAGE_LIBRARY_SETUP:
+            *breakpoint = cloader_library_setup(test->loader, test->library);
+            break;
+        case MU_STAGE_LIBRARY_TEARDOWN:
+            *breakpoint = cloader_library_teardown(test->loader, test->library);
+            break;
+        case MU_STAGE_UNKNOWN:
+            *breakpoint = NULL;
+        }
+
+        *_pid = pid;
+
+        return NULL;
+    }
+}
+
+
+MuTestResult*
+cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
+{
+    return cloader_run(false, test, cb, data, NULL, 0, NULL);
 }
 
 void
@@ -470,47 +528,14 @@ cloader_free_result(MuLoader* _self, MuTestResult* result)
     uipc_msg_free_payload(result, &testresult_info);
 }
 
-pid_t cloader_debug(MuLoader* _self, MuTest* test)
+pid_t 
+cloader_debug(MuLoader* _self, MuTest* test, MuTestStage stage, void** breakpoint)
 {
-    int sockets[2];
-    pid_t pid;
-    CToken* token = current_token = ctoken_new(test);
-    
-    socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
-    
-    if (!(pid = fork()))
-    {
-        MuTestThunk thunk;
+    pid_t result;
 
-        close(sockets[0]);
+    cloader_run(true, test, NULL, NULL, &result, stage, breakpoint);
 
-        token->base.test = test;
-        Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
-
-        select(0, NULL, NULL, NULL, NULL);
-        
-        token->current_stage = MU_STAGE_SETUP;
-        
-        if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
-            INVOKE(thunk);
-            
-        token->current_stage = MU_STAGE_TEST;
-        
-        INVOKE(test->run);
-        
-        token-> current_stage = MU_STAGE_TEARDOWN;
-        
-        if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
-            INVOKE(thunk);
-        
-        Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
-    
-        exit(0);
-    }
-    else
-    {
-        return pid;
-    }
+    return result;
 }
   
 static void

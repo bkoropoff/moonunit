@@ -98,7 +98,7 @@ static void test_enter(MuLogger* _self, MuTest* test)
 
     self->current_test = test;
 
-    fprintf(self->out, "      <test name=\"%s\">\n", test->name);
+    fprintf(self->out, "      <test name=\"%s\">\n", Mu_Test_Name(test));
 }
 
 static void test_log(MuLogger* _self, MuLogEvent* event)
@@ -172,8 +172,11 @@ static void test_leave(MuLogger* _self,
         if (summary->reason)
         {
             fprintf(out, "        <result status=\"%s\" stage=\"%s\"", result_str, stage);
+            if (summary->file)
+                fprintf(out, " file=\"%s\"", summary->file);
             if (summary->line)
-                fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
+                fprintf(out, " line=\"%i\"", summary->line);
+
             fprintf(out, ">\n");
             fprintf(out, "          <![CDATA[%s]]>\n", summary->reason);
             fprintf(out, "        </result>\n");
@@ -181,8 +184,10 @@ static void test_leave(MuLogger* _self,
         else
         {
             fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
+            if (summary->file)
+                fprintf(out, " file=\"%s\"", summary->file);
             if (summary->line)
-                fprintf(out, " file=\"%s\" line=\"%u\"", basename_pure(test->file), summary->line);
+                fprintf(out, " line=\"%i\"", summary->line);
             fprintf(out, "/>\n");
         }
 	}

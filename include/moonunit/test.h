@@ -47,6 +47,8 @@ C_BEGIN_DECLS
 /* Forward declarations */
 struct MuTestToken;
 struct MuTest;
+struct MuLoader;
+struct MuLibrary;
 
 /**
  * Represents the result of a test
@@ -74,12 +76,16 @@ typedef enum MuTestStatus
  */
 typedef enum MuTestStage
 {
+    /** Library setup */
+    MU_STAGE_LIBRARY_SETUP,
     /** Fixture setup */
-    MU_STAGE_SETUP,
+    MU_STAGE_FIXTURE_SETUP,
     /** Test */
     MU_STAGE_TEST,
     /** Fixture teardown */
-    MU_STAGE_TEARDOWN,
+    MU_STAGE_FIXTURE_TEARDOWN,
+    /** Library teardown */
+    MU_STAGE_LIBRARY_TEARDOWN,
     /** Stage unknown */
     MU_STAGE_UNKNOWN
 } MuTestStage;
@@ -155,88 +161,16 @@ typedef struct MuLogEvent
 
 typedef struct MuTest
 {
-    // FIXME: data member
-    /** Test suite name */
-    const char* suite;
-    // FIXME: data member
-    /** Test name */
-    const char* name;
-    // FIXME: data member
-    /** Source file where test is located */
-    const char* file;
-    // FIXME: data member
-    /** First line of test definition */
-    unsigned int line;
-    // FIXME: data member
-    /** Loader which loaded this test */
     struct MuLoader* loader;
-    // FIXME: data member
-    /** Library which contains this test */
     struct MuLibrary* library;
-    /** Function to run the test */
-    void (*run) (void);
-    /* Reserved */
-    void* reserved1;
-    void* reserved2;
 } MuTest;
 
-typedef struct MuFixtureSetup
-{
-    // FIXME: data member
-    const char* name;
-    // FIXME: data member
-    const char* file;
-    // FIXME: data member
-    unsigned int line;
-    void (*run) (void);
-    /* Reserved */
-    void* reserved1;
-    void* reserved2;
-} MuFixtureSetup;
-
-typedef struct MuFixtureTeardown
-{
-    // FIXME: data member
-    const char* name;
-    // FIXME: data member
-    const char* file;
-    // FIXME: data member
-    unsigned int line;
-    void (*run) (void);
-    /* Reserved */
-    void* reserved1;
-    void* reserved2;
-} MuFixtureTeardown;
-
-typedef struct MuLibrarySetup
-{
-    // FIXME: data member
-    const char* file;
-    // FIXME: data member
-    unsigned int line;
-    void (*run) (void);
-    /* Reserved */
-    void* reserved1;
-    void* reserved2;
-} MuLibrarySetup;
-
-typedef struct MuLibraryTeardown
-{
-    // FIXME: data member
-    const char* file;
-    // FIXME: data member
-    unsigned int line;
-    void (*run) (void);
-    /* Reserved */
-    void* reserved1;
-    void* reserved2;
-} MuLibraryTeardown;
-
 typedef void (*MuThunk) (void);
-typedef void (*MuTestThunk) (void);
 
 const char* Mu_TestStatusToString(MuTestStatus status);
 const char* Mu_TestStageToString(MuTestStage stage);
+const char* Mu_Test_Name(MuTest* test);
+const char* Mu_Test_Suite(MuTest* test);
 
 #endif
 

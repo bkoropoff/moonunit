@@ -41,7 +41,7 @@
 #include "cplusplus.h"
 
 extern "C" void
-cplusplus_trampoline(MuTestThunk thunk)
+cplusplus_trampoline(MuThunk thunk)
 {
     MuInterfaceToken* _token = Mu_Interface_CurrentToken();
     CToken* token = reinterpret_cast<CToken*>(_token);

@@ -30,7 +30,7 @@ extern "C"
 {
 #endif
 
-void cplusplus_trampoline(MuTestThunk thunk);
+void cplusplus_trampoline(MuThunk thunk);
 
 #ifdef __cplusplus
 }

@@ -143,7 +143,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 	int i;
 	const char* reason, * stage;
 	char* failure_message;
-    bool result = summary->status == summary->expected;
+    bool result = summary->status == MU_STATUS_SKIPPED || summary->status == summary->expected;
     const char* result_str = NULL;
     unsigned int result_code;
 

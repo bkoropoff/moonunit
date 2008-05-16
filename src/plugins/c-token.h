@@ -32,9 +32,11 @@
 #include <sys/types.h>
 #include <pthread.h>
 
+#include <private/interface-private.h>
+
 typedef struct
 {
-    MuTestToken base;
+    MuInterfaceToken base;
     MuTestStage current_stage;
     MuTestStatus expected;
     MuTest* current_test;

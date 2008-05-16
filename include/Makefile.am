@@ -1,1 +1,1 @@
-SUBDIRS = moonunit uipc
+SUBDIRS = private moonunit uipc

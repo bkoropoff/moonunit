@@ -25,13 +25,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef __cplusplus
-extern "C"
+#ifndef __MU_INTERFACE_PRIVATE_H__
+#define __MU_INTERFACE_PRIVATE_H__
+
+#include <moonunit/boilerplate.h>
+#include <moonunit/test.h>
+
+C_BEGIN_DECLS
+
+typedef enum MuInterfaceMeta
 {
-#endif
+    MU_META_EXPECT,
+    MU_META_TIMEOUT
+} MuInterfaceMeta;
 
-void cplusplus_trampoline(MuTestThunk thunk);
+typedef struct MuInterfaceToken
+{
+    /* Basic operations */
+    void (*result)(struct MuInterfaceToken*, const MuTestResult*);
+    void (*event)(struct MuInterfaceToken*, const MuLogEvent* event);
+    /* Extensible meta-data channel */
+    void (*meta)(struct MuInterfaceToken*, MuInterfaceMeta type, ...);
+    /* Reserved */
+    void* reserved1;
+    void* reserved2;
+    MuTest* test;
+} MuInterfaceToken;
 
-#ifdef __cplusplus
-}
+MuInterfaceToken* Mu_Interface_CurrentToken(void);
+void Mu_Interface_SetCurrentTokenCallback(MuInterfaceToken* (*cb) (void* data), void* data);
+
+C_END_DECLS
+
 #endif

@@ -41,13 +41,14 @@
 #include "cplusplus.h"
 
 extern "C" void
-cplusplus_trampoline(MuTestThunk thunk, MuTestToken* _token)
+cplusplus_trampoline(MuTestThunk thunk)
 {
+    MuInterfaceToken* _token = Mu_Interface_CurrentToken();
     CToken* token = reinterpret_cast<CToken*>(_token);
 
     try
     {
-        thunk(_token);
+        thunk();
     }
     catch (std::exception& e)
     {

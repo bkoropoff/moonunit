@@ -117,7 +117,7 @@ C_BEGIN_DECLS
 #define MU_TEST(suite_name, test_name)                                  \
     __MU_SECTION_TEXT__                                                 \
     __MU_HIDDEN_TEST__                                                  \
-    void __mu_f_##suite_name##_##test_name(MuTestToken*);               \
+    void __mu_f_##suite_name##_##test_name(void);                       \
     C_DECL MuTest __mu_t_##suite_name##_##test_name;                    \
     __MU_SECTION_DATA__                                                 \
     __MU_HIDDEN_TEST__                                                  \
@@ -131,7 +131,7 @@ C_BEGIN_DECLS
         FIELD(library, NULL),                                           \
         FIELD(run, __mu_f_##suite_name##_##test_name)                   \
     };                                                                  \
-    void __mu_f_##suite_name##_##test_name(MuTestToken* __mu_token__)
+    void __mu_f_##suite_name##_##test_name(void)
 
 /**
  * @brief Define library setup routine
@@ -241,7 +241,7 @@ C_BEGIN_DECLS
  */
 #define MU_FIXTURE_SETUP(suite_name)                            \
     __MU_HIDDEN_TEST__                                          \
-    void __mu_f_fs_##suite_name(MuTestToken* __mu_token__);	    \
+    void __mu_f_fs_##suite_name(void);                          \
     __MU_HIDDEN_TEST__                                          \
     MuFixtureSetup __mu_fs_##suite_name =                       \
     {                                                           \
@@ -250,7 +250,7 @@ C_BEGIN_DECLS
         FIELD(line, __LINE__),                                  \
         FIELD(run, __mu_f_fs_##suite_name)                      \
     };                                                          \
-    void __mu_f_fs_##suite_name(MuTestToken* __mu_token__)
+    void __mu_f_fs_##suite_name(void)
 
 /**
  * @brief Define test fixture teardown routine
@@ -289,7 +289,7 @@ C_BEGIN_DECLS
  */
 #define MU_FIXTURE_TEARDOWN(suite_name)                         \
     __MU_HIDDEN_TEST__                                          \
-    void __mu_f_ft_##suite_name(MuTestToken* __mu__token__);	\
+    void __mu_f_ft_##suite_name(void);                          \
     __MU_HIDDEN_TEST__                                          \
     MuFixtureTeardown __mu_ft_##suite_name =                    \
     {                                                           \
@@ -298,7 +298,7 @@ C_BEGIN_DECLS
         FIELD(line, __LINE__),                                  \
         FIELD(run, __mu_f_ft_##suite_name)                      \
     };                                                          \
-    void __mu_f_ft_##suite_name(MuTestToken* __mu_token__)
+    void __mu_f_ft_##suite_name(void)
 
 /*@}*/
 
@@ -331,8 +331,8 @@ C_BEGIN_DECLS
  * @param expr the expression to test
  * @hideinitializer
  */
-#define MU_ASSERT(expr)                                             \
-    (Mu_Test_Assert(MU_TOKEN, expr, 1, #expr, __FILE__, __LINE__))
+#define MU_ASSERT(expr)                                     \
+    (Mu_Interface_Assert(__FILE__, __LINE__, #expr, 1, (expr)))
 
 /**
  * @brief Confirm equality of values or fail
@@ -363,15 +363,14 @@ C_BEGIN_DECLS
  * @endcode
  *
  * @param type the type of the two expressions
- * @param expr the first expression
- * @param expected the second expression
+ * @param expr1 the first expression
+ * @param expr2 the second expression
  * @hideinitializer
  */
-#define MU_ASSERT_EQUAL(type, expr, expected)                   \
-    (Mu_Test_AssertEqual(MU_TOKEN,                              \
-                         #expr, #expected, 1,                   \
-                         __FILE__, __LINE__,                    \
-                         type, (expr), (expected)))             \
+#define MU_ASSERT_EQUAL(type, expr1, expr2)                     \
+    (Mu_Interface_AssertEqual(__FILE__, __LINE__,               \
+                              #expr1, #expr2, 1,                \
+                              type, (expr1), (expr2)))          \
     
 /**
  * @brief Confirm inequality of values or fail
@@ -402,15 +401,14 @@ C_BEGIN_DECLS
  * @endcode
  *
  * @param type the type of the two expressions
- * @param expr the first expression
- * @param expected the second expression
+ * @param expr1 the first expression
+ * @param expr2 the second expression
  * @hideinitializer
  */
-#define MU_ASSERT_NOT_EQUAL(type, expr, expected)               \
-    (Mu_Test_AssertEqual(MU_TOKEN,                              \
-                         #expr, #expected, 0,                   \
-                         __FILE__, __LINE__,                    \
-                         type, (expr), (expected)))             \
+#define MU_ASSERT_NOT_EQUAL(type, expr1, expr2)                 \
+    (Mu_Interface_AssertEqual(__FILE__, __LINE__,               \
+                         #expr1, #expr2, 0,                     \
+                         type, (expr1), (expr2)))               \
     
 /**
  * @brief Succeed immediately
@@ -425,7 +423,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_SUCCESS                              \
-    (Mu_Test_Success(MU_TOKEN))
+    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_SUCCESS, NULL))
 
 /**
  * @brief Fail immediately
@@ -450,8 +448,8 @@ C_BEGIN_DECLS
 #ifdef DOXYGEN
 #  define MU_FAILURE(format, ...)
 #else
-#  define MU_FAILURE(...)                                           \
-    (Mu_Test_Failure(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+#  define MU_FAILURE(...)                                               \
+    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_FAILURE, __VA_ARGS__))
 #endif
 
 /**
@@ -478,8 +476,8 @@ C_BEGIN_DECLS
 #ifdef DOXYGEN
 #    define MU_SKIP(format, ...)
 #else
-#    define MU_SKIP(...)                                        \
-    (Mu_Test_Skip(MU_TOKEN, __FILE__, __LINE__, __VA_ARGS__))
+#    define MU_SKIP(...)                                                \
+    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_SKIPPED, __VA_ARGS__))
 #endif
 
 /**
@@ -514,7 +512,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_EXPECT(result) \
-    (Mu_Test_Expect(MU_TOKEN, result))
+    (Mu_Interface_Expect((result)))
 
 /**
  * @brief Set or reset time allowance
@@ -535,7 +533,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_TIMEOUT(ms) \
-    (Mu_Test_Timeout(MU_TOKEN, ms))
+    (Mu_Interface_Timeout((ms)))
 
 /**
  * @brief Log non-fatal message
@@ -564,7 +562,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_LOG(level, ...)                                              \
-    (Mu_Test_Event(MU_TOKEN, (level), __FILE__, __LINE__, __VA_ARGS__))
+    (Mu_Interface_Event(__FILE__, __LINE__, (level), __VA_ARGS__))
 
 /**
  * @brief Log a warning
@@ -612,30 +610,24 @@ C_BEGIN_DECLS
 /*@{*/
 
 /**
- * @brief Access interface to test harness
+ * @brief Access current test
  *
- * This macro expands to a pointer to the MuToken
+ * This macro expands to a pointer to the MuTest
  * structure for the currently running test.  This
- * allows direct access to methods for communication
- * with the test harness, information about the current
- * test, etc.
- *
- * @warning This macro is useful only in rare
- * circumstances and its use is highly discouraged.
- * It is subject to incompatible changes or deprecation
- * in future versions without notice.
+ * allows for reflective inspection of the current
+ * test's properties: name, suite name, etc.
  *
  * <b>Example:</b>
  * @code
  * MU_FIXTURE_SETUP(SuiteName)
  * {
  *     // Access and print the name of the current test
- *     MU_TRACE("Entering test '%s'\n", MU_TOKEN->test->name);
+ *     MU_TRACE("Entering test '%s'\n", MU_CURRENT_TEST->test->name);
  * }
  * @endcode
  * @hideinitializer
  */
-#define MU_TOKEN (Mu_Interface_CurrentToken())
+#define MU_CURRENT_TEST (Mu_Interface_CurrentTest())
 
 /*@}*/
 
@@ -645,9 +637,13 @@ C_BEGIN_DECLS
 #define MU_FS_PREFIX "__mu_fs_"
 #define MU_FT_PREFIX "__mu_ft_"
 
-MuTestToken* Mu_Interface_CurrentToken();
-void Mu_Interface_SetCurrentTokenCallback(MuTestToken* (*cb) (void* data), void* data);
-
+void Mu_Interface_Expect(MuTestStatus status);
+void Mu_Interface_Timeout(long ms);
+void Mu_Interface_Event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...);
+void Mu_Interface_Assert(const char* file, unsigned int line, const char* expr, int sense, int result);
+void Mu_Interface_AssertEqual(const char* file, unsigned int line, const char* expr1, const char* expr2, int sense, MuType type, ...);
+void Mu_Interface_Result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...);
+MuTest* Mu_Interface_CurrentTest(void);
 
 C_END_DECLS
 

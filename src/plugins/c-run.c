@@ -128,14 +128,14 @@ static uipc_typeinfo expect_info =
 #define MSG_TYPE_TIMEOUT 2
 #define MSG_TYPE_EXPECT 3
 
-static MuTestToken*
+static MuInterfaceToken*
 ctoken_current(void* data)
 {
-    return (MuTestToken*) data;
+    return (MuInterfaceToken*) data;
 }
 
 void
-ctoken_event(MuTestToken* _token, const MuLogEvent* event)
+ctoken_event(MuInterfaceToken* _token, const MuLogEvent* event)
 {
     CToken* token = (CToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
@@ -159,7 +159,7 @@ ctoken_event(MuTestToken* _token, const MuLogEvent* event)
 
 static void ctoken_free(CToken* token);
 
-void ctoken_result(MuTestToken* _token, const MuTestResult* summary)
+void ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
 {    
     CToken* token = (CToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
@@ -188,7 +188,7 @@ done:
 }
 
 void
-ctoken_meta(MuTestToken* _token, MuTestMeta type, ...)
+ctoken_meta(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 {
     CToken* token = (CToken*) _token;
     va_list ap;
@@ -259,7 +259,7 @@ signal_handler(int sig)
         summary.line = 0;
         summary.backtrace = get_backtrace(1);
     
-        current_token->base.result((MuTestToken*) current_token, &summary);
+        current_token->base.result((MuInterfaceToken*) current_token, &summary);
     }
     else
     {
@@ -290,9 +290,9 @@ ctoken_free(CToken* token)
 }
 
 #ifdef CPLUSPLUS_ENABLED
-#   define INVOKE(thunk, token) (cplusplus_trampoline((thunk), (MuTestToken*) (token)))
+#   define INVOKE(thunk) (cplusplus_trampoline((thunk)))
 #else
-#   define INVOKE(thunk, token) ((thunk)((MuTestToken*) (token)))
+#   define INVOKE(thunk) ((thunk)()))
 #endif
 
 MuTestResult*
@@ -331,18 +331,18 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
         token->current_stage = MU_STAGE_SETUP;
     
         if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
-            INVOKE(thunk, token);
+            INVOKE(thunk);
         
         token->current_stage = MU_STAGE_TEST;
         
-        INVOKE(test->run, token);
+        INVOKE(test->run);
         
         token->current_stage = MU_STAGE_TEARDOWN;
         
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
-            INVOKE(thunk, token);
+            INVOKE(thunk);
         
-        Mu_Test_Success((MuTestToken*) token);
+        Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
     
         close(sockets[1]);
         
@@ -434,7 +434,7 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
             // Couldn't get message or an error occurred, try to figure out what happend
             else if (WIFSIGNALED(status))
             {
-		summary->expected = token->expected;
+                summary->expected = token->expected;
                 summary->status = MU_STATUS_CRASH;
                 summary->stage = MU_STAGE_UNKNOWN;
                 summary->line = 0;
@@ -492,18 +492,18 @@ pid_t cloader_debug(MuLoader* _self, MuTest* test)
         token->current_stage = MU_STAGE_SETUP;
         
         if ((thunk = Mu_Loader_FixtureSetup(test->loader, test->library, test->suite)))
-            thunk((MuTestToken*) test);
+            INVOKE(thunk);
             
         token->current_stage = MU_STAGE_TEST;
         
-        test->run((MuTestToken*) token);
+        INVOKE(test->run);
         
         token-> current_stage = MU_STAGE_TEARDOWN;
         
         if ((thunk = Mu_Loader_FixtureTeardown(test->loader, test->library, test->suite)))
-            thunk((MuTestToken*) token);
+            INVOKE(thunk);
         
-        Mu_Test_Success((MuTestToken*) token);
+        Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
     
         exit(0);
     }

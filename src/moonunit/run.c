@@ -158,7 +158,8 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
 
             Mu_Logger_TestLeave(logger, test, summary);
             
-            if (summary->status != summary->expected && settings->debug)
+            if (summary->status != MU_STATUS_SKIPPED &&
+                summary->status != summary->expected && settings->debug)
             {
                 pid_t pid = loader->debug(loader, test);
                 char* breakpoint = NULL;
@@ -179,7 +180,8 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                     free(breakpoint);
             }
             
-	    if (summary->status != summary->expected)
+	    if (summary->status != MU_STATUS_SKIPPED &&
+            summary->status != summary->expected)
 	      failed++;
 
             loader->free_result(loader, summary);

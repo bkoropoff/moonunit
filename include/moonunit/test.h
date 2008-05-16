@@ -153,26 +153,6 @@ typedef struct MuLogEvent
     void* reserved2;
 } MuLogEvent;
 
-typedef enum MuTestMeta
-{
-    MU_META_EXPECT,
-    MU_META_TIMEOUT
-} MuTestMeta;
-
-typedef struct MuTestToken
-{
-    /* Basic operations */
-    void (*result)(struct MuTestToken*, const MuTestResult*);
-    void (*event)(struct MuTestToken*, const MuLogEvent* event);
-    /* Extensible meta-data channel */
-    void (*meta)(struct MuTestToken*, MuTestMeta type, ...);
-    /* Reserved */
-    void* reserved1;
-    void* reserved2;
-    // FIXME: data member
-    struct MuTest* test;
-} MuTestToken;
-
 typedef struct MuTest
 {
     // FIXME: data member
@@ -194,7 +174,7 @@ typedef struct MuTest
     /** Library which contains this test */
     struct MuLibrary* library;
     /** Function to run the test */
-    void (*run) (MuTestToken* token);
+    void (*run) (void);
     /* Reserved */
     void* reserved1;
     void* reserved2;
@@ -208,7 +188,7 @@ typedef struct MuFixtureSetup
     const char* file;
     // FIXME: data member
     unsigned int line;
-    void (*run) (MuTestToken* token);
+    void (*run) (void);
     /* Reserved */
     void* reserved1;
     void* reserved2;
@@ -222,7 +202,7 @@ typedef struct MuFixtureTeardown
     const char* file;
     // FIXME: data member
     unsigned int line;
-    void (*run) (MuTestToken* token);
+    void (*run) (void);
     /* Reserved */
     void* reserved1;
     void* reserved2;
@@ -253,18 +233,10 @@ typedef struct MuLibraryTeardown
 } MuLibraryTeardown;
 
 typedef void (*MuThunk) (void);
-typedef void (*MuTestThunk) (MuTestToken*);
+typedef void (*MuTestThunk) (void);
 
 const char* Mu_TestStatusToString(MuTestStatus status);
 const char* Mu_TestStageToString(MuTestStage stage);
-void Mu_Test_Expect(MuTestToken* token, MuTestStatus status);
-void Mu_Test_Timeout(MuTestToken* token, long ms);
-void Mu_Test_Event(MuTestToken* token, MuLogLevel level, const char* file, unsigned int line, const char* fmt, ...);
-void Mu_Test_Assert(MuTestToken* token, int result, int sense, const char* expr, const char* file, unsigned int line);
-void Mu_Test_AssertEqual(MuTestToken* token, const char* expr, const char* expected, int sense, const char* file, unsigned int line, MuType type, ...);
-void Mu_Test_Success(MuTestToken* token);
-void Mu_Test_Failure(MuTestToken* token, const char* file, unsigned int line, const char* message, ...);
-void Mu_Test_Skip(MuTestToken* token, const char* file, unsigned int line, const char* message, ...);
 
 #endif
 

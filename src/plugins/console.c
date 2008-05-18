@@ -231,11 +231,11 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         
         if (summary->file && summary->line)
         {
-            failure_message = format("%s:%i: %s", summary->file, summary->line, reason);
+            failure_message = format("%s:%i: %s", basename_pure(summary->file), summary->line, reason);
         }
         else if (summary->file)
         {
-            failure_message = format("%s: %s", summary->file, summary->line, reason);
+            failure_message = format("%s: %s", basename_pure(summary->file), summary->line, reason);
         }
         else
         {

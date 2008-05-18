@@ -411,7 +411,8 @@ cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, unsigned int*
         uipc_message* message = NULL;
         int status;
         uipc_status uipc_result;
-        long timeleft = default_timeout;
+        long timeout = default_timeout;
+        long timeleft = timeout;
         bool done = false;    
         
         close(sockets[1]);
@@ -449,7 +450,7 @@ cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, unsigned int*
                 case MSG_TYPE_TIMEOUT:
                 {
                     TimeoutMsg* msg = uipc_msg_get_payload(message, &timeout_info);
-                    timeleft = msg->timeout;
+                    timeout = timeleft = msg->timeout;
                     uipc_msg_free_payload(msg, &timeout_info);
                     uipc_msg_free(message);
                     message = NULL;
@@ -487,7 +488,7 @@ cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, unsigned int*
             // Timed out waiting for response
             if (uipc_result == UIPC_TIMEOUT)
             {
-                char* reason = format("Test timed out after %li milliseconds", default_timeout);
+                char* reason = format("Test timed out after %li milliseconds", timeout);
                 
                 summary->expected = token->expected;
                 summary->status = MU_STATUS_TIMEOUT;

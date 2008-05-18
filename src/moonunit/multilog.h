@@ -26,6 +26,6 @@
  */
 
 #include <moonunit/logger.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 MuLogger* create_multilogger(array* loggers);

@@ -35,7 +35,7 @@
 #include <stdbool.h>
 #endif
 
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 
 C_BEGIN_DECLS
 

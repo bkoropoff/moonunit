@@ -30,7 +30,7 @@
 
 #include <stdarg.h>
 #include <moonunit/type.h>
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 
 typedef struct MuOption
 {

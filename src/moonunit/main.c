@@ -34,7 +34,7 @@
 #include <moonunit/logger.h>
 #include <moonunit/test.h>
 #include <moonunit/loader.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 #include <moonunit/plugin.h>
 
 #include "option.h"

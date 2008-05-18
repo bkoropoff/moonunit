@@ -30,7 +30,7 @@
 
 #include <stdbool.h>
 
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 typedef struct
 {

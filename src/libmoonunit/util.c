@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 bool
 ends_with (const char* haystack, const char* needle)

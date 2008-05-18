@@ -35,7 +35,7 @@
 #endif
 
 #include <moonunit/test.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 #include "c-token.h"
 #include "cplusplus.h"

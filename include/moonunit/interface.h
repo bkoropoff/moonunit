@@ -50,7 +50,7 @@
 #ifndef __MU_INTERFACE_H__
 #define __MU_INTERFACE_H__
 
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 #include <moonunit/type.h>
 #include <moonunit/test.h>
 

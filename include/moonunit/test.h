@@ -28,7 +28,7 @@
 #ifndef __MU_TEST_H__
 #define __MU_TEST_H__
 
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 #include <moonunit/type.h>
 
 /**

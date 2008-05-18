@@ -32,7 +32,7 @@
 #include "run.h"
 #include "gdb.h"
 
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 #include <stdlib.h>
 #include <string.h>

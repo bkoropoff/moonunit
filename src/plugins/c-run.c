@@ -33,7 +33,7 @@
 
 #include <moonunit/test.h>
 #include <moonunit/loader.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 #include <moonunit/interface.h>
 #include <uipc/ipc.h>
 #include <unistd.h>

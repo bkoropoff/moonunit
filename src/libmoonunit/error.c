@@ -26,7 +26,7 @@
  */
 
 #include <moonunit/error.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 #include <stdlib.h>
 #include <stdarg.h>

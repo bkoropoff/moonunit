@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 
-#include <private/interface-private.h>
+#include <moonunit/private/interface-private.h>
 
 typedef struct
 {

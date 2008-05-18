@@ -26,7 +26,7 @@
  */
 
 #include <moonunit/option.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>

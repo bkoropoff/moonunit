@@ -29,7 +29,7 @@
 #include <ctype.h>
 
 #include "upopt.h"
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 struct UpoptContext
 {

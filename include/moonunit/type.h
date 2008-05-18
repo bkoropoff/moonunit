@@ -28,7 +28,7 @@
 #ifndef __MU_TYPE_H__
 #define __MU_TYPE_H__
 
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 
 typedef enum MuType
 {

@@ -27,7 +27,7 @@
 
 #include "gdb.h"
 
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>

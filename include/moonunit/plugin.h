@@ -29,7 +29,7 @@
 #define __MU_PLUGIN_H__
 
 #include <stdbool.h>
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 
 struct MuLogger;
 struct MuLoader;

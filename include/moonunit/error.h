@@ -30,7 +30,7 @@
 
 #include <stdbool.h>
 
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 
 /* Moonunit error code facility
  * Used internally and for plugins

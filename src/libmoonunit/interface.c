@@ -33,8 +33,8 @@
 #endif
 
 #include <moonunit/interface.h>
-#include <private/interface-private.h>
-#include <moonunit/util.h>
+#include <moonunit/private/interface-private.h>
+#include <moonunit/private/util.h>
 
 static MuInterfaceToken* (*current_callback) (void* data) = NULL;
 static void* current_callback_data = NULL;

@@ -28,7 +28,7 @@
 #include <moonunit/plugin.h>
 #include <moonunit/logger.h>
 #include <moonunit/test.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 
 #include <stdlib.h>
 #include <stdio.h>

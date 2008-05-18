@@ -26,7 +26,7 @@
  */
 
 #include <moonunit/loader.h>
-#include <moonunit/util.h>
+#include <moonunit/private/util.h>
 #include <moonunit/logger.h>
 
 #include <stdbool.h>

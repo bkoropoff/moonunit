@@ -28,7 +28,7 @@
 #ifndef __MU_INTERFACE_PRIVATE_H__
 #define __MU_INTERFACE_PRIVATE_H__
 
-#include <moonunit/boilerplate.h>
+#include <moonunit/internal/boilerplate.h>
 #include <moonunit/test.h>
 
 C_BEGIN_DECLS
@@ -36,7 +36,8 @@ C_BEGIN_DECLS
 typedef enum MuInterfaceMeta
 {
     MU_META_EXPECT,
-    MU_META_TIMEOUT
+    MU_META_TIMEOUT,
+    MU_META_ITERATIONS
 } MuInterfaceMeta;
 
 typedef struct MuInterfaceToken

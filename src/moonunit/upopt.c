@@ -232,14 +232,14 @@ print_wrapped(FILE* out, int* used, int columns, int indent, const char* format,
     
     va_end(ap);
     
-    if ((*used + strlen(str) > columns) ||
+    if ((*used + strlen(str) >= columns) ||
         !strcmp(str, "\n"))
     {
         int i;
         fprintf(out, "\n");
         for (i = 0; i < indent; i++)
             fprintf(out, " ");
-        *used = 0;
+        *used = indent;
     }
 
     if (strcmp(str, "\n"))
@@ -266,7 +266,7 @@ Upopt_PrintUsage(UpoptContext* context, FILE* out, int columns)
         const UpoptOptionInfo* info = &context->options[i];
         if (info->shortname && info->longname && info->argument)
         {
-            PRINT(" [ -%c, --%s=%s ]", info->shortname, info->longname,
+            PRINT(" [ -%c, --%s %s ]", info->shortname, info->longname,
                   info->argument);
         }
         else if (info->shortname && info->longname)
@@ -276,7 +276,7 @@ Upopt_PrintUsage(UpoptContext* context, FILE* out, int columns)
         }
         else if (info->longname && info->argument)
         {
-            PRINT(" [ --%s=%s ]", info->longname, info->argument);
+            PRINT(" [ --%s %s ]", info->longname, info->argument);
         }
         else if (info->shortname && info->argument)
         {
@@ -307,7 +307,7 @@ Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
 #define PRINT(...) (print_wrapped(out, &used, columns, indent + indent_newline, __VA_ARGS__))
 #define PRINT_NEW(...) (print_wrapped(out, &used, columns, indent_newline, __VA_ARGS__))
     int used = 0;
-    int indent = 35;
+    int indent = 40;
     int indent_newline = 4;
     int i;
     Upopt_PrintUsage(context, out, columns);
@@ -321,7 +321,7 @@ Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
 
         if (info->shortname && info->longname && info->argument)
         {
-            PRINT("-%c, --%s=%s", info->shortname, info->longname,
+            PRINT("-%c, --%s %s", info->shortname, info->longname,
                   info->argument);
         }
         else if (info->shortname && info->longname)
@@ -331,7 +331,7 @@ Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
         }
         else if (info->longname && info->argument)
         {
-            PRINT("--%s=%s", info->longname, info->argument);
+            PRINT("--%s %s", info->longname, info->argument);
         }
         else if (info->shortname && info->argument)
         {
@@ -347,7 +347,7 @@ Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
         }
 
 
-        for (; used < indent; used++)
+        for (; used < indent + indent_newline; used++)
             fprintf(out, " ");
 
         {
@@ -377,7 +377,10 @@ Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
         }
 
         if (context->options[i+1].constant != UPOPT_ARG_END)
+        {
+            fprintf(out, "\n");
             PRINT_NEW("\n");
+        }
     }
 
     fprintf(out, "\n");

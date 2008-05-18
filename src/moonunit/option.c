@@ -107,14 +107,14 @@ static const struct UpoptOptionInfo options[] =
         .shortname = 'l',
         .constant = OPTION_LOGGER,
         .description = "Use a specific result logger (default: console)",
-        .argument = "name:setting1=value1,..."
+        .argument = "name:opt=val,..."
     },
     {
         .longname = "loader-option",
         .shortname = '\0',
         .constant = OPTION_LOADER_OPTION,
         .description = "Set options for a particular loader plugin",
-        .argument = "name:setting1=value1,..."
+        .argument = "name:opt=val,..."
     },
     {
         .longname = "iterations",

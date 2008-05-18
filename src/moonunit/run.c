@@ -33,6 +33,7 @@
 #include "gdb.h"
 
 #include <moonunit/private/util.h>
+#include <moonunit/library.h>
 
 #include <stdlib.h>
 #include <string.h>

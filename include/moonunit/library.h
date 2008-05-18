@@ -25,41 +25,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <moonunit/loader.h>
-#include <moonunit/library.h>
+#ifndef __MU_LIBRARY_H__
+#define __MU_LIBRARY_H__
 
-bool
-Mu_Loader_CanOpen(struct MuLoader* loader, const char* path)
+#include <moonunit/internal/boilerplate.h>
+
+C_BEGIN_DECLS
+
+struct MuLoader;
+
+typedef struct MuLibrary
 {
-    return loader->can_open(loader, path);
-}
+    struct MuLoader* loader;
+} MuLibrary;
 
-MuLibrary*
-Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err)
-{
-    return loader->open(loader, path, err);
-}
+struct MuTest** Mu_Library_GetTests(MuLibrary* handle);
+void Mu_Library_FreeTests(MuLibrary* handle, struct MuTest**);
+void Mu_Library_Close(MuLibrary* handle);
+const char* Mu_Library_Name(MuLibrary* handle);
 
-void
-Mu_Loader_SetOption(MuLoader* loader, const char *name, ...)
-{
-    va_list ap;
+C_END_DECLS
 
-    va_start(ap, name);
-
-    Mu_Option_Setv(loader->options, loader, name, ap);
-
-    va_end(ap);
-}
-
-void 
-Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value)
-{
-    Mu_Option_SetString(loader->options, loader, name, value);
-}
-
-MuType
-Mu_Loader_OptionType(MuLoader* loader, const char *name)
-{
-    return Mu_Option_Type(loader->options, name);
-}
+#endif

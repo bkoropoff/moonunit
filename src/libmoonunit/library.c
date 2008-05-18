@@ -28,38 +28,26 @@
 #include <moonunit/loader.h>
 #include <moonunit/library.h>
 
-bool
-Mu_Loader_CanOpen(struct MuLoader* loader, const char* path)
+struct MuTest**
+Mu_Library_GetTests(MuLibrary* handle)
 {
-    return loader->can_open(loader, path);
-}
-
-MuLibrary*
-Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err)
-{
-    return loader->open(loader, path, err);
+    return handle->loader->get_tests(handle->loader, handle);
 }
 
 void
-Mu_Loader_SetOption(MuLoader* loader, const char *name, ...)
+Mu_Library_FreeTests(MuLibrary* handle, struct MuTest** tests)
 {
-    va_list ap;
-
-    va_start(ap, name);
-
-    Mu_Option_Setv(loader->options, loader, name, ap);
-
-    va_end(ap);
+    handle->loader->free_tests(handle->loader, handle, tests);
 }
 
-void 
-Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value)
+void
+Mu_Library_Close(MuLibrary* handle)
 {
-    Mu_Option_SetString(loader->options, loader, name, value);
+    handle->loader->close(handle->loader, handle);
 }
 
-MuType
-Mu_Loader_OptionType(MuLoader* loader, const char *name)
+const char*
+Mu_Library_Name(MuLibrary* handle)
 {
-    return Mu_Option_Type(loader->options, name);
+    return handle->loader->library_name(handle->loader, handle);
 }

@@ -25,41 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef __MU_MOONUNIT_H__
+#define __MU_MOONUNIT_H__
+
+#include <moonunit/test.h>
 #include <moonunit/loader.h>
+#include <moonunit/logger.h>
+#include <moonunit/option.h>
+#include <moonunit/type.h>
+#include <moonunit/interface.h>
+#include <moonunit/error.h>
+#include <moonunit/plugin.h>
 #include <moonunit/library.h>
 
-bool
-Mu_Loader_CanOpen(struct MuLoader* loader, const char* path)
-{
-    return loader->can_open(loader, path);
-}
-
-MuLibrary*
-Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err)
-{
-    return loader->open(loader, path, err);
-}
-
-void
-Mu_Loader_SetOption(MuLoader* loader, const char *name, ...)
-{
-    va_list ap;
-
-    va_start(ap, name);
-
-    Mu_Option_Setv(loader->options, loader, name, ap);
-
-    va_end(ap);
-}
-
-void 
-Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value)
-{
-    Mu_Option_SetString(loader->options, loader, name, value);
-}
-
-MuType
-Mu_Loader_OptionType(MuLoader* loader, const char *name)
-{
-    return Mu_Option_Type(loader->options, name);
-}
+#endif

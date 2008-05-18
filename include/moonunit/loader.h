@@ -28,21 +28,18 @@
 #ifndef __MU_LOADER_H__
 #define __MU_LOADER_H__
 
+#include <moonunit/internal/boilerplate.h>
 #include <moonunit/error.h>
-#include <moonunit/test.h>
 #include <moonunit/plugin.h>
 #include <moonunit/option.h>
-#include <stdbool.h>
+#include <moonunit/test.h>
 #include <sys/types.h>
 
-struct MuLoader;
+C_BEGIN_DECLS
 
-typedef struct MuLibrary
-{
-    struct MuLoader* loader;
-} MuLibrary;
+struct MuLibrary;
 
-typedef void (*MuLogCallback)(MuLogEvent* event, void* data);
+typedef void (*MuLogCallback)(struct MuLogEvent* event, void* data);
 
 typedef struct MuLoader
 {
@@ -51,23 +48,23 @@ typedef struct MuLoader
     // Determines if a library can be opened by this loader
     bool (*can_open) (struct MuLoader*, const char* path);
     // Opens a library and returns a handle
-    MuLibrary* (*open) (struct MuLoader*, const char* path, MuError** err);
+    struct MuLibrary* (*open) (struct MuLoader*, const char* path, MuError** err);
     // Returns a null-terminated list of unit tests
-    struct MuTest** (*get_tests) (struct MuLoader*, MuLibrary* handle);
+    struct MuTest** (*get_tests) (struct MuLoader*, struct MuLibrary* handle);
     // Frees a list of unit tests that had been returned by get_tests
-    void (*free_tests) (struct MuLoader*, MuLibrary* handle, struct MuTest** list);
+    void (*free_tests) (struct MuLoader*, struct MuLibrary* handle, struct MuTest** list);
     // Closes a library
-    void (*close) (struct MuLoader*, MuLibrary* handle);
+    void (*close) (struct MuLoader*, struct MuLibrary* handle);
     // Get name of a library
-    const char* (*library_name) (struct MuLoader*, MuLibrary* handle);
+    const char* (*library_name) (struct MuLoader*, struct MuLibrary* handle);
     // Get the name of a test
     const char* (*test_name) (struct MuLoader*, struct MuTest*);
     // Get the suite of a test
     const char* (*test_suite) (struct MuLoader*, struct MuTest*);
     // Dispatch a single test
-    MuTestResult* (*dispatch)(struct MuLoader*, struct MuTest*, MuLogCallback, void*);
+    struct MuTestResult* (*dispatch)(struct MuLoader*, struct MuTest*, MuLogCallback, void*);
     // Free the result of a unit test
-    void (*free_result)(struct MuLoader*, MuTestResult*);
+    void (*free_result)(struct MuLoader*, struct MuTestResult*);
     // Called to run and immediately suspend a unit test in
     // a separate process.  The test can then be traced by
     // a debugger.
@@ -75,13 +72,11 @@ typedef struct MuLoader
 } MuLoader;
 
 bool Mu_Loader_CanOpen(MuLoader* loader, const char* path);
-MuLibrary* Mu_Loader_Open(MuLoader* loader, const char* path, MuError** err);
-struct MuTest** Mu_Library_GetTests(MuLibrary* handle);
-void Mu_Library_FreeTests(MuLibrary* handle, struct MuTest**);
-void Mu_Library_Close(MuLibrary* handle);
-const char* Mu_Library_Name(MuLibrary* handle);
+struct MuLibrary* Mu_Loader_Open(MuLoader* loader, const char* path, MuError** err);
 void Mu_Loader_SetOption(MuLoader* loader, const char *name, ...);
 void Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value);
 MuType Mu_Loader_OptionType(MuLoader* loader, const char *name);
+
+C_END_DECLS
 
 #endif

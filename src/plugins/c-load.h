@@ -29,6 +29,7 @@
 #define __MU_C_LOAD_H__
 
 #include <moonunit/interface.h>
+#include <moonunit/library.h>
 
 typedef struct CTest
 {

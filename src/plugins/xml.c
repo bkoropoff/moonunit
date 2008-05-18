@@ -333,8 +333,11 @@ create_xmllogger()
 
 static MuPlugin plugin =
 {
-    .name = "xml",
+    .version = MU_PLUGIN_API_1,
     .type = MU_PLUGIN_LOGGER,
+    .name = "xml",
+    .author = "Brian Koropoff",
+    .description = "Outputs test results as XML",
     .create_logger = create_xmllogger,
 };
 

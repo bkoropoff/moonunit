@@ -473,8 +473,11 @@ create_consolelogger()
 
 static MuPlugin plugin =
 {
-    .name = "console",
+    .version = MU_PLUGIN_API_1,
     .type = MU_PLUGIN_LOGGER,
+    .name = "console",
+    .author = "Brian Koropoff",
+    .description = "Logs human-readable test results to the console or a file",
     .create_logger = create_consolelogger
 };
 

@@ -58,8 +58,11 @@ get_cloader()
 
 static MuPlugin plugin =
 {
-    .name = "c",
+    .version = MU_PLUGIN_API_1,
     .type = MU_PLUGIN_LOADER,
+    .name = "c",
+    .author = "Brian Koropoff",
+    .description = "Loads and runs C/C++ unit tests",
     .loader = get_cloader
 };
 

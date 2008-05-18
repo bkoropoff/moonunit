@@ -57,6 +57,12 @@ list_plugins()
     MuPlugin** plugins = Mu_Plugin_List();
     unsigned int i;
 
+    if (!plugins)
+    {
+        printf("No plugins found.\n");
+        return 0;
+    }
+
     printf("Loader plugins:\n  ");
     
     for (i = 0; plugins[i]; i++)
@@ -64,7 +70,7 @@ list_plugins()
         MuPlugin* plugin = plugins[i];
 
         if (plugin->type == MU_PLUGIN_LOADER)
-            printf("- %s\n  ", plugin->name);
+            printf("%s - %s\n  ", plugin->name, plugin->description);
     }
 
     printf("\n");
@@ -75,7 +81,7 @@ list_plugins()
         MuPlugin* plugin = plugins[i];
 
         if (plugin->type == MU_PLUGIN_LOGGER)
-            printf("- %s\n  ", plugin->name);
+            printf("%s - %s\n  ", plugin->name, plugin->description);
     }
 
     printf("\n");
@@ -94,6 +100,7 @@ print_options(void* object, MuOption* options)
         printf("    Type: %s\n", Mu_Type_ToString(options[i].type));
         printf("    Description: %s\n", options[i].description);
         printf("    Default: %s\n", Mu_Option_GetString(options, object, options[i].name));
+        printf("\n");
     }
 }
 
@@ -111,14 +118,18 @@ plugin_info(const char* name)
     {
         MuLoader* loader = plugin->loader();
         
-        printf("Loader plugin: %s\n", plugin->name);
+        printf("%s - %s\n", plugin->name, plugin->description);
+        printf("  Type: loader\n");
+        printf("  Author: %s\n\n", plugin->author);
         print_options(loader, loader->options);
         break;
     }
     case MU_PLUGIN_LOGGER:
     {
         MuLogger* logger = plugin->create_logger();
-        printf("Logger plugin: %s\n", plugin->name);
+        printf("%s - %s\n", plugin->name, plugin->description);
+        printf("  Type: logger\n");
+        printf("  Author: %s\n\n", plugin->author);
         print_options(logger, logger->options);
         Mu_Logger_Destroy(logger);
         break;

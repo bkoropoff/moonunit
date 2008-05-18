@@ -509,6 +509,33 @@ C_BEGIN_DECLS
     (Mu_Interface_Timeout((ms)))
 
 /**
+ * @brief Specify number of iterations for current test
+ *
+ * Use of this macro specifies the number of times the
+ * current test should be run.  Tests that might demonstrate
+ * non-deterministic or external state-dependent behavior
+ * may benefit from being run multiple times to decrease the
+ * likelihood of race conditions and other Heisenbugs going
+ * unnoticed.
+ *
+ * The test will be run either the specified number of times
+ * or until it fails or requests to be skipped.  The overall
+ * result of the test will be that of the last run.  Logged
+ * events will be recorded from all runs.
+ *
+ * <b>Example:</b>
+ * @code
+ * // This test should be run 100 times
+ * MU_ITERATE(100);
+ * @endcode
+ *
+ * @param count the number of iterations
+ * @hideinitializer
+ */
+#define MU_ITERATE(count)                       \
+    (Mu_Interface_Iterations((count)))
+
+/**
  * @brief Log non-fatal message
  *
  * It is sometimes desirable for a unit test to be able to
@@ -621,6 +648,7 @@ C_BEGIN_DECLS
 
 void Mu_Interface_Expect(MuTestStatus status);
 void Mu_Interface_Timeout(long ms);
+void Mu_Interface_Iterations(unsigned int count);
 void Mu_Interface_Event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...);
 void Mu_Interface_Assert(const char* file, unsigned int line, const char* expr, int sense, int result);
 void Mu_Interface_AssertEqual(const char* file, unsigned int line, const char* expr1, const char* expr2, int sense, MuType type, ...);

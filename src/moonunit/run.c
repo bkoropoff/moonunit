@@ -129,7 +129,6 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         {
             MuTestResult* summary = NULL;
             MuTest* test = tests[index];
-            unsigned int count;
 
             if (set != NULL && !in_set(test, setc, set))
                 continue;
@@ -143,15 +142,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             }
             
             Mu_Logger_TestEnter(logger, test);
-            for (count = 0; count < settings->iterations; count++)
-            {
-                summary = loader->dispatch(loader, test, event_proxy_cb, logger);
-                if (summary->status != MU_STATUS_SUCCESS)
-                    break;
-                else if (count + 1 < settings->iterations)
-                    loader->free_result(loader, summary);
-            }
-
+            summary = loader->dispatch(loader, test, event_proxy_cb, logger);
             Mu_Logger_TestLeave(logger, test, summary);
             
             if (summary->status != MU_STATUS_SKIPPED &&

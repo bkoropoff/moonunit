@@ -231,7 +231,7 @@ static void*
 racer(void* number)
 {
     barrier_wait(&barrier);
-    MU_VERBOSE("Racer #%lu at the finish line", (unsigned long) number);
+    MU_INFO("Racer #%lu at the finish line", (unsigned long) number);
     MU_SUCCESS;
     return NULL;
 }
@@ -239,6 +239,8 @@ racer(void* number)
 MU_TEST(Thread, race)
 {
     pthread_t racer1, racer2;
+
+    MU_ITERATE(10);
 
     barrier_init(&barrier, 3);
     

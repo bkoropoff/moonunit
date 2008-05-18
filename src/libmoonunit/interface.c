@@ -54,6 +54,13 @@ Mu_Interface_Timeout(long ms)
 }
 
 void
+Mu_Interface_Iterations(unsigned int count)
+{
+    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    token->meta(token, MU_META_ITERATIONS, count);
+}
+
+void
 Mu_Interface_Event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...)
 {
     MuInterfaceToken* token = Mu_Interface_CurrentToken();

@@ -153,7 +153,6 @@ run(char* self)
 
     settings.self = self;
     settings.debug = option.gdb;
-    settings.iterations = option.iterations;
 
     if (array_size(loggers) == 0)
     {
@@ -192,6 +191,11 @@ run(char* self)
         if (option.timeout && Mu_Loader_OptionType(settings.loader, "timeout") == MU_TYPE_INTEGER)
         {
             Mu_Loader_SetOption(settings.loader, "timeout", option.timeout);
+        }
+        
+        if (option.iterations && Mu_Loader_OptionType(settings.loader, "iterations") == MU_TYPE_INTEGER)
+        {
+            Mu_Loader_SetOption(settings.loader, "iterations", option.iterations);
         }
         
         if (option.all || array_size(option.tests) == 0)

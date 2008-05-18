@@ -174,7 +174,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
 
     /* Set defaults */
 
-    option->iterations = 1;
+    option->iterations = 0;
     option->timeout = 0;
     option->mode = MODE_RUN;
 

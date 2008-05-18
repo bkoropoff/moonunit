@@ -55,6 +55,7 @@
 #endif
 
 static long default_timeout = 2000;
+static unsigned int default_iterations = 1;
 static CToken* current_token;
 
 typedef struct
@@ -66,6 +67,11 @@ typedef struct
 {
     long timeout;
 } TimeoutMsg;
+
+typedef struct
+{
+    unsigned int count;
+} IterationsMsg;
 
 static uipc_typeinfo backtrace_info =
 {
@@ -114,6 +120,14 @@ static uipc_typeinfo timeout_info =
     }
 };
 
+static uipc_typeinfo iterations_info =
+{
+    .size = sizeof(IterationsMsg),
+    .members =
+    {
+	UIPC_END
+    }
+};
 
 static uipc_typeinfo expect_info =
 {
@@ -128,6 +142,7 @@ static uipc_typeinfo expect_info =
 #define MSG_TYPE_EVENT 1
 #define MSG_TYPE_TIMEOUT 2
 #define MSG_TYPE_EXPECT 3
+#define MSG_TYPE_ITERATIONS 4
 
 static MuInterfaceToken*
 ctoken_current(void* data)
@@ -234,6 +249,20 @@ ctoken_meta(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
         uipc_msg_free(message);
         break;
     }
+    case MU_META_ITERATIONS:
+    {
+        uipc_handle* ipc_handle = token->ipc_handle;
+        IterationsMsg msg = { va_arg(ap, unsigned int) };
+	
+        if (!ipc_handle)
+            return;
+        
+        uipc_message* message = uipc_msg_new(MSG_TYPE_ITERATIONS);
+        uipc_msg_set_payload(message, &msg, &iterations_info);
+        uipc_send(ipc_handle, message, NULL);
+        uipc_msg_free(message);
+        break;
+    }
     }
 
     va_end(ap);
@@ -302,8 +331,13 @@ ctoken_free(CToken* token)
 #   define INVOKE(thunk) ((thunk)()))
 #endif
 
+/*
+ * FIXME: this function is way too bloated
+ * and needs to be split up
+ */
 MuTestResult*
-cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, pid_t* _pid, MuTestStage debug_stage, void** breakpoint)
+cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, unsigned int* iterations,
+            pid_t* _pid, MuTestStage debug_stage, void** breakpoint)
 {
     int sockets[2];
     pid_t pid;
@@ -421,6 +455,14 @@ cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, pid_t* _pid, 
                     message = NULL;
                     break;
                 }
+                case MSG_TYPE_ITERATIONS:
+                {
+                    IterationsMsg* msg = uipc_msg_get_payload(message, &iterations_info);
+                    *iterations = msg->count;
+                    uipc_msg_free_payload(msg, &iterations_info);
+                    uipc_msg_free(message);
+                    break;
+                }
                 }
             }
             else
@@ -515,17 +557,31 @@ cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, pid_t* _pid, 
     }
 }
 
-
-MuTestResult*
-cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
-{
-    return cloader_run(false, test, cb, data, NULL, 0, NULL);
-}
-
 void
 cloader_free_result(MuLoader* _self, MuTestResult* result)
 {
     uipc_msg_free_payload(result, &testresult_info);
+}
+
+MuTestResult*
+cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
+{
+    unsigned int iterations = default_iterations;
+    unsigned int i;
+    MuTestResult* result = NULL;
+
+    for (i = 0; i < iterations; i++)
+    {
+        if (result)
+        {
+            cloader_free_result(_self, result);
+        }
+        result = cloader_run(false, test, cb, data, &iterations, NULL, 0, NULL);
+        if (result->status == MU_STATUS_SKIPPED || result->status != result->expected)
+            break;
+    }
+
+    return result;
 }
 
 pid_t 
@@ -533,7 +589,7 @@ cloader_debug(MuLoader* _self, MuTest* test, MuTestStage stage, void** breakpoin
 {
     pid_t result;
 
-    cloader_run(true, test, NULL, NULL, &result, stage, breakpoint);
+    cloader_run(true, test, NULL, NULL, NULL, &result, stage, breakpoint);
 
     return result;
 }
@@ -550,11 +606,28 @@ timeout_get(MuLoader* self)
     return default_timeout;
 }
 
+static void
+iterations_set(MuLoader* self, int count)
+{
+    default_iterations = count;
+}
+
+static int
+iterations_get(MuLoader* self)
+{
+    return (int) default_iterations;
+}
+
+
 MuOption cloader_options[] =
 {
+
     MU_OPTION("timeout", MU_TYPE_INTEGER, timeout_get, timeout_set,
               "Time in milliseconds before tests automatically "
               "fail and are forcefully terminated"),
+
+    MU_OPTION("iterations", MU_TYPE_INTEGER, iterations_get, iterations_set,
+              "The number of times each test is run (unless specified by the test)"),
     MU_OPTION_END
 };
 

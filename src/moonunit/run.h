@@ -37,7 +37,6 @@ typedef struct
     MuLoader* loader;
     MuLogger* logger;
     bool debug;
-    unsigned int iterations;
 } RunSettings;
 
 unsigned int run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError** _err);

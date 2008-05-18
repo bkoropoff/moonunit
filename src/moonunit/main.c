@@ -137,6 +137,7 @@ run(char* self)
     array* loggers;
     unsigned int failed = 0;
 
+    Option_ConfigureLoaders(&option);
     loggers = Option_CreateLoggers(&option);
 
     settings.self = self;
@@ -177,7 +178,7 @@ run(char* self)
             die("Error: Could not find loader for file %s", basename_pure(file));
         }
 
-        if (Mu_Loader_OptionType(settings.loader, "timeout") == MU_TYPE_INTEGER)
+        if (option.timeout && Mu_Loader_OptionType(settings.loader, "timeout") == MU_TYPE_INTEGER)
         {
             Mu_Loader_SetOption(settings.loader, "timeout", option.timeout);
         }

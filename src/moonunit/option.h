@@ -48,6 +48,7 @@ typedef struct
     long timeout;
     char* logger;
     array* tests, *files, *loggers;
+    array* loader_options;
     const char* plugin_info;
     char* errormsg;
 } OptionTable;
@@ -57,5 +58,6 @@ struct MuLogger;
 int Option_Parse(int argc, char** argv, OptionTable* option);
 void Option_Release(OptionTable* option);
 array* Option_CreateLoggers(OptionTable* option);
+void Option_ConfigureLoaders(OptionTable* option);
 
 #endif

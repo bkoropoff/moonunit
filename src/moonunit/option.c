@@ -32,7 +32,7 @@ enum
     OPTION_ALL,
     OPTION_GDB,
     OPTION_LOGGER,
-    OPTION_OPTION,
+    OPTION_LOADER_OPTION,
     OPTION_ITERATIONS,
     OPTION_TIMEOUT,
     OPTION_LIST_PLUGINS,
@@ -45,6 +45,7 @@ enum
 
 #include <moonunit/util.h>
 #include <moonunit/logger.h>
+#include <moonunit/loader.h>
 #include <moonunit/plugin.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -106,7 +107,14 @@ static const struct UpoptOptionInfo options[] =
         .shortname = 'l',
         .constant = OPTION_LOGGER,
         .description = "Use a specific result logger (default: console)",
-        .argument = "name"
+        .argument = "name:setting1=value1,..."
+    },
+    {
+        .longname = "loader-option",
+        .shortname = '\0',
+        .constant = OPTION_LOADER_OPTION,
+        .description = "Set options for a particular loader plugin",
+        .argument = "name:setting1=value1,..."
     },
     {
         .longname = "iterations",
@@ -167,7 +175,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     /* Set defaults */
 
     option->iterations = 1;
-    option->timeout = 2000;
+    option->timeout = 0;
     option->mode = MODE_RUN;
 
     while ((rc = Upopt_Next(context, &constant, &value, &option->errormsg)) != UPOPT_STATUS_DONE)
@@ -205,6 +213,9 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             break;
         case OPTION_LOGGER:
             option->loggers = array_append(option->loggers, strdup(value));
+            break;
+        case OPTION_LOADER_OPTION:
+            option->loader_options = array_append(option->loader_options, strdup(value));
             break;
         case OPTION_ITERATIONS:
             option->iterations = atoi(value);
@@ -247,58 +258,120 @@ error:
     return rc != UPOPT_STATUS_DONE;
 }
 
+static void
+Option_ParsePluginOptions(const char* str, 
+                          void (*cb)(const char* target, const char* key, const char* value, void* data),
+                          void* data)
+{
+    char* target = strdup(str);
+    char* colon = strchr(target, ':');
+    char* options = NULL;
+    
+    if (colon)
+    {
+        *colon = '\0';
+        options = colon+1;
+    }
+
+    cb(target, NULL, NULL, data);
+
+    if (options)
+    {
+        char* o, *next;
+        
+        for (o = options; o; o = next)
+        {
+            char* equal;
+            next = strchr(o, ',');
+            if (next)
+            {
+                *(next++) = '\0';
+            }
+            
+            equal = strchr(o, '=');
+            
+            if (equal)
+            {
+                *equal = '\0';
+                
+                cb(target, o, equal+1, data);
+            }
+            else
+            {
+                cb(target, o, NULL, data);
+            }
+        }
+    }
+}
+
+static void
+logger_parse_cb(const char* logger, const char* key, const char* value, void* data)
+{
+    MuLogger** plogger = (MuLogger**) data;
+
+    if (!key)
+    {
+        *plogger = Mu_Plugin_CreateLogger(logger);
+    }
+    else if (*plogger && key)
+    {
+        if (value)
+        {
+            Mu_Logger_SetOptionString(*plogger, key, value);
+        }
+        else if (Mu_Logger_OptionType(*plogger, key) == MU_TYPE_BOOLEAN)
+        {
+            Mu_Logger_SetOption(*plogger, key, true);
+        }
+    }
+}
+
 array*
 Option_CreateLoggers(OptionTable* option)
 {
     unsigned int index;
     array mu_loggers = NULL;
+    MuLogger* logger = NULL;
 
     for (index = 0; index < array_size(option->loggers); index++)
     {
-        char* logger_name = strdup((char*) option->loggers[index]);
-        char* colon = strchr(logger_name, ':');
-        char* options = NULL;
-        MuLogger* logger;
-
-        if (colon)
-        {
-            *colon = '\0';
-            options = colon+1;
-        }
-
-        logger = Mu_Plugin_CreateLogger(logger_name);
-
-        if (options)
-        {
-            char* o, *next;
-
-            for (o = options; o; o = next)
-            {
-                char* equal;
-                next = strchr(o, ',');
-                if (next)
-                {
-                    *(next++) = '\0';
-                }
-                
-                equal = strchr(o, '=');
-
-                if (equal)
-                {
-                    *equal = '\0';
-                    Mu_Logger_SetOptionString(logger, o, equal+1);
-                }
-                else if (Mu_Logger_OptionType(logger, o) == MU_TYPE_BOOLEAN)
-                {
-                    Mu_Logger_SetOption(logger, o, true);
-                }
-            }
-        }
-
+        Option_ParsePluginOptions((char*) option->loggers[index], logger_parse_cb, &logger);
         mu_loggers = array_append(mu_loggers, logger);
     }
 
     return mu_loggers;
+}
+
+static void
+loader_parse_cb(const char* name, const char* key, const char* value, void* data)
+{
+    if (key)
+    {
+        MuLoader* loader = Mu_Plugin_GetLoaderWithName(name);
+        
+        if (loader)
+        {
+            if (value)
+            {
+                Mu_Loader_SetOptionString(loader, key, value);
+            }
+            else if (Mu_Loader_OptionType(loader, key) == MU_TYPE_BOOLEAN)
+            {
+                Mu_Loader_SetOption(loader, key, true);
+            }
+        }
+    }
+}
+
+void
+Option_ConfigureLoaders(OptionTable* option)
+{
+    unsigned int index;
+
+    for (index = 0; index < array_size(option->loader_options); index++)
+    {
+        Option_ParsePluginOptions((char*) option->loader_options[index], loader_parse_cb, NULL);
+    }
 }
 
 void

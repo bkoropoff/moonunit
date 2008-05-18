@@ -54,7 +54,7 @@
 #    include "cplusplus.h"
 #endif
 
-static long default_timeout;
+static long default_timeout = 2000;
 static CToken* current_token;
 
 typedef struct

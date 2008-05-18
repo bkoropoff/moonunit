@@ -207,7 +207,7 @@ uipc_packet_available(int socket, long* _timeout)
 		return UIPC_SUCCESS;
 	else if (_timeout)
     {
-        elapsed = (after.tv_sec - before.tv_sec) * 1000 - (after.tv_usec - before.tv_usec) / 1000;
+        elapsed = (after.tv_sec - before.tv_sec) * 1000 + (after.tv_usec - before.tv_usec) / 1000;
         *_timeout -= elapsed;
         if (*_timeout <= 0)
         {
@@ -252,7 +252,7 @@ uipc_packet_sendable(int socket, long* _timeout)
 		return UIPC_SUCCESS;
 	else if (_timeout)
     {   
-        elapsed = (after.tv_sec - before.tv_sec) * 1000 - (after.tv_usec - before.tv_usec) / 1000;
+        elapsed = (after.tv_sec - before.tv_sec) * 1000 + (after.tv_usec - before.tv_usec) / 1000;
         *_timeout -= elapsed;
         if (*_timeout < 0)
         {

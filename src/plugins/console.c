@@ -47,6 +47,7 @@ typedef struct
     int align;
     bool ansi;
     bool details;
+    MuLogLevel loglevel;
 
     char* test_log;
 } ConsoleLogger;
@@ -109,6 +110,9 @@ test_log(MuLogger* _self, MuLogEvent* event)
     char* old = NULL;
     int level_code = 0;
 
+    if (self->loglevel == -1 || event->level > self->loglevel)
+        return;
+
     switch (event->level)
     {
         case MU_LEVEL_WARNING:
@@ -117,6 +121,8 @@ test_log(MuLogger* _self, MuLogEvent* event)
             level_str = "info"; level_code = 33; break;
         case MU_LEVEL_VERBOSE:
             level_str = "verbose"; level_code = 34; break;
+        case MU_LEVEL_DEBUG:
+            level_str = "debug"; level_code = 36; break;
         case MU_LEVEL_TRACE:
             level_str = "trace"; level_code = 35; break;
     }
@@ -344,6 +350,57 @@ set_details(ConsoleLogger* self, bool details)
     self->details = details;
 }
 
+static const char*
+get_loglevel(ConsoleLogger* self)
+{
+    switch (self->loglevel)
+    {
+    case -1:
+        return "none";
+    case MU_LEVEL_WARNING:
+        return "warning";
+    case MU_LEVEL_INFO:
+        return "info";
+    case MU_LEVEL_VERBOSE:
+        return "verbose";
+    case MU_LEVEL_DEBUG:
+        return "debug";
+    case MU_LEVEL_TRACE:
+        return "trace";
+    default:
+        return "unknown";
+    }
+}
+
+static void
+set_loglevel(ConsoleLogger* self, const char* level)
+{
+    if (!strcmp(level, "warning"))
+    {
+        self->loglevel = MU_LEVEL_WARNING;
+    }
+    else if (!strcmp(level, "info"))
+    {
+        self->loglevel = MU_LEVEL_INFO;
+    }
+    else if (!strcmp(level, "verbose"))
+    {
+        self->loglevel = MU_LEVEL_VERBOSE;
+    }
+    else if (!strcmp(level, "debug"))
+    {
+        self->loglevel = MU_LEVEL_DEBUG;
+    }
+    else if (!strcmp(level, "trace"))
+    {
+        self->loglevel = MU_LEVEL_TRACE;
+    }
+    else if (!strcmp(level, "none"))
+    {
+        self->loglevel = -1;
+    }
+}
+
 static void
 destroy(MuLogger* _self)
 {
@@ -373,6 +430,9 @@ static MuOption consolelogger_options[] =
     MU_OPTION("details", MU_TYPE_BOOLEAN, get_details, set_details,
               "Whether result details should be output for failed "
               "tests even if the failure is expected"),
+    MU_OPTION("loglevel", MU_TYPE_STRING, get_loglevel, set_loglevel,
+              "Maximum level of logged events which will be printed "
+              "(none, warning, info, verbose, trace)"),
     MU_OPTION_END
 };
 
@@ -395,7 +455,8 @@ static ConsoleLogger consolelogger =
     .fd = -1,
     .out = NULL,
     .ansi = false,
-    .align = 60
+    .align = 60,
+    .loglevel = MU_LEVEL_INFO
 };
 
 static MuLogger*

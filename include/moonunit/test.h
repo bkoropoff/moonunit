@@ -136,6 +136,8 @@ typedef enum
     MU_LEVEL_INFO,
     /** Verbose message */
     MU_LEVEL_VERBOSE,
+    /** Debug message */
+    MU_LEVEL_DEBUG,
     /** Trace message */
     MU_LEVEL_TRACE
 } MuLogLevel;

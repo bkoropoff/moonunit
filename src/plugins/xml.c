@@ -114,6 +114,8 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
             level_str = "info"; break;
         case MU_LEVEL_VERBOSE:
             level_str = "verbose"; break;
+        case MU_LEVEL_DEBUG:
+            level_str = "debug"; break;
         case MU_LEVEL_TRACE:
             level_str = "trace"; break;
     }

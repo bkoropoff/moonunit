@@ -176,6 +176,11 @@ MU_TEST(Log, verbose)
     MU_VERBOSE("This is verbose output");
 }
 
+MU_TEST(Log, debug)
+{
+    MU_DEBUG("This is debug output");
+}
+
 MU_TEST(Log, trace)
 {
     MU_TRACE("This is trace output");

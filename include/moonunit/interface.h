@@ -562,6 +562,15 @@ C_BEGIN_DECLS
 #define MU_VERBOSE(...)                         \
     (MU_LOG(MU_LEVEL_VERBOSE, __VA_ARGS__))
 /**
+ * @brief Log a debug message
+ *
+ * Equivalent to MU_LOG(MU_LEVEL_DEBUG, ...)
+ * @hideinitializer
+ */
+#define MU_DEBUG(...)                         \
+    (MU_LOG(MU_LEVEL_DEBUG, __VA_ARGS__))
+
+/**
  * @brief Log a trace message
  *
  * Equivalent to MU_LOG(MU_LEVEL_TRACE, ...)

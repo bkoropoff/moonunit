@@ -84,7 +84,7 @@ list_plugins()
 }
 
 void
-print_options(MuOption* options)
+print_options(void* object, MuOption* options)
 {
     unsigned int i;
 
@@ -93,6 +93,7 @@ print_options(MuOption* options)
         printf("  Option: %s\n", options[i].name);
         printf("    Type: %s\n", Mu_Type_ToString(options[i].type));
         printf("    Description: %s\n", options[i].description);
+        printf("    Default: %s\n", Mu_Option_GetString(options, object, options[i].name));
     }
 }
 
@@ -111,14 +112,14 @@ plugin_info(const char* name)
         MuLoader* loader = plugin->loader();
         
         printf("Loader plugin: %s\n", plugin->name);
-        print_options(loader->options);
+        print_options(loader, loader->options);
         break;
     }
     case MU_PLUGIN_LOGGER:
     {
         MuLogger* logger = plugin->create_logger();
         printf("Logger plugin: %s\n", plugin->name);
-        print_options(logger->options);
+        print_options(logger, logger->options);
         Mu_Logger_Destroy(logger);
         break;
     }

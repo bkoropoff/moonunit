@@ -65,6 +65,7 @@ void Mu_Option_SetString(MuOption* table, void* object, const char *name, const 
 void Mu_Option_Setv(MuOption* table, void* object, const char *name, va_list ap);
 void Mu_Option_Set(MuOption* table, void* object, const char *name, ...);
 void Mu_Option_Get(MuOption* table, void* object, const char *name, void* res);
+char* Mu_Option_GetString(MuOption* table, void* object, const char *name);
 MuType Mu_Option_Type(MuOption* table, const char* name);
 const char* Mu_Option_Description(MuOption* table, const char *name);
 

@@ -26,6 +26,7 @@
  */
 
 #include <moonunit/option.h>
+#include <moonunit/util.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -222,6 +223,44 @@ Mu_Option_Get(MuOption* table, void* object, const char *name, void* res)
         break;
     case MU_TYPE_UNKNOWN:
         break;
+    }
+}
+
+char*
+Mu_Option_GetString(MuOption* table, void* object, const char *name)
+{
+    MuOption* option = lookup(table, name);
+
+    if (!option)
+        return NULL;
+    
+    switch (option->type)
+    {
+    case MU_TYPE_BOOLEAN:
+    {
+        bool res = get_bool(option, object);
+        if (res)
+            return strdup("true");
+        else
+            return strdup("false");
+    }
+    case MU_TYPE_INTEGER:
+        return format("%i", get_integer(option, object));
+    case MU_TYPE_FLOAT:
+        return format("%f", get_float(option, object));
+    case MU_TYPE_STRING:
+    {
+        const char* str = get_string(option, object);
+        if (!str)
+            return strdup("<none>");
+        else
+            return strdup(str);
+    }
+    case MU_TYPE_POINTER:
+        return format("0x%lx", (unsigned long) get_pointer(option, object));
+    case MU_TYPE_UNKNOWN:
+    default:
+        return NULL;
     }
 }
 

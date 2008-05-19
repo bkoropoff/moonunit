@@ -42,7 +42,7 @@ case "$target_os" in
 	;;
     freebsd6.*|freebsd7.*)
 	STDFLAGS="-std=c99"
-	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L -D__BSD_VISIBLE=1"
+	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L -D__BSD_VISIBLE=1"
 	CC="$CC $STDFLAGS"
 	moduleext=".so"
 	;;
@@ -116,7 +116,7 @@ AC_PATH_PROG(BASH_PATH, bash)
 AC_LANG_C
 AC_CHECK_SIZEOF(void*)
 
-AC_CHECK_HEADERS([select.h sys/select.h execinfo.h])
+AC_CHECK_HEADERS([signal.h select.h sys/select.h execinfo.h])
 
 AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])
 AC_CHECK_LIB(dl, dlopen, [LIB_dl="-ldl"])

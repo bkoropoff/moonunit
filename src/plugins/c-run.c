@@ -39,7 +39,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
-#include <signal.h>
+#ifdef HAVE_SIGNAL_H
+#    include <signal.h>
+#endif
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/socket.h>

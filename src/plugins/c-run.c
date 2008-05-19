@@ -293,7 +293,7 @@ signal_handler(int sig)
         summary.reason = signal_description(sig);
         summary.file = NULL;
         summary.line = 0;
-        summary.backtrace = get_backtrace(1);
+        summary.backtrace = get_backtrace(0);
     
         current_token->base.result((MuInterfaceToken*) current_token, &summary);
     }
@@ -309,6 +309,7 @@ ctoken_new(MuTest* test)
 {
     CToken* token = calloc(1, sizeof(CToken));
 
+    token->base.test = test;
     token->base.meta = ctoken_meta;
     token->base.result = ctoken_result;
     token->base.event = ctoken_event;
@@ -331,13 +332,176 @@ ctoken_free(CToken* token)
 #   define INVOKE(thunk) ((thunk)()))
 #endif
 
-/*
- * FIXME: this function is way too bloated
- * and needs to be split up
- */
-MuTestResult*
-cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, unsigned int* iterations,
-            pid_t* _pid, MuTestStage debug_stage, void** breakpoint)
+static void
+cloader_run_child(MuTest* test, CToken* token)
+{
+    MuThunk thunk;
+
+    /* Set up the C/C++ interface to call into our token */
+    Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
+        
+    /* Set up handlers to catch asynchronous signals */
+    signal(SIGSEGV, signal_handler);
+    signal(SIGPIPE, signal_handler);
+    signal(SIGFPE, signal_handler);
+    signal(SIGABRT, signal_handler);
+    
+    /* Stage: library setup */
+    token->current_stage = MU_STAGE_LIBRARY_SETUP;
+    
+    if ((thunk = cloader_library_setup(test->loader, test->library)))
+        INVOKE(thunk);
+    
+    /* Stage: fixture setup */
+    token->current_stage = MU_STAGE_FIXTURE_SETUP;
+    
+    if ((thunk = cloader_fixture_setup(test->loader, test)))
+        INVOKE(thunk);
+    
+    /* Stage: test */
+    token->current_stage = MU_STAGE_TEST;
+    
+    INVOKE(((CTest*) test)->entry->run);
+    
+    /* Stage: fixture teardown */
+    token->current_stage = MU_STAGE_FIXTURE_TEARDOWN;
+    
+    if ((thunk = cloader_fixture_teardown(test->loader, test)))
+        INVOKE(thunk);
+    
+    /* Stage: library teardown */
+    token->current_stage = MU_STAGE_LIBRARY_TEARDOWN;
+    
+    if ((thunk = cloader_library_teardown(test->loader, test->library)))
+        INVOKE(thunk);
+    
+    /* If we got this far without incident, explicitly succeed */
+    Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
+}
+
+/* Main loop for harvesting messages from the child process */
+static MuTestResult*
+cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data, unsigned int* iterations)
+{
+    uipc_handle* ipc = token->ipc_handle;
+    MuTestResult *summary = NULL;
+    uipc_message* message = NULL;
+    int status;
+    uipc_status uipc_result;
+    long timeout = default_timeout;
+    long timeleft = timeout;
+    bool done = false;
+
+    while (!done)
+    {    
+        uipc_result = uipc_recv(ipc, &message, &timeleft);
+        
+        if (uipc_result == UIPC_SUCCESS)
+        {
+            switch (uipc_msg_get_type(message))
+            {
+            case MSG_TYPE_RESULT:
+                summary = uipc_msg_get_payload(message, &testresult_info);
+                done = true;
+                break;
+            case MSG_TYPE_EVENT:
+            {
+                MuLogEvent* event = uipc_msg_get_payload(message, &logevent_info);
+                cb(event, cb_data);
+                uipc_msg_free_payload(event, &logevent_info);
+                uipc_msg_free(message);
+                message = NULL;
+                break;
+            } 
+            case MSG_TYPE_EXPECT:
+            {
+                ExpectMsg* msg = uipc_msg_get_payload(message, &expect_info);
+                token->expected = msg->expect_status;
+                uipc_msg_free_payload(msg, &expect_info);
+                uipc_msg_free(message);
+                message = NULL;
+                break;
+            }
+            case MSG_TYPE_TIMEOUT:
+            {
+                TimeoutMsg* msg = uipc_msg_get_payload(message, &timeout_info);
+                timeout = timeleft = msg->timeout;
+                uipc_msg_free_payload(msg, &timeout_info);
+                uipc_msg_free(message);
+                message = NULL;
+                break;
+            }
+            case MSG_TYPE_ITERATIONS:
+            {
+                IterationsMsg* msg = uipc_msg_get_payload(message, &iterations_info);
+                *iterations = msg->count;
+                uipc_msg_free_payload(msg, &iterations_info);
+                uipc_msg_free(message);
+                break;
+            }
+            }
+        }
+        else
+        {
+            done = true;
+        }
+    }
+     
+    /* If the test timed out */
+    if (uipc_result == UIPC_TIMEOUT)
+    {
+        /* Forcefully terminate the child */
+        kill(token->child, SIGKILL);
+    }
+    
+    waitpid(token->child, &status, 0);
+        
+    if (!summary)
+    {
+        summary = calloc(1, sizeof(MuTestResult));
+        // Timed out waiting for response
+        if (uipc_result == UIPC_TIMEOUT)
+        {
+            char* reason = format("Test timed out after %li milliseconds", timeout);
+            
+            summary->expected = token->expected;
+            summary->status = MU_STATUS_TIMEOUT;
+            summary->reason = reason;
+            summary->stage = MU_STAGE_UNKNOWN;
+            summary->line = 0;
+        }
+        // Couldn't get message or an error occurred, try to figure out what happend
+        else if (WIFSIGNALED(status))
+        {
+            summary->expected = token->expected;
+            summary->status = MU_STATUS_CRASH;
+            summary->stage = MU_STAGE_UNKNOWN;
+            summary->line = 0;
+            
+            if (WTERMSIG(status))
+                summary->reason = signal_description(WTERMSIG(status));
+        }
+        else
+        {
+            summary->status = MU_STATUS_FAILURE;
+            summary->stage = MU_STAGE_UNKNOWN;
+            summary->line = 0;
+            summary->reason = strdup("Unexpected termination");
+        }
+    }
+    else
+    {
+        summary->expected = token->expected;
+    }
+    
+    if (message)
+        uipc_msg_free(message);
+    
+    return summary;
+}
+
+static MuTestResult*
+cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* iterations)
 {
     int sockets[2];
     pid_t pid;
@@ -345,187 +509,82 @@ cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, unsigned int*
     
     socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
     
-    // We must force a flush of all open output streams or the child
-    // will end up flushing non-empty buffers on exit, resulting in
-    // bizarre duplicate output
-    
+    /* We must force a flush of all open output streams or the child
+     * will end up flushing non-empty buffers on exit, resulting in
+     * bizarre duplicate output
+     */
+
     fflush(NULL);
     
     if (!(pid = fork()))
     {
-        MuThunk thunk;
-        uipc_handle* ipc_test = NULL;
+        /* Child */
+        
+        uipc_handle* ipc;
+                
+        /* Set up ipc handle, close unneeded socket end */
+        ipc = uipc_attach(sockets[1]);
+        close(sockets[0]);
+        
+        /* Set up token */
+        token->ipc_handle = ipc;
         token->child = getpid();
         
-        if (!debug)
-            ipc_test = uipc_attach(sockets[1]);
-        else
-            sleep(10);
+        /* Run test procedure */
+        cloader_run_child(test, token);
 
-        close(sockets[0]);
-        
-        token->base.test = test;
-        token->ipc_handle = ipc_test;
-    
-        Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
-        
-        signal(SIGSEGV, signal_handler);
-        signal(SIGPIPE, signal_handler);
-        signal(SIGFPE, signal_handler);
-        signal(SIGABRT, signal_handler);
-    
-        token->current_stage = MU_STAGE_LIBRARY_SETUP;
-    
-        if ((thunk = cloader_library_setup(test->loader, test->library)))
-            INVOKE(thunk);
-
-        token->current_stage = MU_STAGE_FIXTURE_SETUP;
-    
-        if ((thunk = cloader_fixture_setup(test->loader, test)))
-            INVOKE(thunk);
-
-        token->current_stage = MU_STAGE_TEST;
-
-        INVOKE(((CTest*) test)->entry->run);
-
-        token->current_stage = MU_STAGE_FIXTURE_TEARDOWN;
-    
-        if ((thunk = cloader_fixture_teardown(test->loader, test)))
-            INVOKE(thunk);
-
-        token->current_stage = MU_STAGE_LIBRARY_TEARDOWN;
-    
-        if ((thunk = cloader_library_teardown(test->loader, test->library)))
-            INVOKE(thunk);
-
-        Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
-    
+        /* Tear down ipc handle and close connection */
+        uipc_detach(ipc);
         close(sockets[1]);
-        
+
+        /* Exit (although it's unlikely we'll get here) */
         exit(0);
     }
-    else if (!debug)
+    else
     {
-        uipc_handle* ipc_loader = uipc_attach(sockets[0]);
-        MuTestResult *summary = NULL;
-        uipc_message* message = NULL;
-        int status;
-        uipc_status uipc_result;
-        long timeout = default_timeout;
-        long timeleft = timeout;
-        bool done = false;    
+        /* Parent */
         
+        uipc_handle* ipc;
+        MuTestResult* result;
+
+        /* Set up ipc handle, close unneeded socket end */
+        ipc = uipc_attach(sockets[0]);
         close(sockets[1]);
         
-        while (!done)
-        {    
-            uipc_result = uipc_recv(ipc_loader, &message, &timeleft);
-            
-            if (uipc_result == UIPC_SUCCESS)
-            {
-                switch (uipc_msg_get_type(message))
-                {
-                case MSG_TYPE_RESULT:
-                    summary = uipc_msg_get_payload(message, &testresult_info);
-                    done = true;
-                    break;
-                case MSG_TYPE_EVENT:
-                {
-                    MuLogEvent* event = uipc_msg_get_payload(message, &logevent_info);
-                    cb(event, data);
-                    uipc_msg_free_payload(event, &logevent_info);
-                    uipc_msg_free(message);
-                    message = NULL;
-                    break;
-                } 
-                case MSG_TYPE_EXPECT:
-                {
-                    ExpectMsg* msg = uipc_msg_get_payload(message, &expect_info);
-                    token->expected = msg->expect_status;
-                    uipc_msg_free_payload(msg, &expect_info);
-                    uipc_msg_free(message);
-                    message = NULL;
-                    break;
-                }
-                case MSG_TYPE_TIMEOUT:
-                {
-                    TimeoutMsg* msg = uipc_msg_get_payload(message, &timeout_info);
-                    timeout = timeleft = msg->timeout;
-                    uipc_msg_free_payload(msg, &timeout_info);
-                    uipc_msg_free(message);
-                    message = NULL;
-                    break;
-                }
-                case MSG_TYPE_ITERATIONS:
-                {
-                    IterationsMsg* msg = uipc_msg_get_payload(message, &iterations_info);
-                    *iterations = msg->count;
-                    uipc_msg_free_payload(msg, &iterations_info);
-                    uipc_msg_free(message);
-                    break;
-                }
-                }
-            }
-            else
-            {
-                done = true;
-            }
-        }
-        
-        uipc_detach(ipc_loader); 
+        /* Set up token */
+        token->ipc_handle = ipc;
+        token->child = pid;
+
+        /* Harvest events/result from child */
+        result = cloader_run_parent(test, token, cb, data, iterations);
+
+        /* Tear down ipc handle and close connection */
+        uipc_detach(ipc);
         close(sockets[0]);
-        
-        if (uipc_result == UIPC_TIMEOUT)
-        {
-            kill(pid, SIGKILL);
-        }
-        
-        waitpid(pid, &status, 0);
-        
-        if (!summary)
-        {
-            summary = calloc(1, sizeof(MuTestResult));
-            // Timed out waiting for response
-            if (uipc_result == UIPC_TIMEOUT)
-            {
-                char* reason = format("Test timed out after %li milliseconds", timeout);
-                
-                summary->expected = token->expected;
-                summary->status = MU_STATUS_TIMEOUT;
-                summary->reason = reason;
-                summary->stage = MU_STAGE_UNKNOWN;
-                summary->line = 0;
-            }
-            // Couldn't get message or an error occurred, try to figure out what happend
-            else if (WIFSIGNALED(status))
-            {
-                summary->expected = token->expected;
-                summary->status = MU_STATUS_CRASH;
-                summary->stage = MU_STAGE_UNKNOWN;
-                summary->line = 0;
-        
-                if (WTERMSIG(status))
-                    summary->reason = signal_description(WTERMSIG(status));
-            }
-            else
-            {
-                summary->status = MU_STATUS_FAILURE;
-                summary->stage = MU_STAGE_UNKNOWN;
-                summary->line = 0;
-                summary->reason = strdup("Unexpected termination");
-            }
-        }
-        else
-        {
-            summary->expected = token->expected;
-        }
 
-        if (message)
-            uipc_msg_free(message);
-
+        /* Free token */
         ctoken_free(token);
 
-        return summary;
+        return result;
+    }
+}
+
+static void
+cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** breakpoint)
+{
+    pid_t pid;
+    CToken* token = current_token = ctoken_new(test);
+    
+    if (!(pid = fork()))
+    {
+        token->child = getpid();
+        sleep(10);
+
+        token->base.test = test;
+        token->ipc_handle = NULL;
+    
+        cloader_run_child(test, token);
+        exit(0);
     }
     else
     {
@@ -553,8 +612,6 @@ cloader_run(int debug, MuTest* test, MuLogCallback cb, void* data, unsigned int*
         }
 
         *_pid = pid;
-
-        return NULL;
     }
 }
 
@@ -577,7 +634,7 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
         {
             cloader_free_result(_self, result);
         }
-        result = cloader_run(false, test, cb, data, &iterations, NULL, 0, NULL);
+        result = cloader_run_fork(test, cb, data, &iterations);
         if (result->status == MU_STATUS_SKIPPED || result->status != result->expected)
             break;
     }
@@ -590,7 +647,7 @@ cloader_debug(MuLoader* _self, MuTest* test, MuTestStage stage, void** breakpoin
 {
     pid_t result;
 
-    cloader_run(true, test, NULL, NULL, NULL, &result, stage, breakpoint);
+    cloader_run_debug(test, stage, &result, breakpoint);
 
     return result;
 }

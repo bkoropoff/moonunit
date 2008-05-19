@@ -331,7 +331,7 @@ ctoken_free(CToken* token)
 #ifdef CPLUSPLUS_ENABLED
 #   define INVOKE(thunk) (cplusplus_trampoline((thunk)))
 #else
-#   define INVOKE(thunk) ((thunk)()))
+#   define INVOKE(thunk) ((thunk)())
 #endif
 
 static void

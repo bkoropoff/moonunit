@@ -43,16 +43,16 @@
 static int x = 0;
 static int y = 0;
 
+/* 
+ * The following tests demonstrate basic testing
+ * using mathematical expressions.
+ */
+
+/* Set up two variables for all subsequent arithmetic tests */
 MU_FIXTURE_SETUP(Arithmetic)
 {
 	x = 2;
 	y = 3;
-}
-
-MU_FIXTURE_TEARDOWN(Crash)
-{
-	if (!strcmp(Mu_Test_Name(MU_CURRENT_TEST), "segfault_teardown"))
-		*(int*)0 = 42;
 }
 
 MU_TEST(Arithmetic, add)
@@ -106,21 +106,21 @@ MU_TEST(Arithmetic, crash)
     MU_ASSERT(x / (y - 3) == x);
 }
 
-#if MU_LINK_STYLE != MU_LINK_NONE
-unsigned int divide(int a, int b)
-{
-    MU_ASSERT(b != 0);
-    
-    return a / b;
-}
+/*
+ * The following tests demonstrate various ways
+ * to crash or otherwise fail
+ */
 
-MU_TEST(Arithmetic, bad_link)
+/* 
+ * To show that failures can occur in setup/teardown
+ * routines as well, this teardown routine crashes
+ * on purpose during one of the tests.
+ */
+MU_FIXTURE_TEARDOWN(Crash)
 {
-    MU_EXPECT(MU_STATUS_ASSERTION);
-
-    divide(5, 0);
+	if (!strcmp(Mu_Test_Name(MU_CURRENT_TEST), "segfault_teardown"))
+		*(int*)0 = 42;
 }
-#endif
 
 MU_TEST(Crash, segfault)
 {
@@ -132,8 +132,7 @@ MU_TEST(Crash, segfault)
 MU_TEST(Crash, segfault_teardown)
 {
     MU_EXPECT(MU_STATUS_CRASH);
-    // The teardown function for this fixture will crash
-    // when this test is run
+    /* The teardown function will crash during this test (see above) */
 }
 
 MU_TEST(Crash, pipe)
@@ -156,9 +155,12 @@ MU_TEST(Crash, abort)
 MU_TEST(Crash, timeout)
 {
     MU_EXPECT(MU_STATUS_TIMEOUT);
+    /* The harness will assume this test failed after 100 ms */
     MU_TIMEOUT(100);
 
-    pause();
+    /* Go into an infinite wait */
+    while (1)
+        pause();
 }
 
 MU_TEST(Crash, not_reached)
@@ -167,6 +169,10 @@ MU_TEST(Crash, not_reached)
     
     MU_ASSERT_NOT_REACHED;
 }
+
+/* 
+ * The following tests demonstrate the available logging levels
+ */
 
 MU_TEST(Log, warning)
 {
@@ -192,6 +198,26 @@ MU_TEST(Log, trace)
 {
     MU_TRACE("This is trace output");
 }
+
+/*
+ * This test will show you how the logger plugin arranges
+ * events in relation to test results.  The default "console"
+ * plugin shows the test result last to maintain chronological 
+ * order.
+ */
+MU_TEST(Log, fail)
+{
+    MU_EXPECT(MU_STATUS_FAILURE);
+
+    MU_INFO("This test fails");
+
+    MU_FAILURE("I told you so");
+}
+
+/*
+ * Some utility code to implement a thread barrier for an
+ * upcoming test
+ */
 
 typedef struct
 {
@@ -237,29 +263,47 @@ static barrier_t barrier;
 static void*
 racer(void* number)
 {
+    /* All threads begin at the starting line */
     barrier_wait(&barrier);
+    /* Test functions/macros are safe to use from multiple threads. */
     MU_INFO("Racer #%lu at the finish line", (unsigned long) number);
+    /* Whichever thread reaches MU_SUCCESS first ends the test */
     MU_SUCCESS;
     return NULL;
 }
 
+/* 
+ * This test demonstrates multithreading and using MU_ITERATE to
+ * repeat tests with non-deterministic behavior.
+ */
 MU_TEST(Thread, race)
 {
     pthread_t racer1, racer2;
 
+    /* This test should be run 10 times */
     MU_ITERATE(10);
 
+    /* Set up the thread barrier */
     barrier_init(&barrier, 3);
     
+    /* Create two racers or fail */
     if (pthread_create(&racer1, NULL, racer, (void*) 0x1))
         MU_FAILURE("Failed to create thread: %s\n", strerror(errno));
     if (pthread_create(&racer2, NULL, racer, (void*) 0x2))
         MU_FAILURE("Failed to create thread: %s\n", strerror(errno));
 
+    /* Wait at the barrier - when all threads reach it,
+     * the racers will be released
+     */
+       
     barrier_wait(&barrier);
 
+    /* Wait for the racers to finish */
     pthread_join(racer1, NULL);
     pthread_join(racer2, NULL);
+
+    /* We will never get here as one of the two racers will end the test */
+    MU_ASSERT_NOT_REACHED;
 }
 
 /** \endcond */

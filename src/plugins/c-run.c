@@ -610,7 +610,9 @@ cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** bre
             *breakpoint = cloader_library_teardown(test->loader, test->library);
             break;
         case MU_STAGE_UNKNOWN:
-            *breakpoint = NULL;
+            /* Not sure where the test failed, so default to the most likely function */
+            *breakpoint = ctest->entry->run;
+            break;
         }
 
         *_pid = pid;

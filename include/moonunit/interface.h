@@ -382,7 +382,26 @@ C_BEGIN_DECLS
     (Mu_Interface_AssertEqual(__FILE__, __LINE__,               \
                          #expr1, #expr2, 0,                     \
                          type, (expr1), (expr2)))               \
-    
+
+/**
+ * @brief Fail due to unexpected code path
+ *
+ * This macro always causes immediate failure of the
+ * current test when executed; it is meant to denote
+ * an area of code that should not be reached under
+ * correct behavior.
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_ASSERT_NOT_REACHED;
+ * @endcode
+ *
+ * @hideinitializer
+ */
+#define MU_ASSERT_NOT_REACHED \
+    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_ASSERTION,   \
+                         "Statement reached unexpectedly"))
+
 /**
  * @brief Succeed immediately
  *

@@ -161,6 +161,13 @@ MU_TEST(Crash, timeout)
     pause();
 }
 
+MU_TEST(Crash, not_reached)
+{
+    MU_EXPECT(MU_STATUS_ASSERTION);
+    
+    MU_ASSERT_NOT_REACHED;
+}
+
 MU_TEST(Log, warning)
 {
     MU_WARNING("This is a warning");

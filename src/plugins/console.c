@@ -48,8 +48,7 @@ typedef struct
     bool ansi;
     bool details;
     MuLogLevel loglevel;
-
-    char* test_log;
+    char* log;
 } ConsoleLogger;
 
 static void
@@ -99,7 +98,7 @@ test_enter(MuLogger* _self, MuTest* test)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
-    self->test_log = format("");
+    self->log = strdup("");
 }
 
 static void
@@ -107,8 +106,8 @@ test_log(MuLogger* _self, MuLogEvent* event)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
     char* level_str = NULL;
-    char* old = NULL;
     int level_code = 0;
+    char* old;
 
     if (self->loglevel == -1 || event->level > self->loglevel)
         return;
@@ -127,16 +126,16 @@ test_log(MuLogger* _self, MuLogEvent* event)
             level_str = "trace"; level_code = 35; break;
     }
 
-    old = self->test_log;
+    old = self->log;
 
     if (self->ansi)
-        self->test_log = format("%s      %s:%u: (\e[%im\e[1m%s\e[22m\e[0m) %s\n", old,
-                            basename_pure(event->file), event->line,
-                            level_code, level_str, event->message);
+        self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s:%u: %s\n", old,
+                           level_code, level_str, basename_pure(event->file), 
+                           event->line, event->message);
     else
-        self->test_log = format("%s      %s:%u: (%s) %s\n", old,
-                            basename_pure(event->file), event->line,
-                            level_str, event->message);
+        self->log = format("%s      (%s) %s:%u: %s\n", old,
+                           level_str, basename_pure(event->file), 
+                           event->line, event->message);
 
     free(old);
 }
@@ -147,8 +146,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     ConsoleLogger* self = (ConsoleLogger*) _self;
     FILE* out = self->out;
 	int i;
-	const char* reason, *stage, *name;
-	char* failure_message;
+	const char* reason, *stage, *name, *status;
     bool result = summary->status == MU_STATUS_SKIPPED || summary->status == summary->expected;
     const char* result_str = NULL;
     unsigned int result_code;
@@ -211,40 +209,54 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             fprintf(out, "\e[%um\e[1m%s\e[22m\e[0m\n", result_code, result_str);
         else
             fprintf(out, "%s\n", result_str);
+
+        fprintf(out, "%s", self->log);
+        free(self->log);
+        self->log = NULL;
     }
     else
     {
         stage = Mu_TestStageToString(summary->stage);
+        status = Mu_TestStatusToString(summary->status);
 		
-        for (i = self->align - strlen(name) - strlen(stage) - 3 - 5 - strlen(result_str); i > 0; i--)
+        for (i = self->align - strlen(name) - strlen(stage) - 1 - 5 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
         
         reason = summary->reason ? summary->reason : "unknown";
         if (self->ansi)
         {
-            fprintf(out, "(%s) \e[%um\e[1m%s\e[22m\e[0m\n", stage, result_code, result_str);
+            fprintf(out, "%s \e[%um\e[1m%s\e[22m\e[0m\n", stage, result_code, result_str);
         }
         else
         {
-            fprintf(out, "(%s) %s\n", stage, result_str);
+            fprintf(out, "%s %s\n", stage, result_str);
         }
         
+        fprintf(out, "%s", self->log);
+        free(self->log);
+        self->log = NULL;
+
+        if (self->ansi)
+        {
+            fprintf(out, "      (\e[%um\e[1m%s\e[22m\e[0m) ", result_code, status);
+        }
+        else
+        {
+            fprintf(out, "      (%s) ", status);
+        }
+
         if (summary->file && summary->line)
         {
-            failure_message = format("%s:%i: %s", basename_pure(summary->file), summary->line, reason);
+            fprintf(out, "%s:%i: %s\n", basename_pure(summary->file), summary->line, summary->reason);
         }
         else if (summary->file)
         {
-            failure_message = format("%s: %s", basename_pure(summary->file), summary->line, reason);
+            fprintf(out, "%s: %s\n", basename_pure(summary->file), summary->reason);
         }
         else
         {
-            failure_message = format("%s", reason);
+            fprintf(out, "%s\n", summary->reason);
         }
-        
-        fprintf(out, "      %s\n", failure_message);
-        
-        free(failure_message);
 
         if (summary->backtrace)
         {
@@ -276,10 +288,6 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             }
         }
 	}
-    
-    fprintf(out, "%s", self->test_log);
-    free(self->test_log);
-    self->test_log = NULL;
 }
 
 static int
@@ -410,8 +418,8 @@ destroy(MuLogger* _self)
         fclose(self->out);
     if (self->file)
         free(self->file);
-    if (self->test_log)
-        free(self->test_log);
+    if (self->log)
+        free(self->log);
 
     free(self);
 }

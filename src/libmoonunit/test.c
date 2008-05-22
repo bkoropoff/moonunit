@@ -39,16 +39,22 @@ Mu_TestStatusToString(MuTestStatus result)
 {
 	switch (result)
 	{
-		case MU_STATUS_SUCCESS:
-			return "success";
-		case MU_STATUS_FAILURE:
-			return "failure";
-    	case MU_STATUS_ASSERTION:
-    		return "assertion failure";
-    	case MU_STATUS_CRASH:
-    		return "crash";
-    	default:
-    		return "unknown";
+    case MU_STATUS_SUCCESS:
+        return "success";
+    case MU_STATUS_FAILURE:
+        return "failure";
+    case MU_STATUS_ASSERTION:
+        return "assertion";
+    case MU_STATUS_CRASH:
+        return "crash";
+    case MU_STATUS_EXCEPTION:
+        return "exception";
+    case MU_STATUS_TIMEOUT:
+        return "timeout";
+    case MU_STATUS_SKIPPED:
+        return "skipped";
+    default:
+        return "unknown";
 	}
 }
 

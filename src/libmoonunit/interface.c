@@ -101,8 +101,8 @@ Mu_Interface_Assert(const char* file, unsigned int line, const char* expr, int s
         sense = sense ? 1 : 0;
             
         summary.status = MU_STATUS_ASSERTION;
-        summary.reason = sense ? format("Assertion %s failed", expr)
-                               : format("Assertion (not) %s failed", expr);
+        summary.reason = sense ? format("Expression was false: %s", expr)
+                               : format("Expression was true: %s", expr);
         summary.file = file;
         summary.line = line;
         summary.backtrace = NULL;
@@ -123,9 +123,9 @@ assert_equal_integer(const char* expr, const char* expected, va_list ap, int* re
 	if (*result != sense)
     {
         if (sense)
-            *reason = format("Assertion %s == %s failed (%i != %i)", expr, expected, a, b);
+            *reason = format("%i didn't equal %i in comparison %s == %s ", a, b, expr, expected);
         else
-            *reason = format("Assertion %s != %s failed (both %i)", expr, expected, a);
+            *reason = format("both values were %i in comparison %s != %s ", a, expr, expected);
     }
 }
 
@@ -139,9 +139,9 @@ assert_equal_string(const char* expr, const char* expected, va_list ap, int* res
 	if (*result != sense)
     {
         if (sense)
-            *reason = format("Assertion %s == %s failed (%s != %s)", expr, expected, a, b);
+            *reason = format("%s didn't equal %s in comparison: %s == %s ", a, b, expr, expected);
         else
-            *reason = format("Assertion %s != %s failed (both %s)", expr, expected, a);
+            *reason = format("both values were %s in comparison: %s != %s ", a, expr, expected);
     }        
 }
 
@@ -155,9 +155,9 @@ assert_equal_float(const char* expr, const char* expected, va_list ap, int* resu
 	if (*result != sense)
     {
         if (sense)
-            *reason = format("Assertion '%s == %s' failed (%f != %f)", expr, expected, a, b);
+            *reason = format("%f didn't equal %f in comparison %s == %s ", a, b, expr, expected);
         else
-            *reason = format("Assertion '%s != %s' failed (both %f)", expr, expected, a);
+            *reason = format("both values were %f in comparison %s != %s ", a, expr, expected);
     }
 }
 
@@ -171,9 +171,9 @@ assert_equal_pointer(const char* expr, const char* expected, va_list ap, int* re
 	if (*result != sense)
     {
         if (sense)
-            *reason = format("Assertion '%s == %s' failed (%p != %p)", expr, expected, a, b);
+            *reason = format("%p didn't equal %p in comparison: %s == %s ", a, b, expr, expected);
         else
-            *reason = format("Assertion '%s != %s' failed (both %p)", expr, expected, a);
+            *reason = format("both values were %p in comparison: %s != %s ", a, expr, expected);
     }
 }
 
@@ -189,9 +189,9 @@ assert_equal_boolean(const char* expr, const char* expected, va_list ap, int* re
 	if (*result != sense)
     {
         if (sense)
-            *reason = format("Assertion '%s == %s' failed (%s != %s)", expr, expected, a_str, b_str);
+            *reason = format("%s didn't equal %s in comparison %s == %s ", a_str, b_str, expr, expected);
         else
-            *reason = format("Assertion '%s != %s' failed (both %s)", expr, expected, a_str);
+            *reason = format("both values were %s in comparison %s != %s ", a_str, expr, expected);
     }
 }
 

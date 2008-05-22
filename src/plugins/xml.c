@@ -234,10 +234,10 @@ get_fd(XmlLogger* self)
 static void
 set_fd(XmlLogger* self, int fd)
 {
-    self->fd = dup(fd);
+    self->fd = fd;
     if (self->out)
         fclose(self->out);
-    self->out = fdopen(self->fd, "w");  
+    self->out = fdopen(dup(fd), "w");  
 }
 
 static const char*
@@ -255,6 +255,7 @@ set_file(XmlLogger* self, const char* file)
     if (self->out)
         fclose(self->out);
     self->out = fopen(self->file, "w");
+    self->fd = fileno(self->out);
 }
 
 static const char*

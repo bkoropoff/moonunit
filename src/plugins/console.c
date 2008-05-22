@@ -299,10 +299,11 @@ get_fd(ConsoleLogger* self)
 static void
 set_fd(ConsoleLogger* self, int fd)
 {
-    self->fd = dup(fd);
+    self->fd = fd;
     if (self->out)
         fclose(self->out);
-    self->out = fdopen(self->fd, "w");  
+    /* Duplicate the fd to avoid ownership issues */
+    self->out = fdopen(dup(fd), "w");  
 }
 
 static const char*
@@ -320,6 +321,7 @@ set_file(ConsoleLogger* self, const char* file)
     if (self->out)
         fclose(self->out);
     self->out = fopen(self->file, "w");
+    self->fd = fileno(self->out);
 }
 
 static bool

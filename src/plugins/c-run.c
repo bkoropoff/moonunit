@@ -296,7 +296,7 @@ signal_handler(int sig)
         summary.file = NULL;
         summary.line = 0;
         summary.backtrace = get_backtrace(0);
-    
+        
         current_token->base.result((MuInterfaceToken*) current_token, &summary);
     }
     else
@@ -347,6 +347,7 @@ cloader_run_child(MuTest* test, CToken* token)
     signal(SIGPIPE, signal_handler);
     signal(SIGFPE, signal_handler);
     signal(SIGABRT, signal_handler);
+    signal(SIGTERM, signal_handler);
     
     /* Stage: library setup */
     token->current_stage = MU_STAGE_LIBRARY_SETUP;
@@ -393,7 +394,10 @@ cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data,
     long timeout = default_timeout;
     long timeleft = timeout;
     bool done = false;
+    /* Have we timed out once already? */
+    bool timedout = false;
 
+process:
     while (!done)
     {    
         uipc_result = uipc_recv(ipc, &message, &timeleft);
@@ -452,8 +456,22 @@ cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data,
     /* If the test timed out */
     if (uipc_result == UIPC_TIMEOUT)
     {
-        /* Forcefully terminate the child */
-        kill(token->child, SIGKILL);
+        if (timedout)
+        {
+            /* This is the second timeout, so forcefully terminate the child */
+            kill(token->child, SIGKILL);
+        }
+        else
+        {
+            /* Poke the child process to give it a chance to send us results */
+            kill(token->child, SIGTERM);
+            /* Put another 10th of a second on the clock */
+            timeleft = 100;
+            /* Go back into the event processing loop */
+            timedout = true;
+            done = false;
+            goto process;
+        }
     }
     
     waitpid(token->child, &status, 0);
@@ -494,6 +512,14 @@ cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data,
     else
     {
         summary->expected = token->expected;
+        /* If we timed out, change the test result to reflect this */
+        if (timedout)
+        {
+            summary->status = MU_STATUS_TIMEOUT;
+            if (summary->reason)
+                free((void*) summary->reason);
+            summary->reason = format("Test timed out after %li milliseconds", timeout);
+        }
     }
     
     if (message)

@@ -390,7 +390,7 @@ cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data,
     MuTestResult *summary = NULL;
     uipc_message* message = NULL;
     int status;
-    uipc_status uipc_result;
+    uipc_status uipc_result = UIPC_SUCCESS;
     long timeout = default_timeout;
     long timeleft = timeout;
     bool done = false;

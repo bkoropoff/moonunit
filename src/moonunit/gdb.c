@@ -31,13 +31,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <errno.h>
+#include <string.h>
 
 void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoint)
 {
-    int result;
-    char *command;
     char template[] = "/tmp/mu_gdbinit_XXXXXX";
     int fd = mkstemp(template);
+    pid_t child;
 
     if (fd < 0)
         return;
@@ -49,15 +52,30 @@ void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoi
 
     fclose(file);
 
-    command = format("gdb '%s' %lu -x '%s' -q", program, (unsigned long) pid, template);
+    if (!(child = fork()))
+    {
+        /* Child */
+        if (execlp("gdb", "gdb",
+                   (const char*) "-q",
+                   (const char*) "-x",
+                   (const char*) template,
+                   (const char*) program, 
+                   (const char*) format("%lu", pid), 
+                   (const char*) NULL))
+        {
+            fprintf(stderr, "Could not start gdb: %s\n", strerror(errno));
+        }
+        exit(1);
+    }
+    else
+    {
+        int status;
 
-    result = system(command);
-    if (result)
-	fprintf(stderr, "WARNING: failed to create interactive gdb session");
+        if (waitpid(child, &status, 0) != child || WEXITSTATUS(status))
+            fprintf(stderr, "WARNING: gdb session terminated unexpectedly");
+    }
 
     unlink(template);
-
-    free(command);
 }
 
 void gdb_attach_backtrace(const char* program, pid_t pid, char **backtrace)

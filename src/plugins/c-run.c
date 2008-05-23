@@ -344,6 +344,8 @@ cloader_run_child(MuTest* test, CToken* token)
         
     /* Set up handlers to catch asynchronous signals */
     signal(SIGSEGV, signal_handler);
+    signal(SIGBUS, signal_handler);
+    signal(SIGILL, signal_handler);
     signal(SIGPIPE, signal_handler);
     signal(SIGFPE, signal_handler);
     signal(SIGABRT, signal_handler);
@@ -598,6 +600,22 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
 }
 
 static void
+wait_for_debugger(void)
+{
+    sigset_t set;
+    int sig;
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGCONT);
+    sigprocmask(SIG_BLOCK, &set, NULL);
+    
+    do
+    {
+        sigwait(&set, &sig);
+    } while (sig != SIGCONT);
+}
+
+static void
 cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** breakpoint)
 {
     pid_t pid;
@@ -606,11 +624,11 @@ cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** bre
     if (!(pid = fork()))
     {
         token->child = getpid();
-        sleep(10);
-
+        
         token->base.test = test;
         token->ipc_handle = NULL;
-    
+
+        wait_for_debugger();  
         cloader_run_child(test, token);
         exit(0);
     }

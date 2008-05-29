@@ -28,8 +28,9 @@
 #ifndef __UIPC_WIRE_H__
 #define __UIPC_WIRE_H__
 
-#include "status.h"
-#include "ipc.h"
+#include <uipc/status.h>
+#include <uipc/ipc.h>
+#include <uipc/time.h>
 
 typedef struct uipc_packet_header
 {
@@ -58,7 +59,7 @@ typedef struct uipc_packet
 
 uipc_status uipc_packet_send(int socket, uipc_packet* packet);
 uipc_status uipc_packet_recv(int socket, uipc_packet** packet);
-uipc_status uipc_packet_available(int socket, long* timeout);
-uipc_status uipc_packet_sendable(int socket, long* timeout);
+uipc_status uipc_packet_available(int socket, uipc_time* abs);
+uipc_status uipc_packet_sendable(int socket, uipc_time* abs);
 
 #endif

@@ -28,8 +28,9 @@
 #ifndef __UIPC_IPC_H__
 #define __UIPC_IPC_H__
 
-#include "marshal.h"
-#include "status.h"
+#include <uipc/marshal.h>
+#include <uipc/status.h>
+#include <uipc/time.h>
 
 #include <stdlib.h>
 
@@ -43,9 +44,9 @@ typedef unsigned int uipc_message_type;
 
 uipc_handle* uipc_attach(int socket);
 uipc_status uipc_recv_async(uipc_handle* handle, uipc_message** message);
-uipc_status uipc_recv(uipc_handle* handle, uipc_message** message, long* timeout);
+uipc_status uipc_recv(uipc_handle* handle, uipc_message** message, uipc_time* abs);
 uipc_status uipc_send_async(uipc_handle* handle, uipc_message* message);
-uipc_status uipc_send(uipc_handle* handle, uipc_message* message, long* timeout);
+uipc_status uipc_send(uipc_handle* handle, uipc_message* message, uipc_time* abs);
 uipc_status uipc_detach(uipc_handle* handle);
 
 uipc_message* uipc_msg_new(uipc_message_type type);

@@ -25,7 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "wire.h"
+#include <uipc/wire.h>
+#include <uipc/time.h>
 
 #ifdef HAVE_CONFIG_H
 #    include <config.h>
@@ -47,6 +48,7 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <stdio.h>
 
 uipc_status
 uipc_packet_send(int socket, uipc_packet* packet)
@@ -175,19 +177,26 @@ uipc_packet_recv(int socket, uipc_packet** packet)
 }
 
 uipc_status
-uipc_packet_available(int socket, long* _timeout)
+uipc_packet_available(int socket, uipc_time* abs)
 {
 	fd_set readset;
 	fd_set exset;
 	
-    long elapsed;
-    struct timeval before, after;
 	struct timeval timeout;
 
-    if (_timeout)
+    if (abs)
     {
-        timeout.tv_sec = *_timeout / 1000;
-        timeout.tv_usec = (*_timeout % 1000) * 1000;
+        uipc_time now;
+        uipc_time diff;
+
+        uipc_time_current(&now);
+        uipc_time_difference(&now, abs, &diff);
+
+        if (diff.seconds <= 0 && diff.microseconds <= 0)
+            return UIPC_TIMEOUT;
+
+        timeout.tv_sec = (time_t) diff.seconds;
+        timeout.tv_usec = (suseconds_t) diff.microseconds;
     }	
 
 	FD_ZERO(&readset);
@@ -196,43 +205,39 @@ uipc_packet_available(int socket, long* _timeout)
 	FD_ZERO(&exset);
 	FD_SET(socket, &exset);
 		
-    gettimeofday(&before, NULL);
-	select(socket+1, &readset, NULL, &exset, _timeout ? &timeout : NULL);
-    gettimeofday(&after, NULL);
-
+	select(socket+1, &readset, NULL, &exset, abs ? &timeout : NULL);
 
 	if (FD_ISSET(socket, &exset))
 		return UIPC_ERROR;
 	else if (FD_ISSET(socket, &readset))
 		return UIPC_SUCCESS;
-	else if (_timeout)
-    {
-        elapsed = (after.tv_sec - before.tv_sec) * 1000 + (after.tv_usec - before.tv_usec) / 1000;
-        *_timeout -= elapsed;
-        if (*_timeout <= 0)
-        {
-            *_timeout = 0;
-            return UIPC_TIMEOUT;
-        }
-    }
+    else if (abs && uipc_time_is_past(abs))
+        return UIPC_TIMEOUT;
 
 	return UIPC_RETRY;
 }
 
 uipc_status
-uipc_packet_sendable(int socket, long* _timeout)
+uipc_packet_sendable(int socket, uipc_time* abs)
 {
 	fd_set writeset;
 	fd_set exset;
 	
-    long elapsed;
-    struct timeval before, after;
 	struct timeval timeout;
 
-    if (_timeout)
+    if (abs)
     {
-        timeout.tv_sec = *_timeout / 1000;
-        timeout.tv_usec = (*_timeout % 1000) * 1000;
+        uipc_time now;
+        uipc_time diff;
+        
+        uipc_time_current(&now);
+        uipc_time_difference(&now, abs, &diff);
+        
+        if (diff.seconds <= 0 && diff.microseconds <= 0)
+            return UIPC_TIMEOUT;
+        
+        timeout.tv_sec = (time_t) diff.seconds;
+        timeout.tv_usec = (suseconds_t) diff.microseconds;
     }	
 
 	FD_ZERO(&writeset);
@@ -241,25 +246,14 @@ uipc_packet_sendable(int socket, long* _timeout)
 	FD_ZERO(&exset);
 	FD_SET(socket, &exset);
 		
-    gettimeofday(&before, NULL);
-	select(socket+1, NULL, &writeset, &exset, _timeout ? &timeout : NULL);
-    gettimeofday(&after, NULL);
-
+	select(socket+1, NULL, &writeset, &exset, abs ? &timeout : NULL);
 
 	if (FD_ISSET(socket, &exset))
 		return UIPC_ERROR;
 	else if (FD_ISSET(socket, &writeset))
 		return UIPC_SUCCESS;
-	else if (_timeout)
-    {   
-        elapsed = (after.tv_sec - before.tv_sec) * 1000 + (after.tv_usec - before.tv_usec) / 1000;
-        *_timeout -= elapsed;
-        if (*_timeout < 0)
-        {
-            *_timeout = 0;
-            return UIPC_TIMEOUT;
-        }
-    }
+	else if (abs && uipc_time_is_past(abs))
+        return UIPC_TIMEOUT;
 
 	return UIPC_RETRY;
 }

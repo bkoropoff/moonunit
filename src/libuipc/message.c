@@ -26,8 +26,8 @@
  */
 
 #define _GNU_SOURCE
-#include "ipc.h"
-#include "wire.h"
+#include <uipc/ipc.h>
+#include <uipc/wire.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -161,13 +161,13 @@ uipc_recv_async(uipc_handle* handle, uipc_message** message)
 }
 
 uipc_status
-uipc_recv(uipc_handle* handle, uipc_message** message, long* timeout)
+uipc_recv(uipc_handle* handle, uipc_message** message, uipc_time* abs)
 {
     uipc_status result = UIPC_SUCCESS;
     
     do
     {
-        result = uipc_packet_available(handle->socket, timeout);
+        result = uipc_packet_available(handle->socket, abs);
     } while (result == UIPC_RETRY);
     
     if (result != UIPC_SUCCESS)
@@ -210,13 +210,13 @@ cleanup:
 }
 
 uipc_status
-uipc_send(uipc_handle* handle, uipc_message* message, long* timeout)
+uipc_send(uipc_handle* handle, uipc_message* message, uipc_time* abs)
 {
     uipc_status result = UIPC_SUCCESS;
     
     do
     {
-        result = uipc_packet_sendable(handle->socket, timeout);
+        result = uipc_packet_sendable(handle->socket, abs);
     } while (result == UIPC_RETRY);
     
     if (result != UIPC_SUCCESS)

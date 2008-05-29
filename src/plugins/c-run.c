@@ -394,15 +394,17 @@ cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data,
     int status;
     uipc_status uipc_result = UIPC_SUCCESS;
     long timeout = default_timeout;
-    long timeleft = timeout;
+    uipc_time deadline;
     bool done = false;
     /* Have we timed out once already? */
     bool timedout = false;
 
+    uipc_time_current_offset(&deadline, 0, timeout * 1000);
+
 process:
     while (!done)
     {    
-        uipc_result = uipc_recv(ipc, &message, &timeleft);
+        uipc_result = uipc_recv(ipc, &message, &deadline);
         
         if (uipc_result == UIPC_SUCCESS)
         {
@@ -433,7 +435,8 @@ process:
             case MSG_TYPE_TIMEOUT:
             {
                 TimeoutMsg* msg = uipc_msg_get_payload(message, &timeout_info);
-                timeout = timeleft = msg->timeout;
+                timeout = msg->timeout;
+                uipc_time_current_offset(&deadline, 0, timeout * 1000);
                 uipc_msg_free_payload(msg, &timeout_info);
                 uipc_msg_free(message);
                 message = NULL;
@@ -468,7 +471,7 @@ process:
             /* Poke the child process to give it a chance to send us results */
             kill(token->child, SIGTERM);
             /* Put another 10th of a second on the clock */
-            timeleft = 100;
+            uipc_time_current_offset(&deadline, 0, 100 * 1000);
             /* Go back into the event processing loop */
             timedout = true;
             done = false;

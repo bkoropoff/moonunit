@@ -126,7 +126,7 @@ AC_SUBST(LIB_socket)
 AC_SUBST(LIB_dl)
 AC_SUBST(LIB_pthread)
 
-AC_CHECK_FUNCS([strsignal backtrace backtrace_symbols])
+AC_CHECK_FUNCS([strsignal backtrace backtrace_symbols setpgid setpgrp])
 
 
 AC_MSG_CHECKING([symbol layout order])

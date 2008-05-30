@@ -627,6 +627,14 @@ cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** bre
     if (!(pid = fork()))
     {
         token->child = getpid();
+
+        /* Start own process group to avoid consuming
+           SIGINT from the terminal */
+#if defined(HAVE_SETPGID)
+        setpgid(0, token->child);
+#elif defined(HAVE_SETPGRP)
+        setpgrp();
+#endif
         
         token->base.test = test;
         token->ipc_handle = NULL;
@@ -638,6 +646,12 @@ cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** bre
     else
     {
         CTest* ctest = (CTest*) test;
+
+        /* Put child into own process group to avoid consuming
+           SIGINT from the terminal */
+#if defined(HAVE_SETPGID)
+        setpgid(pid, pid);
+#endif
 
         switch (debug_stage)
         {

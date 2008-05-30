@@ -47,6 +47,7 @@ void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoi
 
     FILE* file = fdopen(fd, "w");
 
+    fprintf(file, "handle SIGCONT nostop noprint\n");
     fprintf(file, "break %s\n", breakpoint);
     fprintf(file, "signal SIGCONT");
 

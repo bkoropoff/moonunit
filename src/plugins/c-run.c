@@ -603,7 +603,12 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
 }
 
 static void
-wait_for_debugger(void)
+empty_handler(int sig)
+{
+}
+
+static void
+wait_for_debugger(pid_t parent)
 {
     sigset_t set;
     int sig;
@@ -611,7 +616,13 @@ wait_for_debugger(void)
     sigemptyset(&set);
     sigaddset(&set, SIGCONT);
     sigprocmask(SIG_BLOCK, &set, NULL);
-    
+    signal(SIGCONT, empty_handler);
+
+    /* Tell the parent process that we are ready for
+       the debugger to attach */
+
+    kill(parent, SIGUSR1);
+
     do
     {
         sigwait(&set, &sig);
@@ -619,11 +630,39 @@ wait_for_debugger(void)
 }
 
 static void
+wait_until_debuggable(void)
+{
+    sigset_t set;
+    int sig;
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+
+    do
+    {
+        sigwait(&set, &sig);
+    } while (sig != SIGUSR1);
+
+    sigprocmask(SIG_UNBLOCK, &set, NULL);
+    signal(SIGUSR1, SIG_DFL);
+}
+
+static void
 cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** breakpoint)
 {
-    pid_t pid;
+    pid_t pid, parent;
     CToken* token = current_token = ctoken_new(test);
-    
+    sigset_t set;
+
+    /* Block SIGUSR1, which will be used by the child
+       to let us know when the debugger can attach */
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    sigprocmask(SIG_BLOCK, &set, NULL);    
+    signal(SIGUSR1, empty_handler);
+
+    parent = getpid();
+
     if (!(pid = fork()))
     {
         token->child = getpid();
@@ -639,7 +678,7 @@ cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** bre
         token->base.test = test;
         token->ipc_handle = NULL;
 
-        wait_for_debugger();  
+        wait_for_debugger(parent);  
         cloader_run_child(test, token);
         exit(0);
     }
@@ -675,6 +714,8 @@ cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** bre
             *breakpoint = ctest->entry->run;
             break;
         }
+
+        wait_until_debuggable();
 
         *_pid = pid;
     }

@@ -196,7 +196,7 @@ uipc_packet_available(int socket, uipc_time* abs)
             return UIPC_TIMEOUT;
 
         timeout.tv_sec = (time_t) diff.seconds;
-        timeout.tv_usec = (suseconds_t) diff.microseconds;
+        timeout.tv_usec = (USEC_T) diff.microseconds;
     }	
 
 	FD_ZERO(&readset);

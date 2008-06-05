@@ -114,7 +114,13 @@ AC_PATH_PROG(BASH_PATH, bash)
 
 # Begin C checks
 AC_LANG_C
+
+# Types
 AC_CHECK_SIZEOF(void*)
+
+AC_CHECK_TYPE(suseconds_t, [USEC_T=suseconds_t], [USEC_T=long int],
+			   [#include <sys/time.h>])
+AC_DEFINE_UNQUOTED([USEC_T], [$USEC_T], [Type of tv_usec field of struct timeval])
 
 AC_CHECK_HEADERS([signal.h select.h sys/select.h execinfo.h])
 

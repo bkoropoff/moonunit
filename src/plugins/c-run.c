@@ -182,8 +182,11 @@ void ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
     CToken* token = (CToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
 
+    /* If we are in debug mode (no communication channel) */
     if (!ipc_handle)
     {
+        /* Trap so the user has a chance to inspect the
+           process before we exit */
         raise(SIGTRAP);
         goto done;
     }
@@ -301,8 +304,49 @@ signal_handler(int sig)
     }
     else
     {
+        /* This is not the child process but a
+           child of the child that has inherited
+           this signal handler.  Switch back to the
+           default handler and reraise the signal */
         signal(sig, SIG_DFL);
         raise(sig);
+    }
+}
+
+static void
+signal_setup(void)
+{
+    /* List of signals we care about */
+    static int siglist[] =
+        {
+            SIGSEGV,
+            SIGBUS,
+            SIGILL,
+            SIGPIPE,
+            SIGFPE,
+            SIGABRT,
+            SIGTERM,
+            0
+        };
+
+    struct sigaction act;
+    int i;
+    
+    act.sa_flags = 0;
+    act.sa_handler = signal_handler;
+    sigemptyset(&act.sa_mask);
+
+    /* Set up a mask that blocks all other handled
+       signals while the  handler is running.
+       This prevents deadlocks */
+    for (i = 0; siglist[i]; i++)
+    {
+        sigaddset(&act.sa_mask, siglist[i]);
+    }
+
+    for (i = 0; siglist[i]; i++)
+    {
+        sigaction(siglist[i], &act, NULL);
     }
 }
 
@@ -342,15 +386,9 @@ cloader_run_child(MuTest* test, CToken* token)
     /* Set up the C/C++ interface to call into our token */
     Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
         
-    /* Set up handlers to catch asynchronous signals */
-    signal(SIGSEGV, signal_handler);
-    signal(SIGBUS, signal_handler);
-    signal(SIGILL, signal_handler);
-    signal(SIGPIPE, signal_handler);
-    signal(SIGFPE, signal_handler);
-    signal(SIGABRT, signal_handler);
-    signal(SIGTERM, signal_handler);
-    
+    /* Set up handlers to catch asynchronous/fatal signals */
+    signal_setup();
+
     /* Stage: library setup */
     token->current_stage = MU_STAGE_LIBRARY_SETUP;
     

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Brian Koropoff
+ * Copyright (c) 2007-2008, Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -422,6 +422,69 @@ cloader_run_child(MuTest* test, CToken* token)
     Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
 }
 
+static void
+sigchld_handler()
+{
+}
+
+static int
+wait_child(pid_t pid, int* status, int ms)
+{
+    sigset_t set, oldset;
+    struct sigaction act, oldact;
+    struct timespec timeout;
+    int ret = 0;
+
+    /* Block SIGCHLD */
+    sigemptyset(&set);
+    sigaddset(&set, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &set, &oldset);
+    /* Register handler for SIGCHLD to ensure
+       it is processed */
+    act.sa_handler = sigchld_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction(SIGCHLD, &act, &oldact);
+    
+    /* Check if the child already exited before
+       we blocked the signal */
+    if (waitpid(pid, status, WNOHANG) == pid)
+    {
+        /* It did, so we are done */
+        ret = 0;
+        goto done;
+    }
+    
+    timeout.tv_sec = ms / 1000;
+    timeout.tv_nsec = (ms % 1000) * 1000000;
+    /* Otherwise, wait for it to exit with a timeout */
+    sigtimedwait(&set, NULL, &timeout);
+    
+    /* Check one more time for status */
+    if (waitpid(pid, status, WNOHANG) == pid)
+    {
+        /* It finally exited */
+        ret = 0;
+        goto done;
+    }
+    else
+    {
+        /* Kill the thing and wait once more to reap
+           the zombie process */
+        kill(pid, SIGKILL);
+        waitpid(pid, status, WNOHANG);
+        ret = -1;
+        goto done;
+    }
+
+done:
+    /* Finally, restore old signal handler/signal masks */
+    sigprocmask(SIG_SETMASK, &oldset, NULL);
+    sigaction(SIGCHLD, &oldact, NULL);
+
+    return ret;
+}
+
 /* Main loop for harvesting messages from the child process */
 static MuTestResult*
 cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data, unsigned int* iterations)
@@ -497,27 +560,20 @@ process:
     }
      
     /* If the test timed out */
-    if (uipc_result == UIPC_TIMEOUT)
+    if (uipc_result == UIPC_TIMEOUT && !timedout)
     {
-        if (timedout)
-        {
-            /* This is the second timeout, so forcefully terminate the child */
-            kill(token->child, SIGKILL);
-        }
-        else
-        {
-            /* Poke the child process to give it a chance to send us results */
-            kill(token->child, SIGTERM);
-            /* Put another 10th of a second on the clock */
-            uipc_time_current_offset(&deadline, 0, 100 * 1000);
-            /* Go back into the event processing loop */
-            timedout = true;
-            done = false;
-            goto process;
-        }
+        /* Poke the child process to give it a chance to send us results */
+        kill(token->child, SIGTERM);
+        /* Put another 10th of a second on the clock */
+        uipc_time_current_offset(&deadline, 0, 100 * 1000);
+        /* Go back into the event processing loop */
+        timedout = true;
+        done = false;
+        goto process;
     }
-    
-    waitpid(token->child, &status, 0);
+
+    /* Wait for up to 500 ms for the child to finish exiting */
+    wait_child(token->child, &status, 500);
         
     if (!summary)
     {
@@ -648,12 +704,12 @@ empty_handler(int sig)
 static void
 wait_for_debugger(pid_t parent)
 {
-    sigset_t set;
+    sigset_t set, oldset;
     int sig;
 
     sigemptyset(&set);
     sigaddset(&set, SIGCONT);
-    sigprocmask(SIG_BLOCK, &set, NULL);
+    sigprocmask(SIG_BLOCK, &set, &oldset);
     signal(SIGCONT, empty_handler);
 
     /* Tell the parent process that we are ready for
@@ -665,6 +721,9 @@ wait_for_debugger(pid_t parent)
     {
         sigwait(&set, &sig);
     } while (sig != SIGCONT);
+
+    /* Restore old signal handler */
+    sigprocmask(SIG_SETMASK, &oldset, NULL);
 }
 
 static void

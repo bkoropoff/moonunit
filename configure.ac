@@ -237,6 +237,7 @@ then
 		/usr/share/xml/docbook/stylesheet/nwalsh \
 		/usr/share/xml/docbook/stylesheet/nwalsh/current \
 		/usr/share/sgml/docbook/xsl-stylesheets \
+		/usr/local/share/xsl/docbook
 		"
 fi
 

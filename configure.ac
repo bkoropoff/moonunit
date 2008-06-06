@@ -235,13 +235,14 @@ if test -z "${DOCBOOK_SEARCH_PATH}"
 then
 	DOCBOOK_SEARCH_PATH="\
 		/usr/share/xml/docbook/stylesheet/nwalsh \
+		/usr/share/xml/docbook/stylesheet/nwalsh/current \
 		/usr/share/sgml/docbook/xsl-stylesheets \
 		"
 fi
 
 for path in ${DOCBOOK_SEARCH_PATH}
 do
-	if test -d "$path"
+	if test -d "$path" -a -d "$path/xhtml" -a -d "$path/manpages"
 	then
 		DOCBOOK_XSL_DIR="$path"
 	fi

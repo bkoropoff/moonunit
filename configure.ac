@@ -100,6 +100,11 @@ AC_ARG_WITH([libelf],
 	 	fi
 	])
 
+AC_ARG_WITH([docbook-xsl],
+	[AC_HELP_STRING([--with-docbook-xsl=<dir>],
+		[use DocBook XML stylesheets located in <dir>])],
+	[DOCBOOK_SEARCH_PATH="$withval"])
+
 AC_CONFIG_HEADERS(include/config.h)
 
 if $WANT_CPLUSPLUS
@@ -225,7 +230,14 @@ else
 fi
 
 AC_MSG_CHECKING([DocBook XSL stylesheet directory])
-DOCBOOK_SEARCH_PATH="/usr/share/xml/docbook/stylesheet/nwalsh"
+
+if test -z "${DOCBOOK_SEARCH_PATH}"
+then
+	DOCBOOK_SEARCH_PATH="\
+		/usr/share/xml/docbook/stylesheet/nwalsh \
+		/usr/share/sgml/docbook/xsl-stylesheets \
+		"
+fi
 
 for path in ${DOCBOOK_SEARCH_PATH}
 do

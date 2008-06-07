@@ -562,6 +562,7 @@ done:
     close(loop[1]);
 
     sigprocmask(SIG_SETMASK, &oldset, NULL);
+    sigaction(SIGCHLD, &oldact, NULL);
 
     return ret;
 }

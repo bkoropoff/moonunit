@@ -48,6 +48,7 @@ uipc_status uipc_recv(uipc_handle* handle, uipc_message** message, uipc_time* ab
 uipc_status uipc_send_async(uipc_handle* handle, uipc_message* message);
 uipc_status uipc_send(uipc_handle* handle, uipc_message* message, uipc_time* abs);
 uipc_status uipc_detach(uipc_handle* handle);
+uipc_status uipc_close(uipc_handle* handle);
 
 uipc_message* uipc_msg_new(uipc_message_type type);
 void uipc_msg_free(uipc_message* message);

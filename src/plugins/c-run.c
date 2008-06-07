@@ -201,7 +201,7 @@ void ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
 
 done:
     if (ipc_handle)
-        uipc_detach(ipc_handle);
+        uipc_close(ipc_handle);
     ctoken_free(token); 
 
     exit(0);
@@ -299,7 +299,7 @@ signal_handler(int sig)
         summary.file = NULL;
         summary.line = 0;
         summary.backtrace = get_backtrace(0);
-        
+
         current_token->base.result((MuInterfaceToken*) current_token, &summary);
     }
     else
@@ -422,6 +422,7 @@ cloader_run_child(MuTest* test, CToken* token)
     Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
 }
 
+#ifdef HAVE_SIGTIMEDWAIT
 static void
 sigchld_handler()
 {
@@ -472,7 +473,7 @@ wait_child(pid_t pid, int* status, int ms)
         /* Kill the thing and wait once more to reap
            the zombie process */
         kill(pid, SIGKILL);
-        waitpid(pid, status, WNOHANG);
+        waitpid(pid, NULL, 0);
         ret = -1;
         goto done;
     }
@@ -484,6 +485,87 @@ done:
 
     return ret;
 }
+#else
+
+static int loop_fd;
+
+static void
+sigchld_handler(int sig)
+{
+    char c = 0;
+
+    write(loop_fd, (void*) &c, 1);
+}
+
+static int
+wait_child(pid_t pid, int* status, int ms)
+{
+    sigset_t set, oldset;
+    struct sigaction act, oldact;
+    struct timeval timeout;
+    int ret = 0;
+    int loop[2];
+    fd_set readfds;
+
+    /* Block SIGCHLD */
+    sigemptyset(&set);
+    sigaddset(&set, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &set, &oldset);
+    /* Register handler for SIGCHLD to ensure
+       it is processed */
+    act.sa_handler = sigchld_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction(SIGCHLD, &act, &oldact);
+    
+    /* Create a pipe for the signal handler */
+    pipe(loop);
+    loop_fd = loop[1];
+
+    /* Unblock the signal */
+    sigprocmask(SIG_UNBLOCK, &set, NULL);
+
+    /* Check if the child already exited before
+       we blocked the signal */
+    if (waitpid(pid, status, WNOHANG) == pid)
+    {
+        /* It did, so we are done */
+        ret = 0;
+        goto done;
+    }
+
+    /* Do a select on the read fd to wait for the signal */
+    FD_ZERO(&readfds);
+    FD_SET(loop[0], &readfds);
+    timeout.tv_sec = ms / 1000;
+    timeout.tv_usec = (ms % 1000) * 1000; 
+    select(loop[0] + 1, &readfds, NULL, NULL, &timeout); 
+    
+    if (waitpid(pid, status, WNOHANG) == pid)
+    {
+	/* It's done now */
+	ret = 0;
+	goto done;
+    }
+    else
+    {
+        /* Kill the thing and wait once more to reap
+           the zombie process */
+        kill(pid, SIGKILL);
+        waitpid(pid, NULL, 0);
+        ret = -1;
+        goto done;
+    }
+
+done:
+    close(loop[0]);
+    close(loop[1]);
+
+    sigprocmask(SIG_SETMASK, &oldset, NULL);
+
+    return ret;
+}
+#endif
 
 /* Main loop for harvesting messages from the child process */
 static MuTestResult*
@@ -891,4 +973,5 @@ MuOption cloader_options[] =
               "The number of times each test is run (unless specified by the test)"),
     MU_OPTION_END
 };
+
 

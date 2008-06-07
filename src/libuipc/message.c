@@ -238,6 +238,20 @@ uipc_detach(uipc_handle* handle)
     return result;
 }
 
+uipc_status
+uipc_close(uipc_handle* handle)
+{
+    uipc_status result = UIPC_SUCCESS;
+
+    if (!handle)
+        return UIPC_ERROR;
+    
+    close(handle->socket);
+    free(handle);
+    
+    return result;
+}
+
 uipc_message* 
 uipc_msg_new(uipc_message_type type)
 {

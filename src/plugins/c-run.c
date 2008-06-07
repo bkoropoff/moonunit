@@ -558,11 +558,11 @@ wait_child(pid_t pid, int* status, int ms)
     }
 
 done:
+    sigaction(SIGCHLD, &oldact, NULL);
+    sigprocmask(SIG_SETMASK, &oldset, NULL);
+
     close(loop[0]);
     close(loop[1]);
-
-    sigprocmask(SIG_SETMASK, &oldset, NULL);
-    sigaction(SIGCHLD, &oldact, NULL);
 
     return ret;
 }

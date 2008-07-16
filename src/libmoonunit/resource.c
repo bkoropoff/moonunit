@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008, Brian Koropoff
+ * Copyright (c) Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,69 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_MOONUNIT_H__
-#define __MU_MOONUNIT_H__
+#include <moonunit/private/util.h>
+#include <string.h>
 
-#include <moonunit/test.h>
-#include <moonunit/loader.h>
-#include <moonunit/logger.h>
-#include <moonunit/option.h>
-#include <moonunit/type.h>
-#include <moonunit/interface.h>
-#include <moonunit/error.h>
-#include <moonunit/plugin.h>
-#include <moonunit/library.h>
-#include <moonunit/resource.h>
+static hashtable* sections;
 
-#endif
+static void
+section_free(void* key, void* value, void* unused)
+{
+    free(key);
+    hashtable_free((hashtable*) value);
+}
+
+/* A section owns its key/value resource pairs */
+static void
+resource_free(void* key, void* value, void* unused)
+{
+    free(key);
+    free(value);
+}
+
+static hashtable*
+get_section(const char* name)
+{
+    hashtable* section;
+
+    if (!sections)
+    {
+        sections = hashtable_new(511, string_hashfunc, string_hashequal, section_free, NULL);
+        section = NULL;
+    }
+    else
+    {
+        section = (hashtable*) hashtable_get(sections, (char*) name);
+    }
+
+    if (!section)
+    {
+        section = hashtable_new(511, string_hashfunc, string_hashequal, resource_free, NULL);
+        hashtable_set(sections, strdup(name), section);
+    }
+
+    return section;
+}
+
+const char*
+Mu_Resource_Get(const char* section_name, const char* key)
+{
+    hashtable* section;
+    const char* value;
+
+    section = get_section(section_name);
+   
+    value = (const char*) hashtable_get(section, key);
+
+    return value;
+}
+
+void
+Mu_Resource_Set(const char* section_name, const char* key, const char* value)
+{
+    hashtable* section;
+
+    section = get_section(section_name);
+
+    hashtable_set(section, strdup(key), strdup(value));
+}

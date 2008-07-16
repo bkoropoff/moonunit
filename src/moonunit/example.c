@@ -199,6 +199,11 @@ MU_TEST(Log, trace)
     MU_TRACE("This is trace output");
 }
 
+MU_TEST(Log, resource)
+{
+    MU_INFO("%s", MU_RESOURCE("info message"));
+}
+
 /*
  * This test will show you how the logger plugin arranges
  * events in relation to test results.  The default "console"

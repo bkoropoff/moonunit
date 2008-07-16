@@ -628,6 +628,64 @@ C_BEGIN_DECLS
 /*@}*/
 
 /**
+ * @defgroup test_resources Resource access
+ * @ingroup test
+ * @brief Macros to access resource strings
+ *
+ * This module contains macros to access externally-defined
+ * resource strings, allowing unit tests to be parameterized.
+ * This is useful to avoid hard-coding important settings or
+ * control for externalities.  Examples:
+ *
+ * <ul>
+ * <li>The server to connect to in a unit test for a networking library</li>
+ * <li>The file to open in a unit test for a file format decoder.</li>
+ * </ul>
+ */
+/*@{*/
+
+/**
+ * @brief Access a resource string
+ *
+ * This macro returns the resource string for the given key.
+ * The following resource sections will be searched for the key,
+ * in order:
+ * 
+ * <ul>
+ * <li>The section with the same name as the current test suite</li>
+ * <li>The section with the same name as the current library, minus any file extension</li>
+ * <li>The "global" section</li>
+ * </ul>
+ *
+ *
+ * <b>Example:</b>
+ * @code
+ * open_foobar_file(MU_RESOURCE("foobar_filename"));
+ * @endcode
+ * @hideinitializer
+ */
+#define MU_RESOURCE(key) \
+    (Mu_Interface_GetResource(__FILE__, __LINE__, key))
+
+/**
+ * @brief Access a resource string in a specific section
+ *
+ * This macro returns the resource string for the given key
+ * in a specific section.  This macro does not perform the
+ * search procedure used by MU_RESOURCE.
+ *
+ * <b>Example:</b>
+ * @code
+ * open_foobar_file(MU_RESOURCE_FROM_SECTION("foobar", "filename"));
+ * @endcode
+ * @hideinitializer
+ */
+#define MU_RESOURCE_FROM_SECTION(section, key)   \
+    (Mu_Interface_GetResourceFromSection(__FILE__, __LINE__, section, key))
+
+/*@}*/
+
+/**
  * @defgroup test_reflect Reflection
  * @ingroup test
  * @brief Macros and structures to inspect live unit tests
@@ -673,6 +731,9 @@ void Mu_Interface_Assert(const char* file, unsigned int line, const char* expr, 
 void Mu_Interface_AssertEqual(const char* file, unsigned int line, const char* expr1, const char* expr2, int sense, MuType type, ...);
 void Mu_Interface_Result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...);
 MuTest* Mu_Interface_CurrentTest(void);
+
+const char* Mu_Interface_GetResource(const char* file, unsigned int line, const char* key);
+const char* Mu_Interface_GetResourceInSection(const char* file, unsigned int line, const char* section, const char* key);
 
 typedef enum MuEntryType
 {

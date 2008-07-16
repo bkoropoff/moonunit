@@ -37,6 +37,7 @@ enum
     OPTION_TIMEOUT,
     OPTION_LIST_PLUGINS,
     OPTION_PLUGIN_INFO,
+    OPTION_RESOURCE,
     OPTION_USAGE,
     OPTION_HELP
 };
@@ -47,6 +48,7 @@ enum
 #include <moonunit/logger.h>
 #include <moonunit/loader.h>
 #include <moonunit/plugin.h>
+#include <moonunit/resource.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,12 +56,13 @@ enum
 #include <stdarg.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #include "option.h"
 #include "upopt.h"
 
-static UpoptStatus
-error(OptionTable* table, const char* fmt, ...)
+static int
+error(OptionTable* table, int code, const char* fmt, ...)
 {
     va_list ap;
 
@@ -69,8 +72,10 @@ error(OptionTable* table, const char* fmt, ...)
 
     va_end(ap);
 
-    return UPOPT_STATUS_ERROR;
+    return code;
 }
+
+#define UPOPT_ERROR(table, ...) error(table, UPOPT_STATUS_ERROR, __VA_ARGS__)
 
 static const struct UpoptOptionInfo options[] =
 {
@@ -145,6 +150,13 @@ static const struct UpoptOptionInfo options[] =
         .argument = "name"
     },
     {
+        .longname = "resource",
+        .shortname = 'r',
+        .constant = OPTION_RESOURCE,
+        .description = "Load a resource file",
+        .argument = "file"
+    },
+    {
         .longname = "usage",
         .shortname = '\0',
         .constant = OPTION_USAGE,
@@ -192,13 +204,13 @@ Option_Parse(int argc, char** argv, OptionTable* option)
         {
             if (constant == OPTION_SUITE && strchr(value, '/'))
             {
-                rc = error(option, "The --suite option requires an argument without a forward slash");
+                rc = UPOPT_ERROR(option, "The --suite option requires an argument without a forward slash");
                 goto error;
             }
             
             if (constant == OPTION_TEST && !strchr(value, '/'))
             {
-                rc = error(option, "The --test option requires an argument with a forward slash");
+                rc = UPOPT_ERROR(option, "The --test option requires an argument with a forward slash");
                 goto error;
             }
 
@@ -216,6 +228,9 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             break;
         case OPTION_LOADER_OPTION:
             option->loader_options = array_append(option->loader_options, strdup(value));
+            break;
+        case OPTION_RESOURCE:
+            option->resources = array_append(option->resources, strdup(value));
             break;
         case OPTION_ITERATIONS:
             option->iterations = atoi(value);
@@ -248,7 +263,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     
     if (option->mode == MODE_RUN && !array_size(option->files))
     {
-        rc = error(option, "No libraries specified");
+        rc = UPOPT_ERROR(option, "No libraries specified");
     }
     
 error:
@@ -374,12 +389,42 @@ Option_ConfigureLoaders(OptionTable* option)
     }
 }
 
+static void
+add_resource(const char* section, const char* key, const char* value, void* unused)
+{
+    Mu_Resource_Set(section, key, value);
+}
+
+int
+Option_ProcessResources(OptionTable* option)
+{
+    unsigned int index;
+
+    for (index = 0; index < array_size(option->resources); index++)
+    {
+        const char* filename = (const char*) option->resources[index];
+        FILE* file = fopen(filename, "r");
+        
+        if (!file)
+        {
+            return error(option, -1, "Could not open resource file %s: %s",
+                         filename, strerror(errno));
+        }
+
+        ini_read(file, add_resource, NULL);
+    }
+
+    return 0;
+}
+
 void
 Option_Release(OptionTable* option)
 {
+    /* FIXME: free individual strings in some of these arrays */
     if (option->errormsg)
         free(option->errormsg);
     array_free(option->files);
     array_free(option->tests);
     array_free(option->loggers);
+    array_free(option->resources);
 }

@@ -33,6 +33,8 @@
 #endif
 
 #include <moonunit/interface.h>
+#include <moonunit/resource.h>
+#include <moonunit/library.h>
 #include <moonunit/private/interface-private.h>
 #include <moonunit/private/util.h>
 
@@ -291,4 +293,72 @@ MuTest*
 Mu_Interface_CurrentTest(void)
 {
     return Mu_Interface_CurrentToken()->test;
+}
+
+const char*
+Mu_Interface_GetResource(const char* file, unsigned int line, const char* key)
+{
+    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuTest* test = token->test;
+    const char* value;
+    char* library, *dot;
+    MuTestResult summary;
+
+    value = Mu_Resource_Get(Mu_Test_Suite(test), key);
+
+    if (value)
+        return value;
+
+    library = strdup(Mu_Library_Name(test->library));
+
+    dot = strrchr(library, '.');
+
+    if (dot)
+        *dot = '\0';
+
+    value = Mu_Resource_Get(library, key);
+    free(library);
+
+    if (value)
+        return value;
+
+    value = Mu_Resource_Get("global", key);
+
+    if (value)
+        return value;
+
+    /* Resource was not available, so fail the test */
+    summary.status = MU_STATUS_RESOURCE;
+    summary.reason = format("Could not find resource: %s", key);
+    summary.line = line;
+    summary.file = file;
+    summary.backtrace = NULL;
+    
+    token->result(token, &summary);
+
+    return NULL;
+}
+
+const char*
+Mu_Interface_GetResourceInSection(const char* file, unsigned int line, const char* section, const char* key)
+{
+    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    const char* value;
+    MuTestResult summary;
+
+    value = Mu_Resource_Get(section, key);
+
+    if (value)
+        return value;
+
+    /* Resource was not available, so fail the test */
+    summary.status = MU_STATUS_RESOURCE;
+    summary.reason = format("Could not find resource in [%s]: %s", section, key);
+    summary.line = line;
+    summary.file = file;
+    summary.backtrace = NULL;
+    
+    token->result(token, &summary);
+
+    return NULL; 
 }

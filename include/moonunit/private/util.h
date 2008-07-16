@@ -30,6 +30,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -43,6 +44,9 @@ bool ends_with (const char* haystack, const char* needle);
 char* format(const char* format, ...);
 char* formatv(const char* format, va_list ap);
 const char* basename_pure(const char* filename);
+void* mu_dlopen(const char* path, int flags);
+
+/* Dynamic array */
 
 typedef void* array;
 
@@ -53,7 +57,29 @@ void array_free(array* a);
 array* array_dup(array* a);
 array* array_from_generic(void** g);
 
-void* mu_dlopen(const char* path, int flags);
+/* Hash table */
+
+typedef struct _hashtable hashtable;
+typedef bool (*hashequal) (const void* a, const void *b, void* data);
+typedef size_t (*hashfunc) (const void* a, void* data);
+typedef void (*hashfree) (void* key, void* value, void* data);
+
+hashtable* hashtable_new(size_t size, hashfunc hash, hashequal equal, hashfree free, void* data);
+void hashtable_set(hashtable* table, void* key, void* value);
+void* hashtable_get(hashtable* table, const void* key);
+bool hashtable_present(hashtable* table, const void* key);
+void hashtable_remove(hashtable* table, void* key);
+void hashtable_free(hashtable* table);
+
+/* Useful standard hash functions */
+bool string_hashequal(const void* a, const void* b, void* unused);
+size_t string_hashfunc(const void* key, void* unused);
+
+/* Ini file reading */
+
+typedef void (*inievent) (const char* section, const char* key, const char* value, void* data);
+
+void ini_read(FILE* file, inievent cb, void* data);
 
 C_END_DECLS
 

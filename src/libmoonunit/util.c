@@ -30,6 +30,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <dlfcn.h>
+#include <ctype.h>
 
 #include <moonunit/private/util.h>
 
@@ -230,3 +231,245 @@ mu_dlopen(const char* path, int flags)
 
     return handle;
 }
+
+/* Hash table */
+
+typedef struct _hashlink
+{
+    void* key;
+    void* value;
+    struct _hashlink* next;
+} hashlink;
+
+struct _hashtable
+{
+    size_t size;
+    hashlink** buckets;
+
+    hashfunc hash;
+    hashfree free;
+    hashequal equal;
+    void* data;
+};
+
+hashtable*
+hashtable_new(size_t size, hashfunc hash, hashequal equal, hashfree free, void* data)
+{
+    hashtable* table = malloc(sizeof(hashtable));
+
+    table->size = size;
+    table->buckets = calloc(size, sizeof(hashlink*));
+    table->hash = hash;
+    table->equal = equal;
+    table->free = free;
+    table->data = data;
+
+    return table;
+}
+
+static hashlink**
+hashtable_lookup(hashtable* table, const void* key)
+{
+    size_t hashcode = table->hash(key, table->data);
+    hashlink** linkref = &table->buckets[hashcode % table->size];
+    
+    for (; *linkref; linkref = &(*linkref)->next)
+    {
+        if (table->equal((*linkref)->key, key, table->data))
+            break;
+    }
+
+    return linkref;
+}
+
+void
+hashtable_set(hashtable* table, void* key, void* value)
+{
+    hashlink** linkref = hashtable_lookup(table, key);
+    hashlink* link;
+
+    if (*linkref)
+    {
+        link = *linkref;
+
+        if (table->free)
+            table->free(link->key, link->value, table->data);
+    }
+    else
+    {
+        link = malloc(sizeof(hashlink));
+        link->next = NULL;
+        *linkref = link;
+    }
+
+    link->key = key;
+    link->value = value;
+}
+
+void*
+hashtable_get(hashtable* table, const void* key)
+{
+    hashlink** linkref = hashtable_lookup(table, key);
+    hashlink* link = *linkref;
+
+    if (link)
+    {
+        return link->value;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+bool
+hashtable_present(hashtable* table, const void* key)
+{
+    hashlink** linkref = hashtable_lookup(table, key);
+    hashlink* link = *linkref;
+
+    return link != NULL;
+}
+
+void
+hashtable_remove(hashtable* table, void* key)
+{
+    hashlink** linkref = hashtable_lookup(table, key);
+    hashlink* link = *linkref;
+
+    if (link)
+    {
+        *linkref = link->next;
+
+        if (table->free)
+            table->free(link->key, link->value, table->data);
+        free(link);
+    }
+}
+
+void
+hashtable_free(hashtable* table)
+{
+    size_t index;
+
+    for (index = 0; index < table->size; index++)
+    {
+        hashlink* link, *next;
+
+        for (link = table->buckets[index]; link; link = next)
+        {
+            next = link->next;
+
+            if (table->free)
+                table->free(link->key, link->value, table->data);
+            free(link);
+        }
+    }
+
+    free(table);
+}
+
+bool
+string_hashequal(const void* a, const void* b, void* unused)
+{
+    return !strcmp((const char*) a, (const char*) b);
+}
+
+size_t
+string_hashfunc(const void* key, void* unused)
+{
+    size_t result = 0;
+    const char* str;
+    
+    for (str = (const char*) key; *str; str++)
+    {
+        result = result * 31 + *str;
+    }
+
+    return result;
+}
+
+/* Ini-style file loader */
+
+static char* chomp(char *in)
+{
+    char* start, *end;
+
+    for (start = in; isspace((int) *start); start++);
+    for (end = start + strlen(start);
+         end > start && (*(end - 1) == '\0' || isspace((int) *(end-1)));
+         end--);
+
+    *end = '\0';
+
+    return start;
+}
+
+void ini_read(FILE* file, inievent cb, void* data)
+{
+    char* line = NULL;
+    int line_size = 1024;
+    int line_len, chomped_len;
+    char* section = strdup("global");
+    char* equals = NULL;
+    char* chomped;
+
+    line = malloc(line_size);
+
+    /* Try to read a line */
+    while (fgets(line, line_size, file))
+    {
+        line_len = strlen(line);
+
+        /* If the last character isn't a newline,
+           we may have run out of space in the buffer */
+        while (line[line_len - 1] != '\n')
+        {
+            /* Double the buffer size */
+            line_size *= 2;
+            line = realloc(line, line_size);
+
+            /* Try to read the rest of the line */
+            if (!fgets(line + line_len, line_size - line_len, file))
+            {
+                /* If it doesn't work, just add a newline to what we already have */
+                line[line_len] = '\n';
+                line[line_len+1] = '\0';
+
+            }
+
+            line_len = strlen(line);
+        }
+
+        /* Strip trailing/leading whitespace */
+        chomped = chomp(line);
+        chomped_len = strlen(chomped);
+
+        /* Blank line or comment */
+        if (chomped_len == 0 || chomped[0] == '#')
+        {
+            continue;
+        }
+        /* Section start */
+        else if (chomped[0] == '[' && chomped[chomped_len-1] == ']')
+        {
+            if (section)
+                free(section);
+
+            chomped[chomped_len-1] = '\0';
+            section = strdup(chomped + 1);
+        }
+        /* Key/value pair */
+        else if ((equals = strchr(chomped, '=')))
+        {
+            *equals = '\0';
+
+            /* Invoke callback with chomped key and value */
+            cb(section, chomp(chomped), chomp(equals+1), data);
+        }
+    }
+
+    if (section)
+        free(section);
+}
+

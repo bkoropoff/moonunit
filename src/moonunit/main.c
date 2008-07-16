@@ -148,9 +148,14 @@ run(char* self)
     array* loggers;
     unsigned int failed = 0;
 
+    if (Option_ProcessResources(&option))
+    {
+        die("Error: %s", option.errormsg);
+    }
+
     Option_ConfigureLoaders(&option);
     loggers = Option_CreateLoggers(&option);
-
+    
     settings.self = self;
     settings.debug = option.gdb;
 

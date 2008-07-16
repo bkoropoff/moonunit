@@ -67,6 +67,8 @@ typedef enum MuTestStatus
     MU_STATUS_TIMEOUT,
     /** Failure due to uncaught exception */
     MU_STATUS_EXCEPTION,
+    /** Failure due to missing resource */
+    MU_STATUS_RESOURCE,
     /** Test skipped */
     MU_STATUS_SKIPPED,
 } MuTestStatus;

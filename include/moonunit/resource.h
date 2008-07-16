@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008, Brian Koropoff
+ * Copyright (c) Brian Koropoff
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -9,7 +9,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Moonunit project nor the
+ *     * Neither the name of the MoonUnit project nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
@@ -25,18 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MU_MOONUNIT_H__
-#define __MU_MOONUNIT_H__
+#ifndef __MU_RESOURCE_H__
+#define __MU_RESOURCE_H__
 
-#include <moonunit/test.h>
-#include <moonunit/loader.h>
-#include <moonunit/logger.h>
-#include <moonunit/option.h>
-#include <moonunit/type.h>
-#include <moonunit/interface.h>
-#include <moonunit/error.h>
-#include <moonunit/plugin.h>
-#include <moonunit/library.h>
-#include <moonunit/resource.h>
+const char* Mu_Resource_Get(const char* section_name, const char* key);
+void Mu_Resource_Set(const char* section_name, const char* key, const char* value);
 
 #endif

@@ -47,7 +47,7 @@ typedef struct
     unsigned int iterations;
     long timeout;
     char* logger;
-    array* tests, *files, *loggers;
+    array* tests, *files, *loggers, *resources;
     array* loader_options;
     const char* plugin_info;
     char* errormsg;
@@ -59,5 +59,6 @@ int Option_Parse(int argc, char** argv, OptionTable* option);
 void Option_Release(OptionTable* option);
 array* Option_CreateLoggers(OptionTable* option);
 void Option_ConfigureLoaders(OptionTable* option);
+int Option_ProcessResources(OptionTable* option);
 
 #endif

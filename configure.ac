@@ -268,12 +268,32 @@ fi
 AC_SUBST(DOCBOOK_XSL_DIR)
 AM_CONDITIONAL([HAVE_DOCBOOK], [$HAVE_DOCBOOK])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Makefile
-		src/moonunit/moonunit-lt.sh src/moonunit/moonunit-stub.sh
-		include/Makefile include/moonunit/Makefile include/moonunit/private/Makefile
-		include/moonunit/internal/Makefile src/libuipc/Makefile src/plugins/Makefile
-		src/plugins/mu.sh include/uipc/Makefile doc/Makefile doc/Doxyfile doc/docbook-html.xsl
-		doc/docbook-man.xsl extra/Makefile])
+AC_CONFIG_FILES([
+	Makefile
+	src/Makefile
+	src/libmoonunit/Makefile
+	src/moonunit/Makefile
+	src/moonunit/moonunit-lt.sh
+	src/moonunit/moonunit-stub.sh
+	include/Makefile
+	include/moonunit/Makefile
+	include/moonunit/private/Makefile
+	include/moonunit/internal/Makefile
+	include/uipc/Makefile
+	src/libuipc/Makefile
+	src/plugins/Makefile
+	src/plugins/c/Makefile
+	src/plugins/shell/Makefile
+	src/plugins/shell/mu.sh
+	src/plugins/console/Makefile
+	src/plugins/xml/Makefile
+	test/Makefile
+	doc/Makefile
+	doc/Doxyfile
+	doc/docbook-html.xsl
+	doc/docbook-man.xsl
+	extra/Makefile
+	])
 
 AC_OUTPUT
 

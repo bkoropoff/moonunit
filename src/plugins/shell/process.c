@@ -84,6 +84,12 @@ int Process_Open(Process* handle, char * const argv[],
     {
         /* Child */
         
+        /* Become the leader of our own process group
+         * so that our children will be terminated when
+         * we are.
+         */
+        setpgrp();
+
         for (i = 0; i < num_channels; i++)
         {
             switch (handle->channels[i].direction)

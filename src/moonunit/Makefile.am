@@ -45,8 +45,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 CHECK_PLUGINS= \
 	--plugin $(top_builddir)/src/plugins/c.la \
 	--plugin $(top_builddir)/src/plugins/console.la \
-	--plugin $(top_builddir)/src/plugins/xml.la	
+	--plugin $(top_builddir)/src/plugins/xml.la \
+	--plugin $(top_builddir)/src/plugins/sh.la \
+	--loader-option "sh:helper=$(top_srcdir)/src/plugins/mu.sh"
 
-check-local: moonunit-lt example.la
-	./moonunit-lt $(CHECK_ARGS) $(CHECK_PLUGINS) -r $(srcdir)/example.res example.la
+check-local: moonunit-lt example.la example.sh
+	./moonunit-lt $(CHECK_ARGS) $(CHECK_PLUGINS) -r $(srcdir)/example.res $(builddir)/example.la $(srcdir)/example.sh
 

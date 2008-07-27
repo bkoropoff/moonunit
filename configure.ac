@@ -272,7 +272,7 @@ AC_CONFIG_FILES([Makefile src/Makefile src/libmoonunit/Makefile src/moonunit/Mak
 		src/moonunit/moonunit-lt.sh src/moonunit/moonunit-stub.sh
 		include/Makefile include/moonunit/Makefile include/moonunit/private/Makefile
 		include/moonunit/internal/Makefile src/libuipc/Makefile src/plugins/Makefile
-		include/uipc/Makefile doc/Makefile doc/Doxyfile doc/docbook-html.xsl
+		src/plugins/mu.sh include/uipc/Makefile doc/Makefile doc/Doxyfile doc/docbook-html.xsl
 		doc/docbook-man.xsl extra/Makefile])
 
 AC_OUTPUT

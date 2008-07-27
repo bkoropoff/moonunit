@@ -1,4 +1,5 @@
-pkglib_LTLIBRARIES = xml.la console.la c.la
+pkglib_LTLIBRARIES = xml.la console.la c.la sh.la
+libexec_SCRIPTS = mu.sh
 
 MODULE_LDFLAGS = -module -avoid-version -export-dynamic
 
@@ -13,6 +14,10 @@ console_la_LDFLAGS = $(MODULE_LDFLAGS)
 c_la_SOURCES = c.c c-run.c c-load.c backtrace.c
 c_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @LIB_pthread@
 c_la_LDFLAGS = $(MODULE_LDFLAGS)
+
+sh_la_SOURCES = sh-exec.c sh-load.c process.c
+sh_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
+sh_la_LDFLAGS = $(MODULE_LDFLAGS)
 
 if HAVE_LIBELF
 c_la_SOURCES += elfscan.c
@@ -32,6 +37,7 @@ endif
 
 EXTRA_DIST = elfscan.h backtrace.h c-token.h cplusplus.h
 
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include \
+	      -DLIBEXEC_PATH="\"$(libexecdir)\""
 
 pkglibdir=@plugindir@

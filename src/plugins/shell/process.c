@@ -322,7 +322,7 @@ Process_Close(Process* handle)
 
     free(handle->channels);
 
-    kill(handle->pid, SIGTERM);
+    killpg(handle->pid, SIGTERM);
     waitpid(handle->pid, NULL, 0);
 }
 

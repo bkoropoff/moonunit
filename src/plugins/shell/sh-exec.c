@@ -224,7 +224,6 @@ Mu_Sh_Dispatch (const char* script, const char* suite, const char* name, const c
 {
     Process handle;
     ProcessTimeout timeout;
-    int status;
     MuTestResult* result = calloc(1, sizeof(*result));
     int res;
     char* command;
@@ -254,10 +253,10 @@ Mu_Sh_Dispatch (const char* script, const char* suite, const char* name, const c
                 }
                 free(line);
             }
-        }
-        if (Process_Finished(&handle, &status))
-        {
-            break;
+            else if (len == 0)
+            {
+                break;
+            }
         }
     }
     

@@ -30,6 +30,18 @@
 
 MU_FF=$'\f'
 
+mu_seq()
+{
+    local max="$2"
+    local i="$1"
+
+    while [ "$i" -le "$max" ]
+    do
+        echo "$i"
+	i="$(($i + 1))"
+    done
+}
+
 mu_enum_test_functions()
 {
     set | grep '^test_[a-zA-Z_-]*[= ]() *$' | sed 's/[ =]() *$//g'
@@ -107,7 +119,7 @@ mu_caller_backtrace()
     local str=""
     local i
 
-    for i in `seq 2 ${#BASH_SOURCE[@]}`
+    for i in `mu_seq 2 ${#BASH_SOURCE[@]}`
     do
 	str="${str}"${BASH_SOURCE[$i]}"${ff}"${BASH_LINENO[$(($i-1))]}"${ff}"
     done

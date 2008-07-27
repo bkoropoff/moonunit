@@ -35,6 +35,34 @@ mu_enum_test_functions()
     set | grep '^test_[a-zA-Z_-]*[= ]() *$' | sed 's/[ =]() *$//g'
 }
 
+mu_run_if_exists()
+{
+    if type "$1" >/dev/null 2>&1
+    then
+	"$@"
+    fi
+}
+
+mu_run_test()
+{
+    local suite="${1}"
+    local name="${2}"
+    local function="${3}"
+
+    MU_EXPECT="success"
+
+    MU_STAGE="library setup"
+    mu_run_if_exists "library_setup"
+    MU_STAGE="fixture setup"
+    mu_run_if_exists "fixture_${suite}_setup"
+    MU_STAGE="test"
+    "${function}"
+    MU_STAGE="fixture teardown"
+    mu_run_if_exists "fixture_${suite}_teardown"
+    MU_STAGE="library teardown"
+    mu_run_if_exists "library_teardown"
+}
+
 mu_caller_file()
 {
     echo ${BASH_SOURCE[2]}
@@ -87,31 +115,61 @@ mu_caller_backtrace()
     echo "${str}" | sed -e 's/\'${ff}'$//'
 }
 
+mu_expect()
+{
+    mu_cmd EXPECT "$1"
+}
+
 mu_success()
 {
     local file=`mu_caller_file`
     local line=`mu_caller_line`
-     
-    mu_cmd RESULT success "$file" "$line" "Success"
+    
+    mu_cmd RESULT success "$MU_STAGE" "$file" "$line" "Success"
     mu_halt
 }
 
 mu_failure()
 {
-    mu_cmd RESULT failure "`mu_caller_file`" "`mu_caller_line`" "$1" "`mu_caller_backtrace`"
+    mu_cmd RESULT failure "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "$1" "`mu_caller_backtrace`"
     mu_halt
-}
-
-mu_resource()
-{
-    mu_cmd RESOURCE 
 }
 
 mu_assert()
 {
     if ! "$@" >/dev/null 2>&1
     then
-	mu_cmd RESULT assertion "`mu_caller_file`" "`mu_caller_line`" "Assertion failed: $*" "`mu_caller_backtrace`"
+	mu_cmd RESULT assertion "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "Assertion failed: $*" "`mu_caller_backtrace`"
 	mu_halt
     fi
+}
+
+mu_timeout()
+{
+    mu_cmd TIMEOUT "$1"
+}
+
+mu_warning()
+{
+    mu_cmd LOG warning "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "$1"
+}
+
+mu_info()
+{
+    mu_cmd LOG info "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "$1"
+}
+
+mu_verbose()
+{
+    mu_cmd LOG verbose "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "$1"
+}
+
+mu_debug()
+{
+    mu_cmd LOG debug "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "$1"
+}
+
+mu_trace()
+{
+    mu_cmd LOG trace "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "$1"
 }

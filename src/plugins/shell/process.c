@@ -91,7 +91,7 @@ int Process_Open(Process* handle, char * const argv[],
          * we are.
          */
 #if defined(HAVE_SETPGID)
-        setpgid(0, token->child);
+        setpgid(0, getpid());
 #elif defined(HAVE_SETPGRP)
         setpgrp();
 #endif

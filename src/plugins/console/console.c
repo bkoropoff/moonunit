@@ -129,13 +129,45 @@ test_log(MuLogger* _self, MuLogEvent* event)
     old = self->log;
 
     if (self->ansi)
-        self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s:%u: %s\n", old,
-                           level_code, level_str, basename_pure(event->file), 
-                           event->line, event->message);
+    {
+        if (event->file && event->line)
+        {
+            self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s:%u: %s\n", old,
+                               level_code, level_str, basename_pure(event->file), 
+                               event->line, event->message);
+        }
+        else if (event->file)
+        {
+            self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s: %s\n", old,
+                               level_code, level_str, basename_pure(event->file), 
+                               event->message);
+        }
+        else
+        {
+            self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s\n", old,
+                               level_code, level_str, event->message);
+        }
+    }
     else
-        self->log = format("%s      (%s) %s:%u: %s\n", old,
-                           level_str, basename_pure(event->file), 
-                           event->line, event->message);
+    {
+        if (event->file && event->line)
+        {
+            self->log = format("%s      (%s) %s:%u: %s\n", old,
+                               level_str, basename_pure(event->file), 
+                               event->line, event->message);
+        }
+        else if (event->file)
+        {
+            self->log = format("%s      (%s) %s: %s\n", old,
+                               level_str, basename_pure(event->file), 
+                               event->message);
+        }
+        else
+        {
+            self->log = format("%s      (%s) %s\n", old,
+                               level_str, event->message);
+        }
+    }
 
     free(old);
 }

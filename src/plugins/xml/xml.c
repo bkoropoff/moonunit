@@ -119,9 +119,16 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
         case MU_LEVEL_TRACE:
             level_str = "trace"; break;
     }
-    fprintf(self->out, "        <event level=\"%s\" file=\"%s\" line=\"%u\" stage=\"%s\">\n",
-            level_str, basename_pure(event->file), event->line,
-            Mu_TestStageToString(event->stage));
+    fprintf(self->out, "        <event level=\"%s\"", level_str);
+
+    fprintf(self->out, " stage=\"%s\"", Mu_TestStageToString(event->stage));
+    
+    if (event->file)
+        fprintf(self->out, " file=\"%s\"", basename_pure(event->file));
+    if (event->line)
+        fprintf(self->out, " line=\"%u\"", event->line);
+
+    fprintf(self->out, ">\n");
     fprintf(self->out, "          <![CDATA[%s]]>\n", event->message);
     fprintf(self->out, "        </event>\n");
 }

@@ -96,6 +96,15 @@ Mu_Sh_NonemptyString(char* str)
         return str;
 }
 
+static char*
+Mu_Sh_SafeStrdup(const char* str)
+{
+    if (!str)
+        return NULL;
+    else
+        return strdup(str);
+}
+
 static MuTestStatus
 Mu_Sh_StringToTestStatus(const char* str)
 {
@@ -164,8 +173,8 @@ Mu_Sh_ProcessResult(MuTestResult* result, char** ptokens)
 
     result->status = Mu_Sh_StringToTestStatus(status);
     result->stage = Mu_Sh_StringToTestStage(stage);
-    result->reason = strdup(message);
-    result->file = strdup(file);
+    result->reason = Mu_Sh_SafeStrdup(message);
+    result->file = Mu_Sh_SafeStrdup(file);
     result->line = atoi(line);
 }
 
@@ -182,9 +191,9 @@ Mu_Sh_ProcessEvent(MuLogCallback lcb, void* data, char** ptokens)
 
     event.level = Mu_Sh_StringToLogLevel(level);
     event.stage = Mu_Sh_StringToTestStage(stage);
-    event.file = strdup(file);
+    event.file = Mu_Sh_SafeStrdup(file);
     event.line = atoi(line);
-    event.message = strdup(message);
+    event.message = Mu_Sh_SafeStrdup(message);
 
     lcb(&event, data);
 }

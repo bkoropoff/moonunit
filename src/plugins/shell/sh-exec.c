@@ -191,9 +191,9 @@ Mu_Sh_ProcessEvent(MuLogCallback lcb, void* data, char** ptokens)
 
     event.level = Mu_Sh_StringToLogLevel(level);
     event.stage = Mu_Sh_StringToTestStage(stage);
-    event.file = Mu_Sh_SafeStrdup(file);
+    event.file = file;
     event.line = atoi(line);
-    event.message = Mu_Sh_SafeStrdup(message);
+    event.message = message;
 
     lcb(&event, data);
 }

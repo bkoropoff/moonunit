@@ -302,11 +302,17 @@ void
 cloader_close (MuLoader* _self, MuLibrary* _handle)
 {
     CLibrary* handle = (CLibrary*) _handle;
+    int i;
 
 	if (handle->dlhandle)
         dlclose(handle->dlhandle);
     if (handle->path)
         free((void*) handle->path);
+
+    for (i = 0; i < array_size((array*) handle->tests); i++)
+    {
+        free(handle->tests[i]);
+    }
 
     array_free((array*) handle->tests);
     array_free((array*) handle->fixture_setups);

@@ -142,6 +142,7 @@ sh_close (struct MuLoader* self, struct MuLibrary* handle)
     }
 
     free((char*) library->path);
+    free(library);
 }
 
 static const char*
@@ -186,6 +187,23 @@ sh_dispatch (struct MuLoader* self, struct MuTest* handle, MuLogCallback lcb, vo
 static void
 sh_free_result (struct MuLoader* self, struct MuTestResult* result)
 {
+    MuBacktrace* bt, *nextbt;
+
+    if (result->file)
+        free((char*) result->file);
+    if (result->reason)
+        free((char*) result->reason);
+
+    for (bt = result->backtrace; bt; bt = nextbt)
+    {
+        nextbt = bt->up;
+        if (bt->file_name)
+            free((char*) bt->file_name);
+        if (bt->func_name)
+            free((char*) bt->func_name);
+        free(bt);
+    }
+
     free(result);
 }
 

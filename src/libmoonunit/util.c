@@ -471,5 +471,8 @@ void ini_read(FILE* file, inievent cb, void* data)
 
     if (section)
         free(section);
+
+    if (line)
+        free(line);
 }
 

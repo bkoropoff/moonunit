@@ -255,7 +255,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             break;
         case UPOPT_ARG_NORMAL:
         {
-            option->files = array_append(option->files, (char*) value);
+            option->files = array_append(option->files, strdup(value));
             break;
         }
         }
@@ -317,6 +317,9 @@ Option_ParsePluginOptions(const char* str,
             }
         }
     }
+
+    if (target)
+        free(target);
 }
 
 static void
@@ -420,11 +423,32 @@ Option_ProcessResources(OptionTable* option)
 void
 Option_Release(OptionTable* option)
 {
-    /* FIXME: free individual strings in some of these arrays */
+    int i;
     if (option->errormsg)
         free(option->errormsg);
+    
+    for (i = 0; i < array_size(option->files); i++)
+        free(option->files[i]);
+
     array_free(option->files);
+
+    for (i = 0; i < array_size(option->tests); i++)
+        free(option->tests[i]);
+
     array_free(option->tests);
+
+    for (i = 0; i < array_size(option->loggers); i++)
+        free(option->loggers[i]);
+
     array_free(option->loggers);
+
+    for (i = 0; i < array_size(option->resources); i++)
+        free(option->resources[i]);
+
     array_free(option->resources);
+
+    for (i = 0; i < array_size(option->loader_options); i++)
+        free(option->loader_options[i]);
+
+    array_free(option->loader_options);
 }

@@ -70,8 +70,10 @@ int Process_Open(Process* handle, char * const argv[],
             handle->channels[i].fd = pipes[i][1];
             break;
         case PROCESS_CHANNEL_DEFAULT:
-            close(pipes[i][0]);
-            close(pipes[i][1]);
+            if (pipes[i][0] >= 0)
+                close(pipes[i][0]);
+            if (pipes[i][1] >= 0)
+                close(pipes[i][1]);
             handle->channels[i].fd = -1;
         }
 
@@ -101,11 +103,13 @@ int Process_Open(Process* handle, char * const argv[],
             switch (handle->channels[i].direction)
             {
             case PROCESS_CHANNEL_IN:
-                close(pipes[i][0]);
+                if (pipes[i][0] >= 0)
+                    close(pipes[i][0]);
                 dup2(pipes[i][1], i);
                 break;
             case PROCESS_CHANNEL_OUT:
-                close(pipes[i][1]);
+                if (pipes[i][1] >= 0)
+                    close(pipes[i][1]);
                 dup2(pipes[i][0], i);
                 break;
             default:
@@ -123,16 +127,21 @@ int Process_Open(Process* handle, char * const argv[],
             switch (handle->channels[i].direction)
             {
             case PROCESS_CHANNEL_IN:
-                close(pipes[i][1]);
+                if (pipes[i][1] >= 0)
+                    close(pipes[i][1]);
                 break;
             case PROCESS_CHANNEL_OUT:
-                close(pipes[i][0]);
+                if (pipes[i][0] >= 0)
+                    close(pipes[i][0]);
                 break;
             default:
                 break;
             }
         }
     }
+
+    if (pipes)
+        free(pipes);
 
     return 0;
 }
@@ -323,7 +332,10 @@ Process_Close(Process* handle)
 
     for (i = 0; i < handle->num_channels; i++)
     {
-        close (handle->channels[i].fd);
+        if (handle->channels[i].fd >= 0)
+            close (handle->channels[i].fd);
+        if (handle->channels[i].buffer)
+            free(handle->channels[i].buffer);
     }
 
     free(handle->channels);

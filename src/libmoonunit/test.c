@@ -53,6 +53,8 @@ Mu_TestStatusToString(MuTestStatus result)
         return "timeout";
     case MU_STATUS_SKIPPED:
         return "skipped";
+    case MU_STATUS_RESOURCE:
+        return "resource";
     default:
         return "unknown";
 	}

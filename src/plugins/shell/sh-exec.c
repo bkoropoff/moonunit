@@ -87,6 +87,15 @@ Mu_Sh_GetToken(char** ptokens)
     }
 }
 
+static char*
+Mu_Sh_NonemptyString(char* str)
+{
+    if (!str || !str[0])
+        return NULL;
+    else
+        return str;
+}
+
 static MuTestStatus
 Mu_Sh_StringToTestStatus(const char* str)
 {
@@ -149,7 +158,7 @@ Mu_Sh_ProcessResult(MuTestResult* result, char** ptokens)
 {
     char* status = Mu_Sh_GetToken(ptokens);
     char* stage = Mu_Sh_GetToken(ptokens);
-    char* file = Mu_Sh_GetToken(ptokens);
+    char* file = Mu_Sh_NonemptyString(Mu_Sh_GetToken(ptokens));
     char* line = Mu_Sh_GetToken(ptokens);
     char* message = Mu_Sh_GetToken(ptokens);
 
@@ -167,7 +176,7 @@ Mu_Sh_ProcessEvent(MuLogCallback lcb, void* data, char** ptokens)
 
     char* level = Mu_Sh_GetToken(ptokens);
     char* stage = Mu_Sh_GetToken(ptokens);
-    char* file = Mu_Sh_GetToken(ptokens);
+    char* file = Mu_Sh_NonemptyString(Mu_Sh_GetToken(ptokens));
     char* line = Mu_Sh_GetToken(ptokens);
     char* message = Mu_Sh_GetToken(ptokens);
 

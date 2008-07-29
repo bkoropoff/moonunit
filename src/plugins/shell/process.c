@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <config.h>
+
 #include <stdarg.h>
 #include <string.h>
 #include <sys/time.h>
@@ -88,7 +90,11 @@ int Process_Open(Process* handle, char * const argv[],
          * so that our children will be terminated when
          * we are.
          */
+#if defined(HAVE_SETPGID)
+        setpgid(0, token->child);
+#elif defined(HAVE_SETPGRP)
         setpgrp();
+#endif
 
         for (i = 0; i < num_channels; i++)
         {

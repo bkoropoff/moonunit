@@ -632,6 +632,7 @@ process:
                 *iterations = msg->count;
                 uipc_msg_free_payload(msg, &iterations_info);
                 uipc_msg_free(message);
+                message = NULL;
                 break;
             }
             }

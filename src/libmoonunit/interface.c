@@ -301,35 +301,28 @@ Mu_Interface_GetResource(const char* file, unsigned int line, const char* key)
     MuInterfaceToken* token = Mu_Interface_CurrentToken();
     MuTest* test = token->test;
     const char* value;
-    char* library, *dot;
     MuTestResult summary;
 
-    value = Mu_Resource_Get(Mu_Test_Suite(test), key);
+    char* search[] =
+    {
+        Mu_Resource_SectionNameForSuite(Mu_Test_Suite(test)),
+        Mu_Resource_SectionNameForLibrary(Mu_Library_Name(test->library)),
+        strdup("global"),
+        NULL
+    };
 
-    if (value)
-        return value;
+    value = Mu_Resource_Search(search, key);
 
-    library = strdup(Mu_Library_Name(test->library));
-
-    dot = strrchr(library, '.');
-
-    if (dot)
-        *dot = '\0';
-
-    value = Mu_Resource_Get(library, key);
-    free(library);
-
-    if (value)
-        return value;
-
-    value = Mu_Resource_Get("global", key);
+    free(search[0]);
+    free(search[1]);
+    free(search[2]);
 
     if (value)
         return value;
 
     /* Resource was not available, so fail the test */
     summary.status = MU_STATUS_RESOURCE;
-    summary.reason = format("Could not find resource: %s", key);
+    summary.reason = format("Could not find resource '%s'", key);
     summary.line = line;
     summary.file = file;
     summary.backtrace = NULL;

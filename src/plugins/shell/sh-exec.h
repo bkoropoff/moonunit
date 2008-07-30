@@ -33,6 +33,7 @@
 #include <moonunit/loader.h>
 
 #include "process.h"
+#include "sh-types.h"
 
 #define MU_SH_CMD_IN 3
 #define MU_SH_CMD_OUT 4
@@ -42,6 +43,6 @@ extern int mu_sh_timeout;
 
 void Mu_Sh_Exec(Process* handle, const char* script, const char* command);
 struct MuTestResult*
-Mu_Sh_Dispatch (const char* script, const char* suite, const char* name, const char* function, MuLogCallback lcb, void* data);
+Mu_Sh_Dispatch (ShTest* test, MuLogCallback lcb, void* data);
 
 #endif

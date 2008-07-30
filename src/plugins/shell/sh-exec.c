@@ -29,6 +29,8 @@
 
 #include <string.h>
 
+#include <moonunit/resource.h>
+
 char* mu_sh_helper_path = LIBEXEC_PATH "/mu.sh";
 int mu_sh_timeout = 10000;
 
@@ -122,6 +124,8 @@ Mu_Sh_StringToTestStatus(const char* str)
         return MU_STATUS_EXCEPTION;
     else if (!strcmp(str, "skipped"))
         return MU_STATUS_SKIPPED;
+    else if (!strcmp(str, "resource"))
+        return MU_STATUS_RESOURCE;
     else
         return MU_STATUS_FAILURE;
 }
@@ -162,7 +166,7 @@ Mu_Sh_StringToLogLevel(const char* str)
 
 
 
-void
+static void
 Mu_Sh_ProcessResult(MuTestResult* result, char** ptokens)
 {
     char* status = Mu_Sh_GetToken(ptokens);
@@ -178,7 +182,7 @@ Mu_Sh_ProcessResult(MuTestResult* result, char** ptokens)
     result->line = atoi(line);
 }
 
-void
+static void
 Mu_Sh_ProcessEvent(MuLogCallback lcb, void* data, char** ptokens)
 {
     MuLogEvent event;
@@ -198,8 +202,79 @@ Mu_Sh_ProcessEvent(MuLogCallback lcb, void* data, char** ptokens)
     lcb(&event, data);
 }
 
-int
-Mu_Sh_ProcessCommand(MuTestResult* result, ProcessTimeout* timeout, char* cmd, MuLogCallback lcb, void* data)
+static int
+Mu_Sh_ProcessResourceFromSection(Process* process, MuTestResult* result, char** ptokens)
+{
+    char* section = Mu_Sh_GetToken(ptokens);
+    char* key = Mu_Sh_GetToken(ptokens);
+    char* stage = Mu_Sh_GetToken(ptokens);
+    char* file = Mu_Sh_NonemptyString(Mu_Sh_GetToken(ptokens));
+    char* line = Mu_Sh_GetToken(ptokens);
+
+    const char* value = Mu_Resource_Get(section, key);
+
+    if (value)
+    {
+        Process_Channel_Write(process, MU_SH_CMD_IN, value, strlen(value));
+        Process_Channel_Write(process, MU_SH_CMD_IN, "\n", 1);
+        return 0;
+    }
+    else
+    {
+        result->status = MU_STATUS_RESOURCE;
+        result->stage = Mu_Sh_StringToTestStage(stage);
+        result->file = Mu_Sh_SafeStrdup(file);
+        result->line = atoi(line);
+        result->reason = format("Could not find resource '%s' in section '%s'",
+                                key, section);
+        return 1;
+    }
+    
+}
+
+static int
+Mu_Sh_ProcessResource(Process* process, MuTestResult* result, ShTest* test, char** ptokens)
+{
+    char* key = Mu_Sh_GetToken(ptokens);
+    char* stage = Mu_Sh_GetToken(ptokens);
+    char* file = Mu_Sh_NonemptyString(Mu_Sh_GetToken(ptokens));
+    char* line = Mu_Sh_GetToken(ptokens);
+
+    char* const search_sections[] =
+    {
+        Mu_Resource_SectionNameForSuite(test->suite),
+        Mu_Resource_SectionNameForLibrary(((ShLibrary*) test->base.library)->path),
+        strdup("global"),
+        NULL
+    };
+
+    const char* value = Mu_Resource_Search(search_sections, key);
+
+    free(search_sections[0]);
+    free(search_sections[1]);
+    free(search_sections[2]);
+
+    if (value)
+    {
+        Process_Channel_Write(process, MU_SH_CMD_IN, value, strlen(value));
+        Process_Channel_Write(process, MU_SH_CMD_IN, "\n", 1);
+        return 0;
+    }
+    else
+    {
+        result->status = MU_STATUS_RESOURCE;
+        result->stage = Mu_Sh_StringToTestStage(stage);
+        result->file = Mu_Sh_SafeStrdup(file);
+        result->line = atoi(line);
+        result->reason = format("Could not find resource '%s'", key);
+        return 1;
+    }
+    
+}
+
+static int
+Mu_Sh_ProcessCommand(Process* process, MuTestResult* result, ProcessTimeout* timeout, 
+                     char* cmd, ShTest* test, MuLogCallback lcb, void* data)
 {
     char* tokens = cmd;
     char* operation = Mu_Sh_GetToken(&tokens);
@@ -231,6 +306,14 @@ Mu_Sh_ProcessCommand(MuTestResult* result, ProcessTimeout* timeout, char* cmd, M
         }
         return 0;
     }
+    else if (!strcmp(operation, "RESOURCE_SECTION"))
+    {
+        return Mu_Sh_ProcessResourceFromSection(process, result, &tokens);
+    }
+    else if (!strcmp(operation, "RESOURCE"))
+    {
+        return Mu_Sh_ProcessResource(process, result, test, &tokens);
+    }
     else
     {
         return 0;
@@ -238,7 +321,7 @@ Mu_Sh_ProcessCommand(MuTestResult* result, ProcessTimeout* timeout, char* cmd, M
 }
 
 struct MuTestResult*
-Mu_Sh_Dispatch (const char* script, const char* suite, const char* name, const char* function, MuLogCallback lcb, void* data)
+Mu_Sh_Dispatch (ShTest* test, MuLogCallback lcb, void* data)
 {
     Process handle;
     ProcessTimeout timeout;
@@ -248,23 +331,23 @@ Mu_Sh_Dispatch (const char* script, const char* suite, const char* name, const c
 
     Process_GetTime(&timeout, mu_sh_timeout);
 
-    command = format("mu_run_test '%s' '%s' '%s'", suite, name, function);
+    command = format("mu_run_test '%s' '%s' '%s'", test->suite, test->name, test->function);
 
-    Mu_Sh_Exec(&handle, script, command);
+    Mu_Sh_Exec(&handle, ((ShLibrary*)test->base.library)->path, command);
 
     free(command);
 
-    while ((res = Process_Select(&handle, &timeout, 1, 4)) > 0)
+    while ((res = Process_Select(&handle, &timeout, 1, MU_SH_CMD_OUT)) > 0)
     {
         if (Process_Channel_Ready(&handle, 4))
         {
             char* line;
             unsigned int len;
 
-            if ((len = Process_Channel_ReadLine(&handle, 4, &line)))
+            if ((len = Process_Channel_ReadLine(&handle, MU_SH_CMD_OUT, &line)))
             {
                 line[len - 1] = '\0';
-                if (Mu_Sh_ProcessCommand(result, &timeout, line, lcb, data))
+                if (Mu_Sh_ProcessCommand(&handle, result, &timeout, line, test, lcb, data))
                 {
                     free(line);
                     break;

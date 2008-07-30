@@ -35,21 +35,6 @@
 
 #include "sh-exec.h"
 
-typedef struct ShTest
-{
-    MuTest base;
-    const char* function;
-    const char* suite;
-    const char* name;
-} ShTest;
-
-typedef struct ShLibrary
-{
-    MuLibrary base;
-    const char* path;
-    ShTest** tests;
-} ShLibrary;
-
 // Determines if a library can be opened by this loader
 static bool
 sh_can_open (struct MuLoader* self, const char* path)
@@ -175,13 +160,8 @@ static struct MuTestResult*
 sh_dispatch (struct MuLoader* self, struct MuTest* handle, MuLogCallback lcb, void* data)
 {
     ShTest* test = (ShTest*) handle;
-    ShLibrary* library = (ShLibrary*) handle->library;
     
-    return Mu_Sh_Dispatch (library->path, 
-                           test->suite,
-                           test->name,
-                           test->function,
-                           lcb, data);
+    return Mu_Sh_Dispatch (test, lcb, data);
 }
 
 static void

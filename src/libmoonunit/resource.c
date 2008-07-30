@@ -82,6 +82,21 @@ Mu_Resource_Get(const char* section_name, const char* key)
     return value;
 }
 
+const char*
+Mu_Resource_Search(char* const section_names[], const char* key)
+{
+    int i;
+
+    for (i = 0; section_names[i]; i++)
+    {
+        const char* value = Mu_Resource_Get(section_names[i], key);
+        if (value)
+            return value;
+    }
+
+    return NULL;
+}
+
 void
 Mu_Resource_Set(const char* section_name, const char* key, const char* value)
 {
@@ -90,4 +105,27 @@ Mu_Resource_Set(const char* section_name, const char* key, const char* value)
     section = get_section(section_name);
 
     hashtable_set(section, strdup(key), strdup(value));
+}
+
+char*
+Mu_Resource_SectionNameForSuite(const char* suite)
+{
+    return format("suite:%s", suite);
+}
+
+char*
+Mu_Resource_SectionNameForLibrary(const char* path)
+{
+    char* base = strdup(basename_pure(path));
+    char* dot = strrchr(base, '.');
+    char* result = NULL;
+
+    if (dot)
+        *dot = '\0';
+    
+    result = format("library:%s", base);
+
+    free(base);
+
+    return result;
 }

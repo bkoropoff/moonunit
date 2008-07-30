@@ -104,6 +104,13 @@ mu_cmd()
     mu_format "$@" >& ${MU_CMD_OUT}
 }
 
+mu_rcv()
+{
+    local REPLY
+    read -r -u ${MU_CMD_IN}
+    echo "${REPLY}"
+}
+
 # Halts process, awaiting termination from harness
 mu_halt()
 {
@@ -184,4 +191,19 @@ mu_debug()
 mu_trace()
 {
     mu_cmd LOG trace "$MU_STAGE" "`mu_caller_file`" "`mu_caller_line`" "$1"
+}
+
+mu_resource_from_section()
+{
+    local section="$1"
+    local key="$2"   
+    mu_cmd RESOURCE_SECTION "${section}" "${key}" "${MU_STAGE}" "`mu_caller_file`" "`mu_caller_line`"
+    mu_rcv
+}
+
+mu_resource()
+{
+    local key="$1"
+    mu_cmd RESOURCE "${key}" "${MU_STAGE}" "`mu_caller_file`" "`mu_caller_line`"
+    mu_rcv
 }

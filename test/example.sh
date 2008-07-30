@@ -56,3 +56,25 @@ test_Shell_timeout()
     # Sleep for 1 second
     sleep 1
 }
+
+test_Shell_resource_section()
+{
+    mu_assert [ "$(mu_resource_from_section "global" "greeting")" = "Hello, world!" ]
+}
+
+test_Shell_resource_section_bogus()
+{
+    mu_expect resource
+    mu_resource_from_section "abcd" "xyz"
+}
+
+test_Shell_resource()
+{
+    mu_assert [ "$(mu_resource "resource string")" = "42" ]
+}
+
+test_Shell_resource_bogus()
+{
+    mu_expect resource
+    mu_resource "bad resource"
+}

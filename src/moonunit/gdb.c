@@ -89,6 +89,9 @@ void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoi
 
     if (!(child = fork()))
     {
+        pid_t self = getpid();
+        while (getpgid(self) != self);
+
         if (execlp("gdb", "gdb",
                    (const char*) "-q",
                    (const char*) "-x",

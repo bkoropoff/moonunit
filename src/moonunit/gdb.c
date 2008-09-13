@@ -27,14 +27,48 @@
 
 #include "gdb.h"
 
+#include <config.h>
 #include <moonunit/private/util.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <signal.h>
+#ifdef HAVE_SYS_IOCTL_H
+#    include <sys/ioctl.h>
+#endif
 #include <errno.h>
 #include <string.h>
+
+static int
+my_tcsetpgrp(int fd, pid_t pid)
+{
+#if defined(HAVE_TCSETPGRP)
+    return tcsetpgrp(fd, pid);
+#elif defined(TIOCSPGRP)
+    return ioctl(fd, TIOCSPGRP, &pid);
+#else
+#    error No method to set foreground process group available
+#endif
+}
+
+
+static pid_t
+my_tcgetpgrp(int fd)
+{
+#if defined(HAVE_TCGETPGRP)
+    return tcgetpgrp(fd);
+#elif defined(TIOCGPGRP)
+    pid_t pgrp;
+    ioctrl(fd, TIOCGPGRP, &pgrp);
+    return pgrp;
+#else
+#   error No method to get foreground process group available
+#endif
+}
 
 void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoint)
 {
@@ -55,7 +89,6 @@ void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoi
 
     if (!(child = fork()))
     {
-        /* Child */
         if (execlp("gdb", "gdb",
                    (const char*) "-q",
                    (const char*) "-x",
@@ -65,15 +98,31 @@ void gdb_attach_interactive(const char* program, pid_t pid, const char* breakpoi
                    (const char*) NULL))
         {
             fprintf(stderr, "Could not start gdb: %s\n", strerror(errno));
+            _exit(1);
         }
-        exit(1);
     }
     else
     {
         int status;
+        int tty = open("/dev/tty", O_RDWR | O_NOCTTY);
+        pid_t oldpgrp = my_tcgetpgrp(tty);
 
+        /* Put child into it's own process group */
+        setpgid(child, 0);
+        /* Make child process group the foregroup group */
+        my_tcsetpgrp(tty, child);
+
+        /* Wait for gdb to finish */
         if (waitpid(child, &status, 0) != child || WEXITSTATUS(status))
             fprintf(stderr, "WARNING: gdb session terminated unexpectedly");
+
+        /* Block SIGTTOU signal which can occur when resetting foreground group */
+        signal(SIGTTOU, SIG_IGN);
+        /* Restore old foregroup process group */
+        my_tcsetpgrp(tty, oldpgrp);
+        /* Reset SIGTTOU back to default */
+        signal(SIGTTOU, SIG_DFL);
+        close(tty);
     }
 
     unlink(template);

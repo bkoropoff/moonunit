@@ -127,7 +127,7 @@ AC_CHECK_TYPE(suseconds_t, [USEC_T=suseconds_t], [USEC_T=long int],
 			   [#include <sys/time.h>])
 AC_DEFINE_UNQUOTED([USEC_T], [$USEC_T], [Type of tv_usec field of struct timeval])
 
-AC_CHECK_HEADERS([signal.h select.h sys/select.h execinfo.h])
+AC_CHECK_HEADERS([signal.h select.h sys/select.h execinfo.h sys/ioctl.h])
 
 AC_CHECK_LIB(socket, send, [LIB_socket="-lsocket"])
 AC_CHECK_LIB(dl, dlopen, [LIB_dl="-ldl"])
@@ -137,7 +137,7 @@ AC_SUBST(LIB_socket)
 AC_SUBST(LIB_dl)
 AC_SUBST(LIB_pthread)
 
-AC_CHECK_FUNCS([strsignal backtrace backtrace_symbols setpgid setpgrp sigtimedwait])
+AC_CHECK_FUNCS([strsignal backtrace backtrace_symbols setpgid setpgrp tcgetpgrp tcsetpgrp sigtimedwait])
 
 
 AC_MSG_CHECKING([symbol layout order])

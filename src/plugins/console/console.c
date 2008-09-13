@@ -49,22 +49,66 @@ typedef struct
     bool details;
     MuLogLevel loglevel;
     char* log;
+    unsigned int num_tests;
+    unsigned int num_suites;
+    unsigned int num_libraries;
+    unsigned int num_pass;
+    unsigned int num_fail;
+    unsigned int num_xpass;
+    unsigned int num_xfail;
+    unsigned int num_skip;
 } ConsoleLogger;
 
 static void
 enter(MuLogger* _self)
 {
+    ConsoleLogger* self = (ConsoleLogger*) _self;
+    
+    self->num_tests = 0;
+    self->num_suites = 0;
+    self->num_libraries = 0;
+    self->num_pass = 0;
+    self->num_fail = 0;
+    self->num_xpass = 0;
+    self->num_xfail = 0;
+    self->num_skip = 0;
 }
 
 static void
 leave(MuLogger* _self)
 {
+    ConsoleLogger* self = (ConsoleLogger*) _self;
+
+    if (self->ansi)
+    {
+        fprintf(self->out, "Processed \e[1m%u\e[0m test(s) in \e[1m%u\e[0m suite(s) in \e[1m%u\e[0m librarie(s):\n",
+                self->num_tests, self->num_suites, self->num_libraries);
+        fprintf(self->out, "  \e[1m%4u\e[0m \e[32m\e[1mpassed\e[22m\e[0m  (including %u that failed as expected)\n",
+                self->num_pass + self->num_xfail, self->num_xfail);
+        fprintf(self->out, "  \e[1m%4u\e[0m \e[31m\e[1mfailed\e[22m\e[0m  (including %u that passed unexpectedly)\n",
+                self->num_fail + self->num_xpass, self->num_xpass);
+        fprintf(self->out, "  \e[1m%4u\e[0m \e[33m\e[1mskipped\e[22m\e[0m\n\n",
+                self->num_skip);
+    }
+    else
+    {
+        fprintf(self->out, "Processed %u test(s) in %u suite(s) in %u librarie(s):\n",
+                self->num_tests, self->num_suites, self->num_libraries);
+        fprintf(self->out, "  %u passed  (including %u that failed as expected)\n",
+                self->num_pass + self->num_xfail, self->num_xfail);
+        fprintf(self->out, "  %u failed  (including %u that passed unexpectedly)\n",
+                self->num_fail + self->num_xpass, self->num_xpass);
+        fprintf(self->out, "  %u skipped\n\n",
+                self->num_skip);
+    }
 }
 
 static void
 library_enter(MuLogger* _self, const char* name)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
+
+    self->num_libraries++;
 
 	fprintf(self->out, "Library: %s\n", name);
 }
@@ -82,6 +126,8 @@ suite_enter(MuLogger* _self, const char* name)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
+    self->num_suites++;
+
 	fprintf(self->out, "  Suite: %s\n", name);
 }
 
@@ -98,6 +144,7 @@ test_enter(MuLogger* _self, MuTest* test)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
+    self->num_tests++;
     self->log = strdup("");
 }
 
@@ -196,6 +243,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         {
         case MU_STATUS_SUCCESS:
             result_str = "PASS ";
+            self->num_pass++;
             break;
 		case MU_STATUS_FAILURE:
 		case MU_STATUS_ASSERTION:
@@ -204,10 +252,12 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         case MU_STATUS_EXCEPTION:
         case MU_STATUS_RESOURCE:
             result_str = "XFAIL";
+            self->num_xfail++;
             break;
         case MU_STATUS_SKIPPED:
             result_str = "SKIP ";
             result_code = 33;
+            self->num_skip++;
             break;
         }
     }
@@ -219,6 +269,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         {
         case MU_STATUS_SUCCESS:
             result_str = "XPASS";
+            self->num_xpass++;
             break;
 		case MU_STATUS_FAILURE:
 		case MU_STATUS_ASSERTION:
@@ -227,10 +278,12 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         case MU_STATUS_EXCEPTION:
         case MU_STATUS_RESOURCE:
             result_str = "FAIL ";
+            self->num_fail++;
             break;
         case MU_STATUS_SKIPPED:
             result_str = "SKIP ";
             result_code = 33;
+            self->num_skip++;
             break;
         }
     }

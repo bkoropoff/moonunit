@@ -107,7 +107,7 @@ mu_cmd()
 mu_rcv()
 {
     local REPLY
-    read -r -u ${MU_CMD_IN}
+    head -n1 <& ${MU_CMD_IN}
     echo "${REPLY}"
 }
 

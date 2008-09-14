@@ -43,6 +43,8 @@ struct MuTest** Mu_Library_GetTests(MuLibrary* handle);
 void Mu_Library_FreeTests(MuLibrary* handle, struct MuTest**);
 void Mu_Library_Close(MuLibrary* handle);
 const char* Mu_Library_Name(MuLibrary* handle);
+void Mu_Library_Construct(MuLibrary* handle);
+void Mu_Library_Destruct(MuLibrary* handle);
 
 C_END_DECLS
 

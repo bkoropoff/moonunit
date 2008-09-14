@@ -924,7 +924,25 @@ cloader_debug(MuLoader* _self, MuTest* test, MuTestStage stage, void** breakpoin
 
     return result;
 }
-  
+
+void
+cloader_construct(MuLoader* _self, MuLibrary* _library)
+{
+    CLibrary* library = (CLibrary*) _library;
+
+    if (library->library_construct)
+        library->library_construct->run();
+}
+
+void
+cloader_destruct(MuLoader* _self, MuLibrary* _library)
+{
+    CLibrary* library = (CLibrary*) _library;
+
+    if (library->library_destruct)
+        library->library_destruct->run();
+}
+
 static void
 timeout_set(MuLoader* self, int timeout)
 {

@@ -91,7 +91,14 @@ add(MuEntryInfo* entry, CLibrary* library, MuError **_err)
     case MU_ENTRY_LIBRARY_TEARDOWN:
 		library->library_teardown = entry;
         break;
+    case MU_ENTRY_LIBRARY_CONSTRUCT:
+        library->library_construct = entry;
+        break;
+    case MU_ENTRY_LIBRARY_DESTRUCT:
+        library->library_destruct = entry;
+        break;
     }
+    
 
     return true;
 }
@@ -164,6 +171,8 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
     library->fixture_teardowns = NULL;
 	library->library_setup = NULL;
     library->library_teardown = NULL;
+    library->library_construct = NULL;
+    library->library_destruct = NULL;
 	library->path = strdup(path);
 	library->dlhandle = mu_dlopen(library->path, RTLD_LAZY);
 

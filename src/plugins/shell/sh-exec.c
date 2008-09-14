@@ -377,3 +377,47 @@ Mu_Sh_Dispatch (ShTest* test, MuLogCallback lcb, void* data)
 
     return result;
 }
+
+void
+Mu_Sh_Construct (ShLibrary* library)
+{
+    Process handle;
+    ProcessTimeout timeout;
+    MuTestResult* result = calloc(1, sizeof(*result));
+    int res;
+
+    Process_GetTime(&timeout, mu_sh_timeout);
+
+    Mu_Sh_Exec(&handle, library->path, "mu_run_if_exists construct");
+    
+    while ((res = Process_Select(&handle, &timeout, 1, MU_SH_CMD_OUT)) > 0)
+    {
+        int status;
+        if (Process_Finished(&handle, &status))
+            break;
+    }
+
+    Process_Close(&handle);
+}    
+
+void
+Mu_Sh_Destruct (ShLibrary* library)
+{
+    Process handle;
+    ProcessTimeout timeout;
+    MuTestResult* result = calloc(1, sizeof(*result));
+    int res;
+
+    Process_GetTime(&timeout, mu_sh_timeout);
+
+    Mu_Sh_Exec(&handle, library->path, "mu_run_if_exists destruct");
+    
+    while ((res = Process_Select(&handle, &timeout, 1, MU_SH_CMD_OUT)) > 0)
+    {
+        int status;
+        if (Process_Finished(&handle, &status))
+            break;
+    }
+
+    Process_Close(&handle);
+}    

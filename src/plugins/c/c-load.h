@@ -43,6 +43,8 @@ typedef struct CLibrary
 	const char* path;
 	void* dlhandle;
 	CTest** tests;
+    MuEntryInfo* library_construct;
+    MuEntryInfo* library_destruct;
 	MuEntryInfo* library_setup;
     MuEntryInfo* library_teardown;
     MuEntryInfo** fixture_setups;

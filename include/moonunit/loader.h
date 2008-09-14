@@ -69,6 +69,10 @@ typedef struct MuLoader
     // a separate process.  The test can then be traced by
     // a debugger.
     pid_t (*debug)(struct MuLoader*, struct MuTest*, MuTestStage, void**);
+    /* Runs the constructor for a library, which does any needed *one-time* setup */
+    void (*construct) (struct MuLoader*, struct MuLibrary* handle);
+    /* Runs the destructor for a library, which does any needed *one-time* teardown */
+    void (*destruct) (struct MuLoader*, struct MuLibrary* handle);
 } MuLoader;
 
 bool Mu_Loader_CanOpen(MuLoader* loader, const char* path);

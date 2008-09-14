@@ -51,3 +51,15 @@ Mu_Library_Name(MuLibrary* handle)
 {
     return handle->loader->library_name(handle->loader, handle);
 }
+
+void
+Mu_Library_Construct(MuLibrary* handle)
+{
+    handle->loader->construct(handle->loader, handle);
+}
+
+void
+Mu_Library_Destruct(MuLibrary* handle)
+{
+    handle->loader->destruct(handle->loader, handle);
+}

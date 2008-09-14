@@ -130,6 +130,22 @@ sh_close (struct MuLoader* self, struct MuLibrary* handle)
     free(library);
 }
 
+static void
+sh_construct(struct MuLoader* self, struct MuLibrary* handle)
+{
+    ShLibrary* library = (ShLibrary*) handle;
+
+    Mu_Sh_Construct(library);
+}
+
+static void
+sh_destruct(struct MuLoader* self, struct MuLibrary* handle)
+{
+    ShLibrary* library = (ShLibrary*) handle;
+
+    Mu_Sh_Destruct(library);
+}
+
 static const char*
 sh_library_name (struct MuLoader* self, struct MuLibrary* handle)
 {
@@ -234,6 +250,8 @@ static MuLoader shloader =
     .dispatch = sh_dispatch,
     .free_result = sh_free_result,
     .debug = NULL,
+    .construct = sh_construct,
+    .destruct = sh_destruct,
     .options = cloader_options
 };
 

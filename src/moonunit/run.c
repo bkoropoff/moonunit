@@ -115,6 +115,8 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         MU_RERAISE_GOTO(error, _err, err);
     }
     
+    Mu_Library_Construct(library);
+
     Mu_Logger_LibraryEnter(logger, basename_pure(path));
     
     tests = Mu_Library_GetTests(library);
@@ -175,7 +177,9 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     }
     
     Mu_Logger_LibraryLeave(logger);
-    
+
+    Mu_Library_Destruct(library);    
+
 error:
     if (tests)
         Mu_Library_FreeTests(library, tests);

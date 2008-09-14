@@ -1,3 +1,15 @@
+TMPFILE="/tmp/construct_foobar"
+
+construct()
+{
+    touch "${TMPFILE}"
+}
+
+destruct()
+{
+    rm -f "${TMPFILE}"
+}
+
 fixture_Shell_setup()
 {
     HELLO_WORLD="hello world"
@@ -77,4 +89,9 @@ test_Shell_resource_bogus()
 {
     mu_expect resource
     mu_resource "bad resource"
+}
+
+test_Shell_construct()
+{
+    mu_assert [ -f "${TMPFILE}" ]
 }

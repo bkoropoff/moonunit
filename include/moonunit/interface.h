@@ -273,6 +273,90 @@ C_BEGIN_DECLS
         FIELD(run, __mu_f_fixture_teardown_##suite_name)                \
     };                                                                  \
     void __mu_f_fixture_teardown_##suite_name(void)                     \
+
+/**
+ * @brief Define library construct routine
+ * 
+ * Defines an (optional) construct routine which will be
+ * executed exactly once by the test harness when this
+ * library is loaded.  It should be followed by a
+ * curly brace-enclosed code block.  Library constructors
+ * are designed to allow initialization of state and resources
+ * once as opposed to each time a test within the library is
+ * run.  This may be useful for certain kinds of external state,
+ * e.g. setting up files on the filesystem or starting up
+ * a server application which will be used by unit tests.
+ *
+ * @warning A routine defined in this manner will
+ * <i>not</i> be executed in a separate process by
+ * the harness.  Care must be taken to avoid crashing
+ * or otherwise interfering with the operation of the
+ * harness.
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_LIBRARY_CONSTRUCT
+ * {
+ *     Organize_Filesystem();
+ * }
+ * @endcode
+ * @hideinitializer
+ */
+#define MU_LIBRARY_CONSTRUCT                                            \
+    void __mu_f_library_construct();                                    \
+    C_DECL MuEntryInfo __mu_e_library_construct;                        \
+    MuEntryInfo __mu_e_library_construct =                              \
+    {                                                                   \
+        FIELD(type, MU_ENTRY_LIBRARY_CONSTRUCT),                        \
+        FIELD(name, NULL),                                              \
+        FIELD(container, NULL),                                         \
+        FIELD(file, __FILE__),                                          \
+        FIELD(line, __LINE__),                                          \
+        FIELD(run, __mu_f_library_construct)                            \
+    };                                                                  \
+    void __mu_f_library_construct()
+
+/**
+ * @brief Define library destruct routine
+ * 
+ * Defines an (optional) destruct routine which will be
+ * executed exactly once by the test harness when this
+ * library is unloaded.  It should be followed by a
+ * curly brace-enclosed code block.  Library destructors
+ * are designed to allow cleanup of state and resources
+ * once as opposed to each time a test within the library is
+ * run.  This may be useful for certain kinds of external state,
+ * e.g. deleting temporary files on the filesystem or shutting down
+ * a server application which was used by unit tests.
+ *
+ * @warning A routine defined in this manner will
+ * <i>not</i> be executed in a separate process by
+ * the harness.  Care must be taken to avoid crashing
+ * or otherwise interfering with the operation of the
+ * harness.
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_LIBRARY_DESTRUCT
+ * {
+ *     Cleanup_Filesystem();
+ * }
+ * @endcode
+ * @hideinitializer
+ */
+#define MU_LIBRARY_DESTRUCT                                            \
+    void __mu_f_library_destruct();                                    \
+    C_DECL MuEntryInfo __mu_e_library_destruct;                        \
+    MuEntryInfo __mu_e_library_destruct =                              \
+    {                                                                  \
+        FIELD(type, MU_ENTRY_LIBRARY_DESTRUCT),                        \
+        FIELD(name, NULL),                                             \
+        FIELD(container, NULL),                                        \
+        FIELD(file, __FILE__),                                         \
+        FIELD(line, __LINE__),                                         \
+        FIELD(run, __mu_f_library_destruct)                            \
+    };                                                                 \
+    void __mu_f_library_destruct()
 /*@}*/
 
 /**
@@ -742,6 +826,8 @@ typedef enum MuEntryType
     MU_ENTRY_LIBRARY_TEARDOWN,
     MU_ENTRY_FIXTURE_SETUP,
     MU_ENTRY_FIXTURE_TEARDOWN,
+    MU_ENTRY_LIBRARY_CONSTRUCT,
+    MU_ENTRY_LIBRARY_DESTRUCT
 } MuEntryType;
 
 typedef struct MuEntryInfo

@@ -40,6 +40,13 @@
 #include <pthread.h>
 #include <errno.h>
 
+static int constructed = 0;
+
+MU_LIBRARY_CONSTRUCT
+{
+    constructed = 42;
+}
+
 static int x = 0;
 static int y = 0;
 
@@ -53,6 +60,11 @@ MU_FIXTURE_SETUP(Arithmetic)
 {
 	x = 2;
 	y = 3;
+}
+
+MU_TEST(Arithmetic, equal)
+{
+    MU_ASSERT_EQUAL(MU_TYPE_INTEGER, constructed, 42);
 }
 
 MU_TEST(Arithmetic, add)

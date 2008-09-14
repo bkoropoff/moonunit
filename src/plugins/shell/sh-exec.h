@@ -44,5 +44,6 @@ extern int mu_sh_timeout;
 void Mu_Sh_Exec(Process* handle, const char* script, const char* command);
 struct MuTestResult*
 Mu_Sh_Dispatch (ShTest* test, MuLogCallback lcb, void* data);
-
+void Mu_Sh_Construct (ShLibrary* library);
+void Mu_Sh_Destruct (ShLibrary* library);
 #endif

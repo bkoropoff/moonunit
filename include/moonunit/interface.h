@@ -105,29 +105,21 @@ C_BEGIN_DECLS
  * @brief Define library setup routine
  * 
  * Defines an (optional) setup routine which will be
- * executed exactly once by the test harness when
- * this library is loaded.  It should be followed
- * by a curly brace-enclosed code block which performs
- * any necessary global initialization.  Only one
- * instance of this macro should appear in a given
- * library.
- *
- * @warning A routine defined in this manner will
- * <i>not</i> be executed in a separate process by
- * the default harness plugin.  Care must be taken
- * to avoid crashing or otherwise interfering with
- * the operation of the harness.
+ * executed before each test in the library. It should
+ * be followed by a curly brace-enclosed code block.
+ * Only one instance of this macro should appear in a
+ * given library.
  *
  * <b>Example:</b>
  * @code
- * MU_LIBRARY_SETUP
+ * MU_LIBRARY_SETUP()
  * {
  *     Library_Init();
  * }
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_SETUP                                                \
+#define MU_LIBRARY_SETUP()                                              \
     void __mu_f_library_setup();                                        \
     C_DECL MuEntryInfo __mu_e_library_setup;                            \
     MuEntryInfo __mu_e_library_setup =                                  \
@@ -145,29 +137,21 @@ C_BEGIN_DECLS
  * @brief Define library teardown routine
  *
  * Defines an (optional) teardown routine which will be
- * executed exactly once by the test harness when
- * this library is unloaded.  It should be followed
- * by a curly brace-enclosed code block which performs
- * any necessary cleanup of allocated memory or other
- * resources.  Only one instance of this macro should
- * appear in a given library.
- *
- * @warning A routine defined in this manner will
- * <i>not</i> be executed in a separate process by
- * the default harness plugin.  Care must be taken
- * to avoid crashing or otherwise interfering with
- * the operation of the harness.
+ * executed once after each test in the library. It should
+ * be followed by a curly brace-enclosed code block.
+ * Only one instance of this macro should appear in a given
+ * library.
  *
  * <b>Example:</b>
  * @code
- * MU_LIBRARY_TEARDOWN
+ * MU_LIBRARY_TEARDOWN()
  * {
  *     Library_Free_Resources();
  * }
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_TEARDOWN                                             \
+#define MU_LIBRARY_TEARDOWN()                                           \
     void __mu_f_library_teardown();                                     \
     C_DECL MuEntryInfo __mu_e_library_teardown;                         \
     MuEntryInfo __mu_e_library_teardown =                               \
@@ -295,14 +279,14 @@ C_BEGIN_DECLS
  *
  * <b>Example:</b>
  * @code
- * MU_LIBRARY_CONSTRUCT
+ * MU_LIBRARY_CONSTRUCT()
  * {
  *     Organize_Filesystem();
  * }
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_CONSTRUCT                                            \
+#define MU_LIBRARY_CONSTRUCT()                                          \
     void __mu_f_library_construct();                                    \
     C_DECL MuEntryInfo __mu_e_library_construct;                        \
     MuEntryInfo __mu_e_library_construct =                              \
@@ -337,14 +321,14 @@ C_BEGIN_DECLS
  *
  * <b>Example:</b>
  * @code
- * MU_LIBRARY_DESTRUCT
+ * MU_LIBRARY_DESTRUCT()
  * {
  *     Cleanup_Filesystem();
  * }
  * @endcode
  * @hideinitializer
  */
-#define MU_LIBRARY_DESTRUCT                                            \
+#define MU_LIBRARY_DESTRUCT()                                          \
     void __mu_f_library_destruct();                                    \
     C_DECL MuEntryInfo __mu_e_library_destruct;                        \
     MuEntryInfo __mu_e_library_destruct =                              \
@@ -482,7 +466,7 @@ C_BEGIN_DECLS
  *
  * @hideinitializer
  */
-#define MU_ASSERT_NOT_REACHED \
+#define MU_ASSERT_NOT_REACHED()                                     \
     (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_ASSERTION,   \
                          "Statement reached unexpectedly"))
 
@@ -498,7 +482,7 @@ C_BEGIN_DECLS
  * @endcode
  * @hideinitializer
  */
-#define MU_SUCCESS                              \
+#define MU_SUCCESS()                                                \
     (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_SUCCESS, NULL))
 
 /**

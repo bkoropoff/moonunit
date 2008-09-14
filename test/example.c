@@ -42,7 +42,7 @@
 
 static int constructed = 0;
 
-MU_LIBRARY_CONSTRUCT
+MU_LIBRARY_CONSTRUCT()
 {
     constructed = 42;
 }
@@ -179,7 +179,7 @@ MU_TEST(Crash, not_reached)
 {
     MU_EXPECT(MU_STATUS_ASSERTION);
     
-    MU_ASSERT_NOT_REACHED;
+    MU_ASSERT_NOT_REACHED();
 }
 
 /* 
@@ -285,7 +285,7 @@ racer(void* number)
     /* Test functions/macros are safe to use from multiple threads. */
     MU_INFO("Racer #%lu at the finish line", (unsigned long) number);
     /* Whichever thread reaches MU_SUCCESS first ends the test */
-    MU_SUCCESS;
+    MU_SUCCESS();
     return NULL;
 }
 
@@ -320,7 +320,7 @@ MU_TEST(Thread, race)
     pthread_join(racer2, NULL);
 
     /* We will never get here as one of the two racers will end the test */
-    MU_ASSERT_NOT_REACHED;
+    MU_ASSERT_NOT_REACHED();
 }
 
 /** \endcond */

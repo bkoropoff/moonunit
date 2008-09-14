@@ -147,7 +147,9 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             Mu_Logger_TestLeave(logger, test, summary);
             
             if (summary->status != MU_STATUS_SKIPPED &&
-                summary->status != summary->expected && settings->debug)
+                summary->status != summary->expected &&
+                settings->debug &&
+                loader->debug != NULL)
             {
                 void* bp;
                 pid_t pid = loader->debug(loader, test, summary->stage, &bp);

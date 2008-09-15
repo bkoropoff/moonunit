@@ -46,6 +46,7 @@ int Process_Open(Process* handle, char * const argv[],
     int i;
     va_list ap;
     pid_t pid;
+    int status = 0;
     
     /* Set up channels */
     
@@ -59,7 +60,11 @@ int Process_Open(Process* handle, char * const argv[],
     {
         ProcessChannelDirection dir = va_arg(ap, ProcessChannelDirection);
 
-        pipe(pipes[i]);
+        if (pipe(pipes[i]))
+        {
+            status = -1;
+            goto error;
+        }
 
         switch (dir)
         {
@@ -140,10 +145,12 @@ int Process_Open(Process* handle, char * const argv[],
         }
     }
 
+error:
+
     if (pipes)
         free(pipes);
 
-    return 0;
+    return status;
 }
 
 int

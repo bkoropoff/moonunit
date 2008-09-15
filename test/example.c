@@ -153,9 +153,11 @@ MU_TEST(Crash, pipe)
     
     MU_EXPECT(MU_STATUS_CRASH);
     
-    pipe(fd);
+    if (pipe(fd))
+        MU_FAILURE("pipe(): %s", strerror(errno));
     close(fd[0]);
-    write(fd[1], fd, sizeof(int)*2);
+    if (write(fd[1], fd, sizeof(int)*2) < 0)
+        MU_FAILURE("write(): %s", strerror(errno));
 }
 
 MU_TEST(Crash, abort)

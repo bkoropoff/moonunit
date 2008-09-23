@@ -2,12 +2,12 @@ TMPFILE="/tmp/construct_foobar"
 
 construct()
 {
-    touch "${TMPFILE}"
+    touch "${TMPFILE}" || mu_failure "Could not create ${TMPFILE}"
 }
 
 destruct()
 {
-    rm -f "${TMPFILE}"
+    rm -f "${TMPFILE}" || mu_failure "Coult not remove ${TMPFILE}"
 }
 
 fixture_Shell_setup()

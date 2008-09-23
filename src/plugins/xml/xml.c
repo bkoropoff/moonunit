@@ -71,6 +71,14 @@ static void library_enter(MuLogger* _self, const char* name)
     fprintf(self->out, "  <library name=\"%s\">\n", name);
 }
 
+static void library_fail(MuLogger* _self, const char* reason)
+{
+    XmlLogger* self = (XmlLogger*) _self;
+
+    fprintf(self->out, "    <abort reason=\"%s\"/>\n", reason);
+}
+
+
 static void library_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
@@ -312,6 +320,7 @@ static XmlLogger xmllogger =
         .enter = enter,
         .leave = leave,
         .library_enter = library_enter,
+        .library_fail = library_fail,
         .library_leave = library_leave,
         .suite_enter = suite_enter,
         .suite_leave = suite_leave,

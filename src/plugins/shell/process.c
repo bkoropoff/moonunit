@@ -34,6 +34,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "process.h"
 
@@ -60,25 +62,33 @@ int Process_Open(Process* handle, char * const argv[],
     {
         ProcessChannelDirection dir = va_arg(ap, ProcessChannelDirection);
 
-        if (pipe(pipes[i]))
-        {
-            status = -1;
-            goto error;
-        }
-
         switch (dir)
         {
         case PROCESS_CHANNEL_IN:
+            if (pipe(pipes[i]))
+            {
+                status = -1;
+                goto error;
+            }
             handle->channels[i].fd = pipes[i][0];
             break;
         case PROCESS_CHANNEL_OUT:
+            if (pipe(pipes[i]))
+            {
+                status = -1;
+                goto error;
+            }
             handle->channels[i].fd = pipes[i][1];
             break;
+        case PROCESS_CHANNEL_NULL_IN:
+            handle->channels[i].fd = -1;
+            pipes[i][1] = open("/dev/null", O_RDONLY);
+            break;
+        case PROCESS_CHANNEL_NULL_OUT:
+            handle->channels[i].fd = -1;
+            pipes[i][0] = open("/dev/null", O_WRONLY);
+            break;
         case PROCESS_CHANNEL_DEFAULT:
-            if (pipes[i][0] >= 0)
-                close(pipes[i][0]);
-            if (pipes[i][1] >= 0)
-                close(pipes[i][1]);
             handle->channels[i].fd = -1;
         }
 
@@ -108,11 +118,13 @@ int Process_Open(Process* handle, char * const argv[],
             switch (handle->channels[i].direction)
             {
             case PROCESS_CHANNEL_IN:
+            case PROCESS_CHANNEL_NULL_IN:
                 if (pipes[i][0] >= 0)
                     close(pipes[i][0]);
                 dup2(pipes[i][1], i);
                 break;
             case PROCESS_CHANNEL_OUT:
+            case PROCESS_CHANNEL_NULL_OUT:
                 if (pipes[i][1] >= 0)
                     close(pipes[i][1]);
                 dup2(pipes[i][0], i);

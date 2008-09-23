@@ -34,6 +34,7 @@
 
 #include <moonunit/private/util.h>
 #include <moonunit/library.h>
+#include <moonunit/error.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -114,16 +115,24 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     {
         MU_RERAISE_GOTO(error, _err, err);
     }
+
+    Mu_Logger_LibraryEnter(logger, basename_pure(path));
     
     Mu_Library_Construct(library, &err);
 
-    if (err)
+    MU_CATCH(err, MU_ERROR_CONSTRUCT_LIBRARY)
+    {
+        Mu_Logger_LibraryFail(logger, err->message);
+        failed++;
+        MU_HANDLE(&err);
+        goto leave;
+    }
+
+    MU_CATCH_ALL(err)
     {
         MU_RERAISE_GOTO(error, _err, err);
     }
 
-    Mu_Logger_LibraryEnter(logger, basename_pure(path));
-    
     tests = Mu_Library_GetTests(library);
     
     if (tests)
@@ -180,17 +189,25 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         if (current_suite)
             Mu_Logger_SuiteLeave(logger);
     }
-    
-    Mu_Logger_LibraryLeave(logger);
 
     Mu_Library_Destruct(library, &err);
-    
-    if (err)
+
+    MU_CATCH(err, MU_ERROR_DESTRUCT_LIBRARY)
+    {
+        Mu_Logger_LibraryFail(logger, err->message);
+        failed++;
+        MU_HANDLE(&err);
+        goto leave;
+    }
+    MU_CATCH_ALL(err)
     {
         MU_RERAISE_GOTO(error, _err, err);
-    }
-    
+    }    
 
+leave:
+
+    Mu_Logger_LibraryLeave(logger);
+    
 error:
     if (tests)
         Mu_Library_FreeTests(library, tests);

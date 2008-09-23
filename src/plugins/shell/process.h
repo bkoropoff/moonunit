@@ -38,6 +38,8 @@ typedef enum
     PROCESS_CHANNEL_OUT,
     PROCESS_CHANNEL_IN,
     PROCESS_CHANNEL_DEFAULT,
+    PROCESS_CHANNEL_NULL_IN,
+    PROCESS_CHANNEL_NULL_OUT
 } ProcessChannelDirection;
 
 typedef struct

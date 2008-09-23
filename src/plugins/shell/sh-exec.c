@@ -56,9 +56,9 @@ void Mu_Sh_Exec(Process* handle, const char* script, const char* command)
     fclose(file);
 
     Process_Open(handle, argv, 5,
-                 PROCESS_CHANNEL_DEFAULT, /* Output to process stdin */
-                 PROCESS_CHANNEL_DEFAULT,  /* Input process stdout */
-                 PROCESS_CHANNEL_DEFAULT,  /* Input process stderr */
+                 PROCESS_CHANNEL_NULL_OUT, /* Output to process stdin */
+                 PROCESS_CHANNEL_NULL_IN,  /* Input process stdout */
+                 PROCESS_CHANNEL_NULL_IN,  /* Input process stderr */
                  PROCESS_CHANNEL_OUT, /* Output to process command channel */
                  PROCESS_CHANNEL_IN); /* Input process command channel */
 }

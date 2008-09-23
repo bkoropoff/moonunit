@@ -212,20 +212,6 @@ run(char* self)
             failed += run_tests(&settings, file, array_size(option.tests), (char**) option.tests, &err);
         }
 
-        MU_CATCH(err, MU_ERROR_CONSTRUCT_LIBRARY)
-        {
-            fprintf(stderr, "Error: Failed to construct library %s:\n  %s\n", basename_pure(file), err->message);
-            fprintf(stderr, "Library skipped\n\n");
-            MU_HANDLE(&err);
-            failed++;
-        }
-        MU_CATCH(err, MU_ERROR_CONSTRUCT_LIBRARY)
-        {
-            fprintf(stderr, "Warning: Failed to destroy library %s:\n  %s\n", basename_pure(file), err->message);
-            fprintf(stderr, "Library finished but did not shut down cleanly\n\n");
-            MU_HANDLE(&err);
-            failed++;
-        }
         MU_CATCH_ALL(err)
         {
             die("Error: %s", err->message);

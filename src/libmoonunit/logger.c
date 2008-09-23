@@ -76,6 +76,12 @@ Mu_Logger_LibraryEnter (struct MuLogger* logger, const char* name)
 }
 
 void
+Mu_Logger_LibraryFail (struct MuLogger* logger, const char* reason)
+{
+    logger->library_fail(logger, reason);
+}
+
+void
 Mu_Logger_LibraryLeave (struct MuLogger* logger)
 {
     logger->library_leave(logger);

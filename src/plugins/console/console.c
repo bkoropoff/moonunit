@@ -57,6 +57,7 @@ typedef struct
     unsigned int num_xpass;
     unsigned int num_xfail;
     unsigned int num_skip;
+    unsigned int num_lib_abort;
 } ConsoleLogger;
 
 static void
@@ -72,6 +73,7 @@ enter(MuLogger* _self)
     self->num_xpass = 0;
     self->num_xfail = 0;
     self->num_skip = 0;
+    self->num_lib_abort = 0;
 }
 
 static void
@@ -81,25 +83,41 @@ leave(MuLogger* _self)
 
     if (self->ansi)
     {
-        fprintf(self->out, "Processed \e[1m%u\e[0m test(s) in \e[1m%u\e[0m suite(s) in \e[1m%u\e[0m librarie(s):\n",
-                self->num_tests, self->num_suites, self->num_libraries);
-        fprintf(self->out, "  \e[1m%4u\e[0m \e[32m\e[1mpassed\e[22m\e[0m  (including %u that failed as expected)\n",
-                self->num_pass + self->num_xfail, self->num_xfail);
-        fprintf(self->out, "  \e[1m%4u\e[0m \e[31m\e[1mfailed\e[22m\e[0m  (including %u that passed unexpectedly)\n",
-                self->num_fail + self->num_xpass, self->num_xpass);
-        fprintf(self->out, "  \e[1m%4u\e[0m \e[33m\e[1mskipped\e[22m\e[0m\n\n",
-                self->num_skip);
+        fprintf(self->out, "Summary:\n");
+        fprintf(self->out, "  Libraries:         \e[1m%6u\e[0m\n", self->num_libraries);
+        fprintf(self->out, "  Suites:            \e[1m%6u\e[0m\n", self->num_suites);
+        fprintf(self->out, "  Tests:             \e[1m%6u\e[0m\n", self->num_tests);
+        if (self->num_pass + self->num_xfail)
+            fprintf(self->out, "  \e[32m\e[1mPassed\e[22m\e[0m tests:      \e[1m%6u\e[0m\n",
+                    self->num_pass + self->num_xfail);
+        if (self->num_fail + self->num_xpass)
+            fprintf(self->out, "  \e[31m\e[1mFailed\e[22m\e[0m tests:      \e[1m%6u\e[0m\n",
+                    self->num_fail + self->num_xpass);
+        if (self->num_skip)
+            fprintf(self->out, "  \e[33m\e[1mSkipped\e[22m\e[0m tests:     \e[1m%6u\e[0m\n",
+                    self->num_skip);
+        if (self->num_lib_abort)
+            fprintf(self->out, "  \e[31m\e[1mAborted\e[22m\e[0m libraries: \e[1m%6u\e[0m\n\n",
+                    self->num_lib_abort);
     }
     else
     {
-        fprintf(self->out, "Processed %u test(s) in %u suite(s) in %u librarie(s):\n",
-                self->num_tests, self->num_suites, self->num_libraries);
-        fprintf(self->out, "  %u passed  (including %u that failed as expected)\n",
-                self->num_pass + self->num_xfail, self->num_xfail);
-        fprintf(self->out, "  %u failed  (including %u that passed unexpectedly)\n",
-                self->num_fail + self->num_xpass, self->num_xpass);
-        fprintf(self->out, "  %u skipped\n\n",
-                self->num_skip);
+        fprintf(self->out, "Summary:\n");
+        fprintf(self->out, "  Libraries:         %6u\e\n", self->num_libraries);
+        fprintf(self->out, "  Suites:            %6u\e\n", self->num_suites);
+        fprintf(self->out, "  Tests:             %6u\e\n", self->num_tests);
+        if (self->num_pass + self->num_xfail)
+            fprintf(self->out, "  Passed tests:      %6u\n",
+                    self->num_pass + self->num_xfail);
+        if (self->num_fail + self->num_xpass)
+            fprintf(self->out, "  Failed tests:      %6u\n",
+                    self->num_fail + self->num_xpass);
+        if (self->num_skip)
+            fprintf(self->out, "  Skipped tests:     %6u\n",
+                    self->num_skip);
+        if (self->num_lib_abort)
+            fprintf(self->out, "  Aborted libraries: %6u\n\n",
+                    self->num_lib_abort);
     }
 }
 
@@ -111,6 +129,36 @@ library_enter(MuLogger* _self, const char* name)
     self->num_libraries++;
 
 	fprintf(self->out, "Library: %s\n", name);
+}
+
+static void
+library_fail(MuLogger* _self, const char* reason)
+{    
+    ConsoleLogger* self = (ConsoleLogger*) _self;
+    int i;
+
+    if (self->ansi)
+    {
+        fprintf(self->out, "  \e[1mLibrary aborted\e[0m");
+        for (i = 0; i < self->align - 17 - 5; i++)
+        {
+            fprintf(self->out, " ");
+        }
+        fprintf(self->out, "\e[31m\e[1mFAIL\e[22m\e[0m\n");
+        fprintf(self->out, "    %s\n", reason);
+    }
+    else
+    {
+        fprintf(self->out, "  Library aborted");
+        for (i = 0; i < self->align - 17 - 5; i++)
+        {
+            fprintf(self->out, " ");
+        }
+        fprintf(self->out, "FAIL\n");
+        fprintf(self->out, "    %s\n", reason);
+    }
+
+    self->num_lib_abort++;
 }
 
 static void
@@ -540,6 +588,7 @@ static ConsoleLogger consolelogger =
         .enter = enter,
         .leave = leave,
         .library_enter = library_enter,
+        .library_fail = library_fail,
         .library_leave = library_leave,
         .suite_enter = suite_enter,
         .suite_leave = suite_leave,

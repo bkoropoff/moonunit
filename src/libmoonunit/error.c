@@ -32,17 +32,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-const char Mu_ErrorDomain_General[] = "general";
-
 static MuError error_mem =
 {
-    .domain = Mu_ErrorDomain_General,
-    .code = MU_ERROR_NOMEM,
+    .code = MU_ERROR_MEMORY,
     .message = "Out of memory"
 };
 
 void
-Mu_Error_Raise(MuError** err, const char* domain, int code, const char* format, ...)
+Mu_Error_Raise(MuError** err, MuStatusCode code, const char* format, ...)
 {
     va_list ap;
 
@@ -63,7 +60,6 @@ Mu_Error_Raise(MuError** err, const char* domain, int code, const char* format, 
         return;
     }
 
-    (*err)->domain = domain;
     (*err)->code = code;
 
     va_start(ap, format);
@@ -111,7 +107,7 @@ Mu_Error_Reraise(MuError** err, MuError* src)
 }
 
 bool
-Mu_Error_Equal(MuError* err, const char* domain, int code)
+Mu_Error_Equal(MuError* err, int code)
 {
-    return err && err->domain == domain && err->code == code;
+    return err && err->code == code;
 }

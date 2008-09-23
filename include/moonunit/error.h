@@ -39,36 +39,53 @@
 
 C_BEGIN_DECLS
 
+typedef enum MuStatusCode
+{
+    /** Success */
+    MU_ERROR_SUCCESS = 0,
+    /** Generic error */
+    MU_ERROR_GENERAL = 1,
+    /** Out of memory */
+    MU_ERROR_MEMORY = 2,
+    /** Unexpected system error */
+    MU_ERROR_SYSTEM = 3,
+    /** Library loading failed */
+    MU_ERROR_LOAD_LIBRARY = 4,
+    /** Library could not be constructed */
+    MU_ERROR_CONSTRUCT_LIBRARY = 5,
+    /** Library could not be destroyed */
+    MU_ERROR_DESTRUCT_LIBRARY = 6
+} MuStatusCode;
+
 typedef struct MuError
 {
-    const char* domain;
     int code;
     char* message;
 } MuError;
 
-void Mu_Error_Raise(MuError** err, const char* domain, int code, const char* format, ...);
+void Mu_Error_Raise(MuError** err, MuStatusCode code, const char* format, ...);
 void Mu_Error_Handle(MuError** err);
 void Mu_Error_Reraise(MuError** err, MuError* src);
-bool Mu_Error_Equal(MuError* err, const char* domain, int code);
+bool Mu_Error_Equal(MuError* err, int code);
 
-#define MU_RAISE_RETURN_VOID(err, domain, code, ...)    \
+#define MU_RAISE_RETURN_VOID(err, code, ...)            \
     do                                                  \
     {                                                   \
-        Mu_Error_Raise(err, domain, code, __VA_ARGS__); \
+        Mu_Error_Raise(err,  code, __VA_ARGS__);        \
         return;                                         \
     } while (0)                                         \
-
-#define MU_RAISE_RETURN(ret, err, domain, code, ...)    \
+        
+#define MU_RAISE_RETURN(ret, err, code, ...)            \
     do                                                  \
     {                                                   \
-        Mu_Error_Raise(err, domain, code, __VA_ARGS__); \
+        Mu_Error_Raise(err,  code, __VA_ARGS__);        \
         return (ret);                                   \
     } while (0)                                         \
 
-#define MU_RAISE_GOTO(lab, err, domain, code, ...)      \
+#define MU_RAISE_GOTO(lab, err, code, ...)              \
     do                                                  \
     {                                                   \
-        Mu_Error_Raise(err, domain, code, __VA_ARGS__); \
+        Mu_Error_Raise(err, code, __VA_ARGS__);         \
         goto lab;                                       \
     } while (0)                                         \
 
@@ -93,27 +110,21 @@ bool Mu_Error_Equal(MuError* err, const char* domain, int code);
         goto lab;                               \
     } while (0)                                 \
 
-#define MU_HANDLE_GOTO(lab, domain, code)       \
+#define MU_CATCH_GOTO(lab, code)                \
     do                                          \
     {                                           \
-        if (Mu_Error_Equal(err, domain, code))  \
+        if (Mu_Error_Equal(err, code))          \
             goto lab;                           \
     } while (0)                                 \
-
-#define MU_HANDLE(err, domain, code)            \
-    if (Mu_Error_Equal(err, domain, code))      \
         
-#define MU_HANDLE_ALL(err)                      \
+#define MU_CATCH(err, code)             \
+    if (Mu_Error_Equal(err, code))      \
+        
+#define MU_CATCH_ALL(err)                       \
     if (err)                                    \
 
-extern char const Mu_ErrorDomain_General[];
-
-typedef enum MuErrorGeneral
-{
-    MU_ERROR_GENERIC,
-    MU_ERROR_NOMEM,
-    MU_ERROR_ERRNO
-} MuErrorGeneral;
+#define MU_HANDLE(err)                          \
+    Mu_Error_Handle(err)
 
 C_END_DECLS
 

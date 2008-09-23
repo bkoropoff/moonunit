@@ -31,6 +31,7 @@
 #include <moonunit/logger.h>
 #include <moonunit/test.h>
 #include <moonunit/loader.h>
+#include <moonunit/error.h>
 
 #include "process.h"
 #include "sh-types.h"
@@ -44,6 +45,6 @@ extern int mu_sh_timeout;
 void Mu_Sh_Exec(Process* handle, const char* script, const char* command);
 struct MuTestResult*
 Mu_Sh_Dispatch (ShTest* test, MuLogCallback lcb, void* data);
-void Mu_Sh_Construct (ShLibrary* library);
-void Mu_Sh_Destruct (ShLibrary* library);
+void Mu_Sh_Construct (ShLibrary* library, MuError** error);
+void Mu_Sh_Destruct (ShLibrary* library, MuError** error);
 #endif

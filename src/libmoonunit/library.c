@@ -53,13 +53,13 @@ Mu_Library_Name(MuLibrary* handle)
 }
 
 void
-Mu_Library_Construct(MuLibrary* handle)
+Mu_Library_Construct(MuLibrary* handle, MuError** err)
 {
-    handle->loader->construct(handle->loader, handle);
+    handle->loader->construct(handle->loader, handle, err);
 }
 
 void
-Mu_Library_Destruct(MuLibrary* handle)
+Mu_Library_Destruct(MuLibrary* handle, MuError** err)
 {
-    handle->loader->destruct(handle->loader, handle);
+    handle->loader->destruct(handle->loader, handle, err);
 }

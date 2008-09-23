@@ -320,6 +320,23 @@ Mu_Sh_ProcessCommand(Process* process, MuTestResult* result, ProcessTimeout* tim
     }
 }
 
+static int
+Mu_Sh_ProcessResultCommand(Process* process, MuTestResult* result, char* cmd)
+{
+    char* tokens = cmd;
+    char* operation = Mu_Sh_GetToken(&tokens);
+
+    if (!strcmp(operation, "RESULT"))
+    {
+        Mu_Sh_ProcessResult(result, &tokens);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 struct MuTestResult*
 Mu_Sh_Dispatch (ShTest* test, MuLogCallback lcb, void* data)
 {
@@ -378,46 +395,85 @@ Mu_Sh_Dispatch (ShTest* test, MuLogCallback lcb, void* data)
     return result;
 }
 
-void
-Mu_Sh_Construct (ShLibrary* library)
+static MuTestResult*
+Mu_Sh_Run_Limited(ShLibrary* library, const char* command)
 {
     Process handle;
     ProcessTimeout timeout;
     MuTestResult* result = calloc(1, sizeof(*result));
     int res;
-
+    
     Process_GetTime(&timeout, mu_sh_timeout);
-
-    Mu_Sh_Exec(&handle, library->path, "mu_run_if_exists construct");
+    Mu_Sh_Exec(&handle, library->path, command);
     
     while ((res = Process_Select(&handle, &timeout, 1, MU_SH_CMD_OUT)) > 0)
     {
         int status;
+
         if (Process_Finished(&handle, &status))
+        {
             break;
+        }
+
+        if (Process_Channel_Ready(&handle, 4))
+        {
+            char* line;
+            unsigned int len;
+            
+            if ((len = Process_Channel_ReadLine(&handle, MU_SH_CMD_OUT, &line)))
+            {
+                line[len - 1] = '\0';
+                if (Mu_Sh_ProcessResultCommand(&handle, result, line))
+                {
+                    free(line);
+                    break;
+                }
+                free(line);
+            }
+            else if (len == 0)
+            {
+                break;
+            }
+        }
     }
 
     Process_Close(&handle);
-}    
+
+    return result;
+}
 
 void
-Mu_Sh_Destruct (ShLibrary* library)
+Mu_Sh_Construct (ShLibrary* library, MuError** err)
 {
-    Process handle;
-    ProcessTimeout timeout;
-    MuTestResult* result = calloc(1, sizeof(*result));
-    int res;
+    MuTestResult* result = Mu_Sh_Run_Limited(library, "mu_run_if_exists construct");
 
-    Process_GetTime(&timeout, mu_sh_timeout);
-
-    Mu_Sh_Exec(&handle, library->path, "mu_run_if_exists destruct");
-    
-    while ((res = Process_Select(&handle, &timeout, 1, MU_SH_CMD_OUT)) > 0)
+    if (result->status != MU_STATUS_SUCCESS)
     {
-        int status;
-        if (Process_Finished(&handle, &status))
-            break;
+        MU_RAISE_GOTO(error, err, MU_ERROR_CONSTRUCT_LIBRARY, "%s", result->reason);
     }
 
-    Process_Close(&handle);
-}    
+error:
+
+    if (result)
+    {
+        library->base.loader->free_result((MuLoader*) library->base.loader, result);
+    }
+}
+
+void
+Mu_Sh_Destruct (ShLibrary* library, MuError** err)
+{
+    MuTestResult* result = Mu_Sh_Run_Limited(library, "mu_run_if_exists destruct");
+
+    if (result->status != MU_STATUS_SUCCESS)
+    {
+        MU_RAISE_GOTO(error, err, MU_ERROR_CONSTRUCT_LIBRARY, "%s", result->reason);
+    }
+
+error:
+
+    if (result)
+    {
+        library->base.loader->free_result((MuLoader*) library->base.loader, result);
+    }
+}

@@ -71,12 +71,16 @@ add(MuEntryInfo* entry, CLibrary* library, MuError **_err)
         CTest* test = ctest_new(library, entry);
 
         if (!test)
-            MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+        {
+            MU_RAISE_RETURN(false, _err, MU_ERROR_MEMORY, "Out of memory");
+        }
 
         library->tests = (CTest**) array_append((array*) library->tests, test);
         
         if (!library->tests)
-            MU_RAISE_RETURN(false, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+        {
+            MU_RAISE_RETURN(false, _err, MU_ERROR_MEMORY, "Out of memory");
+        }
         break;
   	}
     case MU_ENTRY_FIXTURE_SETUP:
@@ -162,7 +166,7 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
 
     if (!library)
     {
-        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_NOMEM, "Out of memory");
+        MU_RAISE_GOTO(error, _err, MU_ERROR_MEMORY, "Out of memory");
     }
 
     library->base.loader = _self;
@@ -179,7 +183,7 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
     if (!library->dlhandle)
     {
         free(library);
-        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, "%s", dlerror());
+        MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, "%s", dlerror());
     }
 
     if ((stub_hook = dlsym(library->dlhandle, "__mu_stub_hook")))

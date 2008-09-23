@@ -35,6 +35,7 @@
 #include <moonunit/loader.h>
 #include <moonunit/private/util.h>
 #include <moonunit/interface.h>
+#include <moonunit/error.h>
 #include <uipc/ipc.h>
 #include <unistd.h>
 #include <string.h>
@@ -118,7 +119,7 @@ static uipc_typeinfo timeout_info =
     .size = sizeof(TimeoutMsg),
     .members =
     {
-	UIPC_END
+        UIPC_END
     }
 };
 
@@ -127,7 +128,7 @@ static uipc_typeinfo iterations_info =
     .size = sizeof(IterationsMsg),
     .members =
     {
-	UIPC_END
+        UIPC_END
     }
 };
 
@@ -136,7 +137,7 @@ static uipc_typeinfo expect_info =
     .size = sizeof(ExpectMsg),
     .members =
     {
-	UIPC_END
+        UIPC_END
     }
 };
 
@@ -275,6 +276,31 @@ ctoken_meta(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
     pthread_mutex_unlock(&token->lock);
 }
 
+static void
+ctoken_event_inproc(MuInterfaceToken* _token, const MuLogEvent* event)
+{
+    return;
+}
+
+static void
+ctoken_result_inproc(MuInterfaceToken* _token, const MuTestResult* summary)
+{    
+    CToken* token = (CToken*) _token;
+
+    *(token->inproc_result) = *summary;
+
+    token->inproc_result->reason = safe_strdup(summary->reason);
+    token->inproc_result->file = safe_strdup(summary->file);
+
+    siglongjmp(token->inproc_jmpbuf, 1);
+}
+
+void
+ctoken_meta_inproc(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
+{
+    return;
+}
+
 static char*
 signal_description(int sig)
 {
@@ -337,7 +363,7 @@ signal_setup(void)
     sigemptyset(&act.sa_mask);
 
     /* Set up a mask that blocks all other handled
-       signals while the  handler is running.
+       signals while the handler is running.
        This prevents deadlocks */
     for (i = 0; siglist[i]; i++)
     {
@@ -359,6 +385,21 @@ ctoken_new(MuTest* test)
     token->base.meta = ctoken_meta;
     token->base.result = ctoken_result;
     token->base.event = ctoken_event;
+    token->expected = MU_STATUS_SUCCESS;
+    pthread_mutex_init(&token->lock, NULL);
+
+    return token;
+}
+
+static CToken*
+ctoken_new_inproc(MuTest* test)
+{
+    CToken* token = calloc(1, sizeof(CToken));
+
+    token->base.test = test;
+    token->base.meta = ctoken_meta_inproc;
+    token->base.result = ctoken_result_inproc;
+    token->base.event = ctoken_event_inproc;
     token->expected = MU_STATUS_SUCCESS;
     pthread_mutex_init(&token->lock, NULL);
 
@@ -780,6 +821,26 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
     }
 }
 
+static MuTestResult*
+cloader_run_thunk_inproc(MuThunk thunk)
+{
+    CToken* token = ctoken_new_inproc(NULL);
+    MuTestResult* volatile result = calloc(1, sizeof(*result));
+
+    result->status = MU_STATUS_SUCCESS;
+
+    if (!sigsetjmp(token->inproc_jmpbuf, 1))
+    {
+        token->inproc_result = result;
+        /* Set up the C/C++ interface to call into our token */
+        Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
+        
+        INVOKE(thunk);
+    }
+
+    return result;
+}
+
 static void
 empty_handler(int sig)
 {
@@ -926,21 +987,51 @@ cloader_debug(MuLoader* _self, MuTest* test, MuTestStage stage, void** breakpoin
 }
 
 void
-cloader_construct(MuLoader* _self, MuLibrary* _library)
+cloader_construct(MuLoader* _self, MuLibrary* _library, MuError** err)
 {
     CLibrary* library = (CLibrary*) _library;
+    MuTestResult* result = NULL;
 
     if (library->library_construct)
-        library->library_construct->run();
+    {
+        MuTestResult* result = cloader_run_thunk_inproc(library->library_construct->run);
+
+        if (result->status != MU_STATUS_SUCCESS)
+        {
+            MU_RAISE_GOTO(error, err, MU_ERROR_CONSTRUCT_LIBRARY, "%s", result->reason);
+        }
+    }
+    
+error:
+    
+    if (result)
+    {
+        cloader_free_result(_self, result);
+    }
 }
 
 void
-cloader_destruct(MuLoader* _self, MuLibrary* _library)
+cloader_destruct(MuLoader* _self, MuLibrary* _library, MuError** err)
 {
     CLibrary* library = (CLibrary*) _library;
+    MuTestResult* result = NULL;
 
     if (library->library_destruct)
-        library->library_destruct->run();
+    {
+        MuTestResult* result = cloader_run_thunk_inproc(library->library_destruct->run);
+
+        if (result->status != MU_STATUS_SUCCESS)
+        {
+            MU_RAISE_GOTO(error, err, MU_ERROR_CONSTRUCT_LIBRARY, "%s", result->reason);
+        }
+    }
+    
+error:
+    
+    if (result)
+    {
+        cloader_free_result(_self, result);
+    }
 }
 
 static void

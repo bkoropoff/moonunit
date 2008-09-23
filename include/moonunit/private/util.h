@@ -45,6 +45,7 @@ char* format(const char* format, ...);
 char* formatv(const char* format, va_list ap);
 const char* basename_pure(const char* filename);
 void* mu_dlopen(const char* path, int flags);
+char* safe_strdup(const char* in);
 
 /* Dynamic array */
 

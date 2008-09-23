@@ -70,9 +70,9 @@ typedef struct MuLoader
     // a debugger.
     pid_t (*debug)(struct MuLoader*, struct MuTest*, MuTestStage, void**);
     /* Runs the constructor for a library, which does any needed *one-time* setup */
-    void (*construct) (struct MuLoader*, struct MuLibrary* handle);
+    void (*construct) (struct MuLoader*, struct MuLibrary* handle, MuError** err);
     /* Runs the destructor for a library, which does any needed *one-time* teardown */
-    void (*destruct) (struct MuLoader*, struct MuLibrary* handle);
+    void (*destruct) (struct MuLoader*, struct MuLibrary* handle, MuError** err);
 } MuLoader;
 
 bool Mu_Loader_CanOpen(MuLoader* loader, const char* path);

@@ -92,6 +92,18 @@ char* format(const char* format, ...)
     return result;
 }
 
+char* safe_strdup(const char* in)
+{
+    if (in)
+    {
+        return strdup(in);
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
 const char* basename_pure(const char* filename)
 {
 	char* final_slash = strrchr(filename, '/');

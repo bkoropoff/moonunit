@@ -131,19 +131,19 @@ sh_close (struct MuLoader* self, struct MuLibrary* handle)
 }
 
 static void
-sh_construct(struct MuLoader* self, struct MuLibrary* handle)
+sh_construct(struct MuLoader* self, struct MuLibrary* handle, MuError** err)
 {
     ShLibrary* library = (ShLibrary*) handle;
 
-    Mu_Sh_Construct(library);
+    Mu_Sh_Construct(library, err);
 }
 
 static void
-sh_destruct(struct MuLoader* self, struct MuLibrary* handle)
+sh_destruct(struct MuLoader* self, struct MuLibrary* handle, MuError** err)
 {
     ShLibrary* library = (ShLibrary*) handle;
 
-    Mu_Sh_Destruct(library);
+    Mu_Sh_Destruct(library, err);
 }
 
 static const char*

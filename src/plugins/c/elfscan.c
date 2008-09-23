@@ -53,8 +53,6 @@
 #error Unhandled pointer width
 #endif
 
-static const char domain_elf[] = "elf";
-
 typedef enum ElfError
 {
     ELF_ERROR_SYMMETH,
@@ -115,7 +113,7 @@ libelf_scan_symtab(void* handle, SymbolFilter filter, SymbolCallback callback, v
 	if (!(edata = elf_getdata(section, edata)))
     {
         if (elf_errno())
-            MU_RAISE_RETURN(false, _err, domain_elf, ELF_ERROR_LIBELF + elf_errno(), "%s", elf_errmsg(elf_errno()));
+            MU_RAISE_RETURN(false, _err, MU_ERROR_LOAD_LIBRARY, "%s", elf_errmsg(elf_errno()));
         else
             return true;
     }
@@ -166,25 +164,24 @@ libelf_symbol_scanner(void* handle, SymbolFilter filter, SymbolCallback callback
 
     if (!filename)
     {
-        MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_SYMMETH, "Could not determine path of library file from handle");
+        MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, "Could not determine path of library file from handle");
     }
 
 	fd = open(filename, O_RDONLY);
 
     if (fd < 0)
     {
-        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_ERRNO + errno, "%s", strerror(errno));
+        MU_RAISE_GOTO(error, _err, MU_ERROR_SYSTEM, "%s", strerror(errno));
     }
 
 	if (elf_version(EV_CURRENT) == EV_NONE )
     {
-        MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_VERSION, "libelf is too old");
+        MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, "libelf is too old");
     }
     
 	if (!(elf = elf_begin(fd, ELF_C_READ, NULL)))
 	{
-        MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_LIBELF + elf_errno(),
-                      "%s", elf_errmsg(elf_errno()));
+        MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, "%s", elf_errmsg(elf_errno()));
 	}
 	
 	while ((section = elf_nextscn(elf, section)))
@@ -193,8 +190,7 @@ libelf_symbol_scanner(void* handle, SymbolFilter filter, SymbolCallback callback
 		
         if (!shdr)
         {
-            MU_RAISE_GOTO(error, _err, domain_elf, ELF_ERROR_LIBELF + elf_errno(), 
-                          "%s", elf_errmsg(elf_errno()));
+            MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, "%s", elf_errmsg(elf_errno()));
         }
 
         switch (shdr->sh_type)

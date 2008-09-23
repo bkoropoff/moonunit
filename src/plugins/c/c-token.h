@@ -31,6 +31,7 @@
 #include <uipc/ipc.h>
 #include <sys/types.h>
 #include <pthread.h>
+#include <setjmp.h>
 
 #include <moonunit/private/interface-private.h>
 
@@ -43,6 +44,9 @@ typedef struct
     uipc_handle* ipc_handle;
     pid_t child;
     pthread_mutex_t lock;
+
+    MuTestResult* inproc_result;
+    sigjmp_buf inproc_jmpbuf;
 } CToken;
 
 #endif

@@ -24,4 +24,4 @@ else
 c_la_LINK = $(LINK) $(c_la_LDFLAGS)
 endif
 
-noinst_HEADERS = elfscan.h backtrace.h c-token.h cplusplus.h
+noinst_HEADERS = elfscan.h backtrace.h c-token.h cplusplus.h c-load.h c-run.h

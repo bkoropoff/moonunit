@@ -35,5 +35,6 @@ CHECK_PLUGINS= \
 	--loader-option "sh:helper=$(top_builddir)/src/plugins/shell/mu.sh"
 
 check-local: $(MOONUNIT_LT) example.la example.sh example.res
-	$(MOONUNIT_LT) $(CHECK_ARGS) $(CHECK_PLUGINS) -r $(srcdir)/example.res $(builddir)/example.la $(srcdir)/example.sh
+	$(MOONUNIT_LT) $(CHECK_ARGS) $(CHECK_PLUGINS) -r $(srcdir)/example.res $(top_builddir)/test/example.la $(srcdir)/example.sh
 
+EXTRA_DIST = example.sh example.res

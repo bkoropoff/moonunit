@@ -212,9 +212,9 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
 #else
     else
     {
-        MU_RAISE_GOTO(error, _err, Mu_ErrorDomain_General, MU_ERROR_GENERIC, 
-                        "Library did not contain a test loading stub and no "
-                        "reflection backend is available.");
+        MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, 
+                      "Library did not contain a test loading stub and no "
+                      "reflection backend is available.");
     }
 #endif
     return (MuLibrary*) library;

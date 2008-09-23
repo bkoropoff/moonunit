@@ -9,5 +9,5 @@ sh_la_SOURCES = sh-exec.c sh-load.c process.c
 sh_la_LIBADD = $(top_builddir)/src/libmoonunit/libmoonunit.la
 sh_la_LDFLAGS = $(MODULE_LDFLAGS)
 
-noinst_HEADERS = process.h sh-exec.h
+noinst_HEADERS = process.h sh-exec.h sh-types.h
 

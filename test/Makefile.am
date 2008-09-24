@@ -5,7 +5,8 @@ check_LTLIBRARIES = example.la
 
 EXAMPLE_SOURCES = $(srcdir)/example.c
 
-example_la_SOURCES = $(EXAMPLE_SOURCES) example_stub.c
+example_la_SOURCES = $(EXAMPLE_SOURCES)
+nodist_example_la_SOURCES = example_stub.c
 example_la_CPPFLAGS = $(AM_CPPFLAGS)
 example_la_LDFLAGS = -module -avoid-version -export-dynamic -rpath $(libdir)
 
@@ -16,8 +17,8 @@ else
 example_la_LINK = $(LINK) $(example_la_LDFLAGS)
 endif
 
-BUILT_SOURCES = example_stub.c
 CLEANFILES = example_stub.c
+BUILT_SOURCES = example_stub.c
 
 example_stub.c: $(EXAMPLE_SOURCES) $(MOONUNIT_STUB)
 	$(MOONUNIT_STUB) $(EXAMPLE_SOURCES) -o $@ \

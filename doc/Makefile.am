@@ -1,7 +1,8 @@
+INSTALL_DIR = ${MKDIR_P} -m 755
+
 DOC_TARGETS =
 DOC_INSTALL_TARGETS = doxygen-install docbook-install
 DOCBOOK_XML = index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml
-
 EXTRA_DIST = $(DOCBOOK_XML) main.doxy doxygen-html doxygen-man docbook-html docbook-man
 
 if HAVE_DOXYGEN
@@ -19,14 +20,14 @@ doxygen-doc: doxygen-html doxygen-man
 endif
 
 doxygen-html-install: doxygen-html
-	$(mkinstalldirs) $(DESTDIR)$(htmldir)/api
-	$(install_sh_DATA) $</* $(DESTDIR)$(htmldir)/api
+	$(INSTALL_DIR) $(DESTDIR)$(htmldir)/api
+	$(INSTALL_DATA) $</* $(DESTDIR)$(htmldir)/api
 
 doxygen-man-install: doxygen-man
-	$(mkinstalldirs) $(DESTDIR)$(htmldir)/api
-	$(mkinstalldirs) $(DESTDIR)$(mandir)/man1
-	$(mkinstalldirs) $(DESTDIR)$(mandir)/man3mu
-	$(install_sh_DATA) $</man3mu/*.3mu $(DESTDIR)$(mandir)/man3mu
+	$(INSTALL_DIR) $(DESTDIR)$(htmldir)/api
+	$(INSTALL_DIR) $(DESTDIR)$(mandir)/man1
+	$(INSTALL_DIR) $(DESTDIR)$(mandir)/man3mu
+	$(INSTALL_DATA) $</man3mu/*.3mu $(DESTDIR)$(mandir)/man3mu
 
 doxygen-install: doxygen-html-install doxygen-man-install
 
@@ -47,14 +48,14 @@ docbook-doc: docbook-html docbook-man
 endif
 
 docbook-html-install: docbook-html
-	$(mkinstalldirs) $(DESTDIR)$(htmldir)/tools
-	$(install_sh_DATA) $</* $(DESTDIR)$(htmldir)/tools
+	$(INSTALL_DIR) $(DESTDIR)$(htmldir)/tools
+	$(INSTALL_DATA) $</* $(DESTDIR)$(htmldir)/tools
 
 docbook-man-install: docbook-man
-	$(mkinstalldirs) $(DESTDIR)$(mandir)/man1
-	$(install_sh_DATA) $</man1/* $(DESTDIR)$(mandir)/man1
+	$(INSTALL_DIR) $(DESTDIR)$(mandir)/man1
+	$(INSTALL_DATA) $</man1/* $(DESTDIR)$(mandir)/man1
 
-docbook-install: doxygen-html-install doxygen-man-install
+docbook-install: docbook-html-install docbook-man-install
 
 uninstall-local: doxygen-man
 	rm -rf $(DESTDIR)$(htmldir)

@@ -23,7 +23,7 @@ case "$host_os" in
         moduleext=".so"
 	;;
     hpux11.*)
-	case "$target_cpu" in
+	case "$host_cpu" in
 	    hppa2.0*)
 	        moduleext=".sl"
 	        LDFLAGS="$LDFLAGS -Wl,+s"
@@ -33,7 +33,7 @@ case "$host_os" in
                 LDFLAGS="$LDFLAGS -Wl,+s"
 		;;
 	    *)
-	        AC_MSG_ERROR([Unsupported architecture: $target_cpu])
+	        AC_MSG_ERROR([Unsupported architecture: $host_cpu])
 		;;
         esac
 	;;
@@ -47,7 +47,7 @@ case "$host_os" in
 	moduleext=".so"
 	;;
     *)
-	AC_MSG_ERROR([Unsupported OS: $target_os])
+	AC_MSG_ERROR([Unsupported OS: $host_os])
 	;;
 esac
 

@@ -60,6 +60,7 @@ AM_CONDITIONAL([HAVE_MEMBEREXT], [test -n "$memberext"])
 
 WANT_CPLUSPLUS="true"
 WANT_LIBELF="true"
+WANT_DOC="true"
 
 AC_ARG_ENABLE([cpp],
 	[AC_HELP_STRING([--disable-cpp], [disable C++ support (default: enabled)])],
@@ -78,6 +79,15 @@ AC_ARG_ENABLE([debug],
 			AC_DEFINE([DEBUG], [], [Debugging enabled])
 			CFLAGS="$CFLAGS -O0 -g"
 			CXXFLAGS="$CXXFLAGS -O0 -g"
+		fi
+	])
+
+AC_ARG_ENABLE([doc],
+	[AC_HELP_STRING([--disable-doc], [disable documentation])],
+	[
+		if test x"$enableval" = x"no"
+		then
+			WANT_DOC="false"
 		fi
 	])
 
@@ -113,6 +123,7 @@ then
    AC_DEFINE(CPLUSPLUS_ENABLED, [], [Define if you want C++ support])
 fi
 AM_CONDITIONAL([CPLUSPLUS_ENABLED], [$WANT_CPLUSPLUS])
+AM_CONDITIONAL([DOC_ENABLED], [$WANT_DOC])
 
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
@@ -294,7 +305,6 @@ AC_CONFIG_FILES([
 	doc/Doxyfile
 	doc/docbook-html.xsl
 	doc/docbook-man.xsl
-	extra/Makefile
 	])
 
 AC_OUTPUT

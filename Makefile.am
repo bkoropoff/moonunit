@@ -1,2 +1,5 @@
-SUBDIRS = src include test doc extra
+SUBDIRS = src include test
 
+if DOC_ENABLED
+SUBDIRS += doc
+endif

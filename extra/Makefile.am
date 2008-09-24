@@ -1,1 +1,0 @@
-EXTRA_DIST = moonunit-style.xsl moonunit-style.css

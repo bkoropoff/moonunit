@@ -1,65 +1,72 @@
-HTML_TARGETS =
-HTML_INSTALL_TARGETS =
+DOC_TARGETS =
+DOC_INSTALL_TARGETS = doxygen-install docbook-install
 DOCBOOK_XML = index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml
-DOCBOOK_XML_INDEXLESS = $(DOCBOOK_XML:index.xml=)
-DOCBOOK_HTML = $(DOCBOOK_XML:.xml=.html)
-DOCBOOK_MAN = $(DOCBOOK_XML_INDEXLESS:.xml=.1)
 
-EXTRA_DIST = $(DOCBOOK_XML) main.doxy
-
-BUILT_SOURCES =
+EXTRA_DIST = $(DOCBOOK_XML) main.doxy doxygen-html doxygen-man docbook-html docbook-man
 
 if HAVE_DOXYGEN
-HTML_TARGETS += doc-doxygen
-HTML_INSTALL_TARGETS += install-doc-doxygen
+DOC_TARGETS += doxygen-doc
 
-DOXY_DEPS = \
-	@top_srcdir@/include/moonunit/interface.h \
-	@top_srcdir@/include/moonunit/test.h
+doxygen-html: Doxyfile.in
+	$(MKDIR_P) doxygen-html
+	( cat Doxyfile; echo GENERATE_HTML=yes ) | $(DOXYGEN) -
 
-html/index.html: Doxyfile $(DOXY_DEPS) main.doxy
-	( cat $<; echo GENERATE_HTML=yes ) | $(DOXYGEN) -
+doxygen-man: Doxyfile.in
+	$(MKDIR_P) doxygen-man
+	( cat Doxyfile; echo GENERATE_MAN=yes ) | $(DOXYGEN) -
 
-doc-doxygen: html/index.html
-
-install-doc-doxygen:
-	mkdir -p $(DESTDIR)$(htmldir)/api
-	cp html/* $(DESTDIR)$(htmldir)/api
+doxygen-doc: doxygen-html doxygen-man
 endif
+
+doxygen-html-install: doxygen-html
+	$(mkinstalldirs) $(DESTDIR)$(htmldir)/api
+	$(install_sh_DATA) $</* $(DESTDIR)$(htmldir)/api
+
+doxygen-man-install: doxygen-man
+	$(mkinstalldirs) $(DESTDIR)$(htmldir)/api
+	$(mkinstalldirs) $(DESTDIR)$(mandir)/man1
+	$(mkinstalldirs) $(DESTDIR)$(mandir)/man3mu
+	$(install_sh_DATA) $</man3mu/*.3mu $(DESTDIR)$(mandir)/man3mu
+
+doxygen-install: doxygen-html-install doxygen-man-install
+
 
 if HAVE_DOCBOOK
-man_MANS = $(DOCBOOK_MAN)
-HTML_TARGETS += doc-docbook-html
-HTML_INSTALL_TARGETS += install-doc-docbook-html
+DOC_TARGETS += docbook-doc
+DOC_INSTALL_TARGETS += docbook-install
 
-BUILT_SOURCES += index.html
-BUILT_SOURCES += moonunit.1
+docbook-html: $(DOCBOOK_XML)
+	$(MKDIR_P) docbook-html
+	$(XSLTPROC) --output docbook-html/ --param citerefentry.link 1 --param use.id.as.filename 1 --xinclude docbook-html.xsl @srcdir@/index.xml
 
-$(DOCBOOK_HTML): $(DOCBOOK_XML) docbook-html.xsl
-	$(XSLTPROC) --param citerefentry.link 1 --param use.id.as.filename 1 --xinclude docbook-html.xsl @srcdir@/index.xml
+docbook-man: $(DOCKBOOK_XML)
+	$(MKDIR_P) docbook-man/man1
+	$(XSLTPROC) --output docbook-man/man1/ --xinclude docbook-man.xsl @srcdir@/index.xml
 
-$(DOCBOOK_MAN): $(DOCKBOOK_XML) docbook-man.xsl
-	$(XSLTPROC) --xinclude docbook-man.xsl @srcdir@/index.xml
-
-doc-docbook-html: $(DOCBOOK_HTML)
-
-install-doc-docbook-html:
-	mkdir -p $(DESTDIR)$(htmldir)/tools
-	cp $(DOCBOOK_HTML) $(DESTDIR)$(htmldir)/tools
+docbook-doc: docbook-html docbook-man
 endif
 
-html-local: $(HTML_TARGETS)
+docbook-html-install: docbook-html
+	$(mkinstalldirs) $(DESTDIR)$(htmldir)/tools
+	$(install_sh_DATA) $</* $(DESTDIR)$(htmldir)/tools
 
-install-html-local: $(HTML_INSTALL_TARGETS)
+docbook-man-install: docbook-man
+	$(mkinstalldirs) $(DESTDIR)$(mandir)/man1
+	$(install_sh_DATA) $</man1/* $(DESTDIR)$(mandir)/man1
 
-uninstall-local:
+docbook-install: doxygen-html-install doxygen-man-install
+
+uninstall-local: doxygen-man
 	rm -rf $(DESTDIR)$(htmldir)
+	for file in doxygen-man/man1/*; do rm -f $(DESTDIR)$(mandir)/man1/`basename $$file`; done
+	for file in doxygen-man/man3mu/*; do rm -f $(DESTDIR)$(mandir)/man3mu/`basename $$file`; done
 
-clean-local:
-	rm -rf html *.html *.1
+distclean-local:
+	rm -rf doxygen-html doxygen-man docbook-html docbook-man
 
-all-local: html
+all-local: $(DOC_TARGETS)
 
-install-data-local: install-html-local
+install-data-local: $(DOC_INSTALL_TARGETS)
 
-.PHONY: $(HTML_TARGETS)
+.PHONY: doxygen-doc doxygen-install doxygen-man-install doxygen-html-install
+.PHONY: docbook-doc docbook-install docbook-man-install docbook-html-install

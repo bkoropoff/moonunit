@@ -310,6 +310,4 @@ then
 	echo "    moonunit-stub to be loadable."
 fi
 echo "C++ support:           `$WANT_CPLUSPLUS && echo yes || echo no`"
-echo "DocBook documentation: `$HAVE_DOCBOOK && echo yes || echo no`"
-echo "Doxygen documentation: `$HAVE_DOXYGEN && echo yes || echo no`"
 echo ""

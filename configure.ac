@@ -55,6 +55,7 @@ plugindir="${libdir}/moonunit"
 AC_SUBST(plugindir)
 AC_SUBST(moduleext)
 AC_SUBST(memberext)
+AC_DEFINE_UNQUOTED([DSO_EXT], ["$moduleext"], [Full extension of dynamic shared objects])
 AM_CONDITIONAL([HAVE_MEMBEREXT], [test -n "$memberext"])
 
 WANT_CPLUSPLUS="true"

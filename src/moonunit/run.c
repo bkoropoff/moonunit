@@ -108,7 +108,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
     unsigned int failed = 0;
     MuLogger* logger = settings->logger;
     MuLoader* loader = settings->loader;
-    MuLibrary* library = Mu_Loader_Open(loader, path, &err);
+    MuLibrary* library = NULL;
     MuTest** tests = NULL;
 
     if (err)
@@ -118,6 +118,16 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
 
     Mu_Logger_LibraryEnter(logger, basename_pure(path));
     
+    library = Mu_Loader_Open(loader, path, &err);
+
+    MU_CATCH(err, MU_ERROR_LOAD_LIBRARY)
+    {
+        Mu_Logger_LibraryFail(logger, err->message);
+        failed++;
+        MU_HANDLE(&err);
+        goto leave;
+    }
+
     Mu_Library_Construct(library, &err);
 
     MU_CATCH(err, MU_ERROR_CONSTRUCT_LIBRARY)

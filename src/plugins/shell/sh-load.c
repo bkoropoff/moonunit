@@ -32,6 +32,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "sh-exec.h"
 
@@ -46,11 +50,27 @@ sh_can_open (struct MuLoader* self, const char* path)
 static struct MuLibrary*
 sh_open (struct MuLoader* self, const char* path, MuError** err)
 {
-    ShLibrary* library = calloc(1, sizeof(ShLibrary));
+    ShLibrary* library = NULL;
     Process handle;
     array* tests = NULL;
     char* line = NULL;
     unsigned int len;
+    struct stat statbuf;
+    
+    /* As a sanity check, make sure the file is actually valid */
+    if (stat(path, &statbuf) != 0)
+    {
+        MU_RAISE_GOTO(error, err, MU_ERROR_LOAD_LIBRARY, "%s: %s",
+                      path, strerror(errno));
+    }
+
+    if (!S_ISREG(statbuf.st_mode))
+    {
+        MU_RAISE_GOTO(error, err, MU_ERROR_LOAD_LIBRARY, "%s: not a file",
+                      path);
+    }
+
+    library = calloc(1, sizeof(ShLibrary));
 
     library->base.loader = self;
     library->path = strdup(path);
@@ -86,6 +106,8 @@ sh_open (struct MuLoader* self, const char* path, MuError** err)
     Process_Close(&handle);
 
     library->tests = (ShTest**) tests;
+
+error:
 
     return (MuLibrary*) library;
 }

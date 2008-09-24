@@ -149,7 +149,7 @@ cloader_can_open(MuLoader* self, const char* path)
     bool result;
     void* handle = mu_dlopen(path, RTLD_LAZY);
 
-    result = (handle != NULL);
+    result = (handle != NULL) || ends_with(path, DSO_EXT);
 
     if (handle)
         dlclose(handle);
@@ -178,11 +178,10 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
     library->library_construct = NULL;
     library->library_destruct = NULL;
 	library->path = strdup(path);
-	library->dlhandle = mu_dlopen(library->path, RTLD_LAZY);
+	library->dlhandle = mu_dlopen(library->path, RTLD_NOW);
 
     if (!library->dlhandle)
     {
-        free(library);
         MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, "%s", dlerror());
     }
 
@@ -204,17 +203,14 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
 #ifdef HAVE_LIBELF
     else if (!cloader_scan(_self, library, &err))
     {
-        dlclose(library->dlhandle);
-        free(library);
-        
         MU_RERAISE_GOTO(error, _err, err);
     }
 #else
     else
     {
         MU_RAISE_GOTO(error, _err, MU_ERROR_LOAD_LIBRARY, 
-                      "Library did not contain a test loading stub and no "
-                      "reflection backend is available.");
+                      "Library did not contain a loading stub "
+                      "and reflection is unavailable");
     }
 #endif
     return (MuLibrary*) library;

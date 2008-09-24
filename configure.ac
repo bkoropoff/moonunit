@@ -1,11 +1,11 @@
-AC_INIT([moonunit],[0.4],[bkoropoff __at__ gmail_com])
-AC_CANONICAL_TARGET
+AC_INIT([moonunit],[0.5],[bkoropoff __at__ gmail_com])
+AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PROG_CC
 AC_PROG_CXX
 
-case "$target_os" in
+case "$host_os" in
     solaris2.*)
 	STDFLAGS="-std=c99"
 	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__"

@@ -6,6 +6,8 @@ moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @LIB_pthread@
 
 EXTRA_DIST = moonunit-lt.sh.in moonunit-strip.sh.in moonunit-stub.sh.in option.h run.h gdb.h multilog.h upopt.h
 
+CLEANFILES = moonunit-lt moonunit-stub
+
 moonunit-lt: moonunit-lt.sh
 	cp $< $@
 	chmod +x $@

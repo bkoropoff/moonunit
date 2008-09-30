@@ -28,6 +28,7 @@
 #include <moonunit/plugin.h>
 #include <moonunit/logger.h>
 #include <moonunit/test.h>
+#include <moonunit/library.h>
 #include <moonunit/private/util.h>
 
 #include <stdlib.h>
@@ -64,11 +65,19 @@ leave(MuLogger* _self)
     fprintf(self->out, "</libraries>\n");
 }
 
-static void library_enter(MuLogger* _self, const char* name)
+static void library_enter(MuLogger* _self, const char* path, MuLibrary* library)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-    fprintf(self->out, "  <library name=\"%s\">\n", name);
+    if (library)
+    {
+        fprintf(self->out, "  <library file=\"%s\" name=\"%s\">\n",
+                basename_pure(path), Mu_Library_Name(library));
+    }
+    else
+    {
+        fprintf(self->out, "  <library file=\"%s\">\n", basename_pure(path));
+    }
 }
 
 static void library_fail(MuLogger* _self, const char* reason)

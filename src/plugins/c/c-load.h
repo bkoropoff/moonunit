@@ -41,6 +41,7 @@ typedef struct CLibrary
 {
     MuLibrary base;
 	const char* path;
+    const char* name;
 	void* dlhandle;
 	CTest** tests;
     MuEntryInfo* library_construct;

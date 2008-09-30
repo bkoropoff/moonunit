@@ -101,6 +101,12 @@ add(MuEntryInfo* entry, CLibrary* library, MuError **_err)
     case MU_ENTRY_LIBRARY_DESTRUCT:
         library->library_destruct = entry;
         break;
+    case MU_ENTRY_LIBRARY_INFO:
+        if (!strcmp(entry->name, "name"))
+        {
+            library->name = safe_strdup(entry->container);
+        }
+        break;
     }
     
 
@@ -163,6 +169,7 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
 	CLibrary* library = malloc(sizeof (CLibrary));
     MuError* err = NULL;
     void (*stub_hook)(MuEntryInfo*** es);
+    char *last_dot;
 
     if (!library)
     {
@@ -178,6 +185,7 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
     library->library_construct = NULL;
     library->library_destruct = NULL;
 	library->path = strdup(path);
+    library->name = NULL;
 	library->dlhandle = mu_dlopen(library->path, RTLD_NOW);
 
     if (!library->dlhandle)
@@ -213,6 +221,22 @@ cloader_open(MuLoader* _self, const char* path, MuError** _err)
                       "and reflection is unavailable");
     }
 #endif
+
+    /* If an explicit library name was not available, create one */
+    if (!library->name)
+    {
+        library->name = strdup(basename_pure(path));
+        if (!library->name)
+        {
+            MU_RAISE_GOTO(error, _err, MU_ERROR_MEMORY, "Out of memory");
+        }
+        last_dot = strrchr(library->name, '.');
+        if (last_dot)
+        {
+            *last_dot = '\0';
+        }
+    }
+
     return (MuLibrary*) library;
 
 error:
@@ -317,6 +341,8 @@ cloader_close (MuLoader* _self, MuLibrary* _handle)
         dlclose(handle->dlhandle);
     if (handle->path)
         free((void*) handle->path);
+    if (handle->name)
+        free((void*) handle->name);
 
     for (i = 0; i < array_size((array*) handle->tests); i++)
     {
@@ -335,7 +361,7 @@ cloader_library_name (MuLoader* _self, MuLibrary* _handle)
 {
     CLibrary* handle = (CLibrary*) _handle;
 
-	return basename_pure(handle->path);
+	return handle->name;
 }
 
 const char*

@@ -28,10 +28,14 @@
 #ifndef __MU_RESOURCE_H__
 #define __MU_RESOURCE_H__
 
+#include <moonunit/internal/boilerplate.h>
+#include <stdbool.h>
+
+typedef bool (*MuResourceSectionIter) (const char* section_name, void* data);
+
 const char* Mu_Resource_Get(const char* section_name, const char* key);
-const char* Mu_Resource_Search(char* const section_names[], const char* key);
 void Mu_Resource_Set(const char* section_name, const char* key, const char* value);
-char* Mu_Resource_SectionNameForSuite(const char* suite);
-char* Mu_Resource_SectionNameForLibrary(const char* path);
+bool Mu_Resource_IterateSections(MuResourceSectionIter iter, void* data);
+const char* Mu_Resource_GetForTest(const char* library, const char* suite, const char* test, const char* key);
 
 #endif

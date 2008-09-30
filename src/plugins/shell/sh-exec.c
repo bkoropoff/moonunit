@@ -239,20 +239,13 @@ Mu_Sh_ProcessResource(Process* process, MuTestResult* result, ShTest* test, char
     char* stage = Mu_Sh_GetToken(ptokens);
     char* file = Mu_Sh_NonemptyString(Mu_Sh_GetToken(ptokens));
     char* line = Mu_Sh_GetToken(ptokens);
+    const char* value = NULL;
 
-    char* const search_sections[] =
-    {
-        Mu_Resource_SectionNameForSuite(test->suite),
-        Mu_Resource_SectionNameForLibrary(((ShLibrary*) test->base.library)->path),
-        strdup("global"),
-        NULL
-    };
-
-    const char* value = Mu_Resource_Search(search_sections, key);
-
-    free(search_sections[0]);
-    free(search_sections[1]);
-    free(search_sections[2]);
+    value = Mu_Resource_GetForTest(
+        ((ShLibrary*) test->base.library)->name,
+        test->suite,
+        test->name,
+        key);
 
     if (value)
     {
@@ -269,7 +262,6 @@ Mu_Sh_ProcessResource(Process* process, MuTestResult* result, ShTest* test, char
         result->reason = format("Could not find resource '%s'", key);
         return 1;
     }
-    
 }
 
 static int

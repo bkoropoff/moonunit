@@ -36,7 +36,7 @@ typedef struct MuLogger
     struct MuPlugin* plugin;
     void (*enter) (struct MuLogger*);
     void (*leave) (struct MuLogger*);
-    void (*library_enter) (struct MuLogger*, const char*);
+    void (*library_enter) (struct MuLogger*, const char* path, struct MuLibrary* library);
     void (*library_fail) (struct MuLogger*, const char* reason);
     void (*library_leave) (struct MuLogger*);
     void (*suite_enter) (struct MuLogger*, const char*);
@@ -57,7 +57,7 @@ MuType Mu_Logger_OptionType(MuLogger* logger, const char *name);
 
 void Mu_Logger_Enter(struct MuLogger*);
 void Mu_Logger_Leave(struct MuLogger*);
-void Mu_Logger_LibraryEnter (struct MuLogger*, const char*);
+void Mu_Logger_LibraryEnter (struct MuLogger*, const char*, struct MuLibrary* library);
 void Mu_Logger_LibraryFail (struct MuLogger*, const char*);
 void Mu_Logger_LibraryLeave (struct MuLogger*);
 void Mu_Logger_SuiteEnter (struct MuLogger*, const char*);

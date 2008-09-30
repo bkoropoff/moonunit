@@ -25,16 +25,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <moonunit/resource.h>
 #include <moonunit/private/util.h>
 #include <string.h>
 
-static hashtable* sections;
+typedef struct MuResourceSection
+{
+    char* name;
+    hashtable* contents;
+} MuResourceSection;
+
+static hashtable* section_map = NULL;
+static MuResourceSection** section_array = NULL;
 
 static void
 section_free(void* key, void* value, void* unused)
 {
-    free(key);
-    hashtable_free((hashtable*) value);
+    MuResourceSection* section = (MuResourceSection*) value;
+    free(section->name);  
+    hashtable_free(section->contents);
 }
 
 /* A section owns its key/value resource pairs */
@@ -45,25 +54,27 @@ resource_free(void* key, void* value, void* unused)
     free(value);
 }
 
-static hashtable*
+static MuResourceSection*
 get_section(const char* name)
 {
-    hashtable* section;
+    MuResourceSection* section = NULL;
 
-    if (!sections)
+    if (!section_map)
     {
-        sections = hashtable_new(511, string_hashfunc, string_hashequal, section_free, NULL);
-        section = NULL;
+        section_map = hashtable_new(511, string_hashfunc, string_hashequal, section_free, NULL);
     }
     else
     {
-        section = (hashtable*) hashtable_get(sections, (char*) name);
+        section = hashtable_get(section_map, (char*) name);
     }
 
     if (!section)
     {
-        section = hashtable_new(511, string_hashfunc, string_hashequal, resource_free, NULL);
-        hashtable_set(sections, strdup(name), section);
+        section = malloc(sizeof(*section));
+        section->name = strdup(name);
+        section->contents = hashtable_new(511, string_hashfunc, string_hashequal, resource_free, NULL);
+        hashtable_set(section_map, section->name, section);
+        section_array = (MuResourceSection**) array_append((array*) section_array, section);
     }
 
     return section;
@@ -72,60 +83,84 @@ get_section(const char* name)
 const char*
 Mu_Resource_Get(const char* section_name, const char* key)
 {
-    hashtable* section;
+    MuResourceSection* section;
     const char* value;
 
     section = get_section(section_name);
    
-    value = (const char*) hashtable_get(section, key);
+    value = (const char*) hashtable_get(section->contents, key);
 
     return value;
-}
-
-const char*
-Mu_Resource_Search(char* const section_names[], const char* key)
-{
-    int i;
-
-    for (i = 0; section_names[i]; i++)
-    {
-        const char* value = Mu_Resource_Get(section_names[i], key);
-        if (value)
-            return value;
-    }
-
-    return NULL;
 }
 
 void
 Mu_Resource_Set(const char* section_name, const char* key, const char* value)
 {
-    hashtable* section;
+    MuResourceSection* section;
 
     section = get_section(section_name);
 
-    hashtable_set(section, strdup(key), strdup(value));
+    hashtable_set(section->contents, strdup(key), strdup(value));
 }
 
-char*
-Mu_Resource_SectionNameForSuite(const char* suite)
+bool
+Mu_Resource_IterateSections(MuResourceSectionIter iter, void* data)
 {
-    return format("suite:%s", suite);
+    size_t i;
+
+    for (i = 0; i < array_size((array*) section_array); i++)
+    {
+        if (iter(section_array[i]->name, data))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-char*
-Mu_Resource_SectionNameForLibrary(const char* path)
+typedef struct search_info
 {
-    char* base = strdup(basename_pure(path));
-    char* dot = strrchr(base, '.');
-    char* result = NULL;
+    char* test_path;
+    const char* key;
+    const char* value;
+} search_info;
 
-    if (dot)
-        *dot = '\0';
+static bool
+Mu_Resource_GetResourceSection(const char* section, void* data)
+{
+    search_info* info = (search_info*) data;
+    if (match_path(info->test_path, section))
+    {
+        info->value = Mu_Resource_Get(section, info->key);
+
+        if (info->value)
+            return true;
+    }
     
-    result = format("library:%s", base);
-
-    free(base);
-
-    return result;
+    return false;
 }
+
+const char*
+Mu_Resource_GetForTest(const char* library, const char* suite, const char* test, const char* key)
+{
+    search_info info = {NULL, NULL, NULL};
+    
+    info.key = key;
+    info.test_path = format("%s/%s/%s", library, suite, test);
+
+    /* If we don't find anything through pattern matching,
+       fall back on the global section */
+    if (!Mu_Resource_IterateSections(Mu_Resource_GetResourceSection, &info))
+    {
+        info.value = Mu_Resource_Get("global", key);
+    }
+
+    if (info.test_path)
+    {
+        free(info.test_path);
+    }
+
+    return info.value;
+}
+

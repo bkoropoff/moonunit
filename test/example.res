@@ -1,8 +1,8 @@
 [global]
 	greeting = Hello, world!
 
-[suite:Log]
+[*/Log/*]
 	info message = This was read from a resource
 
-[suite:Shell]
+[*/Shell/*]
 	resource string = 42

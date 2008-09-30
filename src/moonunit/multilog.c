@@ -28,6 +28,7 @@
 #include <moonunit/logger.h>
 #include <moonunit/private/util.h>
 #include <moonunit/test.h>
+#include <moonunit/library.h>
 
 typedef struct
 {
@@ -61,14 +62,14 @@ leave(MuLogger* _self)
 }
 
 static void
-library_enter(MuLogger* _self, const char* name)
+library_enter(MuLogger* _self, const char* path, MuLibrary* library)
 {
     MultiLogger* self = (MultiLogger*) _self;
     unsigned int index;
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_LibraryEnter(self->loggers[index], name);
+        Mu_Logger_LibraryEnter(self->loggers[index], path, library);
     }
 }
 

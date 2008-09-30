@@ -42,7 +42,8 @@ typedef struct ShTest
 typedef struct ShLibrary
 {
     MuLibrary base;
-    const char* path;
+    char* path;
+    char* name;
     ShTest** tests;
 } ShLibrary;
 

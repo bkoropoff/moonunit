@@ -28,6 +28,7 @@
 #include <moonunit/loader.h>
 #include <moonunit/private/util.h>
 #include <moonunit/logger.h>
+#include <moonunit/library.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -70,9 +71,9 @@ Mu_Logger_Leave(MuLogger* logger)
 }
 
 void
-Mu_Logger_LibraryEnter (struct MuLogger* logger, const char* name)
+Mu_Logger_LibraryEnter (struct MuLogger* logger, const char* path, MuLibrary* library)
 {
-    logger->library_enter(logger, name);
+    logger->library_enter(logger, path, library);
 }
 
 void

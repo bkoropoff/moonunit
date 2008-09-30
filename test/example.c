@@ -27,7 +27,7 @@
 
 /**
  * @file example.c
- * @brief Moonunit test structures, constants, and macros
+ * @brief MoonUnit example tests
  */
 
 /** \cond SKIP */
@@ -39,6 +39,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <errno.h>
+
+MU_LIBRARY_NAME("ExampleCTests");
 
 static int constructed = 0;
 

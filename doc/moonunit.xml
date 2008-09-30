@@ -38,24 +38,13 @@
     </para>
     <variablelist>
       <varlistentry>
-        <term><option>-s</option></term>
-        <term><option>--suite</option> <replaceable>suite</replaceable></term>
-        <listitem>
-          <para>
-            Runs all tests in <replaceable>suite</replaceable>.
-            This option may be specified multiple times to run tests in
-            multiple suites.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
         <term><option>-t</option></term>
-        <term><option>--test</option> <replaceable>suite</replaceable><literal>/</literal><replaceable>name</replaceable></term>
+        <term><option>--test</option> <replaceable>library</replaceable><literal>/</literal><replaceable>suite</replaceable><literal>/</literal><replaceable>test</replaceable></term>
         <listitem>
           <para>
-            Runs the test named <replaceable>name</replaceable> in
-            suite <replaceable>suite</replaceable>.  This option may be
-            specified multiple times to run multiple different tests.
+            Run a test or subset of tests specified by <replaceable>library</replaceable>,
+	    <replaceable>suite</replaceable>, and <replaceable>test</replaceable>, which
+	    may be globs.  This option may be specified multiple times.
           </para>
         </listitem>
       </varlistentry>
@@ -65,8 +54,7 @@
         <listitem>
           <para>
             Run all tests in all suites.  This is the default behavior
-            if no instances of <option>-s</option> or <option>-t</option>
-            are specified.
+            if no instances of <option>-t</option> are specified.
           </para>
         </listitem>
       </varlistentry>
@@ -78,9 +66,8 @@
             Interactively trace failed tests in <emphasis>gdb</emphasis>,
             the GNU debugger. Each test that fails will immediately be 
             rerun inside a <emphasis>gdb</emphasis> session with a breakpoint
-            set at the line or function nearest to the failure.  After leaving the
-            <emphasis>gdb</emphasis> session, <command>moonunit</command>
-            will resume at the next unit test.
+            set at the failed function.  After leaving the <emphasis>gdb</emphasis>
+	    session, <command>moonunit</command> will resume at the next unit test.
           </para>
         </listitem>
       </varlistentry>
@@ -96,6 +83,16 @@
             The default is equivalent to <literal>console:ansi=true,columns=60</literal>, which
             produces colored, human-readable output on stdout.
           </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-r</option></term>
+        <term><option>--resource</option> <replaceable>file</replaceable></term>
+        <listitem>
+          <para>
+	    Read in resource definitions from <replaceable>file</replaceable>, which
+	    should be a simple ini-style configuration file.
+	  </para>
         </listitem>
       </varlistentry>
       <varlistentry>

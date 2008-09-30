@@ -300,36 +300,32 @@ Mu_Interface_GetResource(const char* file, unsigned int line, const char* key)
 {
     MuInterfaceToken* token = Mu_Interface_CurrentToken();
     MuTest* test = token->test;
-    const char* value;
+    const char* value = NULL;
     MuTestResult summary;
-
-    char* search[] =
-    {
-        Mu_Resource_SectionNameForSuite(Mu_Test_Suite(test)),
-        Mu_Resource_SectionNameForLibrary(Mu_Library_Name(test->library)),
-        strdup("global"),
-        NULL
-    };
-
-    value = Mu_Resource_Search(search, key);
-
-    free(search[0]);
-    free(search[1]);
-    free(search[2]);
-
-    if (value)
-        return value;
-
-    /* Resource was not available, so fail the test */
-    summary.status = MU_STATUS_RESOURCE;
-    summary.reason = format("Could not find resource '%s'", key);
-    summary.line = line;
-    summary.file = file;
-    summary.backtrace = NULL;
     
-    token->result(token, &summary);
+    value = Mu_Resource_GetForTest(
+        Mu_Library_Name(test->library),
+        Mu_Test_Suite(test),
+        Mu_Test_Name(test),
+        key);
 
-    return NULL;
+    if (!value)
+    {
+        /* Resource was not available, so fail the test */
+        summary.status = MU_STATUS_RESOURCE;
+        summary.reason = format("Could not find resource '%s'", key);
+        summary.line = line;
+        summary.file = file;
+        summary.backtrace = NULL;
+        
+        token->result(token, &summary);
+        
+        goto error;
+    }
+
+error:
+
+    return value;
 }
 
 const char*

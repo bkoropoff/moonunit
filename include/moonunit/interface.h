@@ -82,9 +82,9 @@ C_BEGIN_DECLS
  * }
  * @endcode
  *
- * @param suite_name the (unquoted) name of the test suite which
+ * @param suite_name the unquoted name of the test suite which
  * this test should be part of
- * @param test_name the (unquoted) name of this test
+ * @param test_name the unquoted name of this test
  * @hideinitializer
  */
 #define MU_TEST(suite_name, test_name)                                  \
@@ -104,7 +104,7 @@ C_BEGIN_DECLS
 /**
  * @brief Define library setup routine
  * 
- * Defines an (optional) setup routine which will be
+ * Defines an optional setup routine which will be
  * executed before each test in the library. It should
  * be followed by a curly brace-enclosed code block.
  * Only one instance of this macro should appear in a
@@ -136,7 +136,7 @@ C_BEGIN_DECLS
 /**
  * @brief Define library teardown routine
  *
- * Defines an (optional) teardown routine which will be
+ * Defines an optional teardown routine which will be
  * executed once after each test in the library. It should
  * be followed by a curly brace-enclosed code block.
  * Only one instance of this macro should appear in a given
@@ -191,7 +191,7 @@ C_BEGIN_DECLS
  * }
  * @endcode
  *
- * @param suite_name the (unquoted) name of the test suite for
+ * @param suite_name the unquoted name of the test suite for
  * which the setup routine is being defined
  * @hideinitializer
  */
@@ -240,7 +240,7 @@ C_BEGIN_DECLS
  * }
  * @endcode
  *
- * @param suite_name the (unquoted) name of the test suite for
+ * @param suite_name the unquoted name of the test suite for
  * which the setup routine is being defined
  * @hideinitializer
  */
@@ -261,7 +261,7 @@ C_BEGIN_DECLS
 /**
  * @brief Define library construct routine
  * 
- * Defines an (optional) construct routine which will be
+ * Defines an optional construct routine which will be
  * executed exactly once by the test harness when this
  * library is loaded.  It should be followed by a
  * curly brace-enclosed code block.  Library constructors
@@ -303,7 +303,7 @@ C_BEGIN_DECLS
 /**
  * @brief Define library destruct routine
  * 
- * Defines an (optional) destruct routine which will be
+ * Defines an optional destruct routine which will be
  * executed exactly once by the test harness when this
  * library is unloaded.  It should be followed by a
  * curly brace-enclosed code block.  Library destructors
@@ -341,6 +341,67 @@ C_BEGIN_DECLS
         FIELD(run, __mu_f_library_destruct)                            \
     };                                                                 \
     void __mu_f_library_destruct()
+
+/**
+ * @brief Define library metadata
+ * 
+ * This macro allows library metadata to be defined in an extensible
+ * manner.  The only key presently supported is "name", which sets
+ * the internal name of the test library -- see MU_LIBRARY_NAME() for
+ * more information.
+ * 
+ * In the future, additional keys may be available to take
+ * advantage of new features or settings in the test loader.
+ *
+ * Only one instance of MU_LIBRARY_INFO() should appear in a library for
+ * a given key.
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_LIBRARY_INFO(name, "FooBarTests");
+ * @endcode
+ *
+ * @param info_key the unquoted metadata key to set
+ * @param info_value the quoted value to assign to the key
+ * @hideinitializer
+ */
+#define MU_LIBRARY_INFO(info_key, info_value)                           \
+    C_DECL MuEntryInfo __mu_e_library_info_##info_key;                  \
+    MuEntryInfo __mu_e_library_info_##info_key =                        \
+    {                                                                   \
+        FIELD(type, MU_ENTRY_LIBRARY_INFO),                             \
+        FIELD(name, #info_key),                                         \
+        FIELD(container, info_value),                                   \
+        FIELD(file, __FILE__),                                          \
+        FIELD(line, __LINE__),                                          \
+        FIELD(run, NULL)                                                \
+    };
+
+/**
+ * @brief Define library name
+ * 
+ * This macro sets the name of the test library to the given
+ * string.  The library name is used by MU_RESOURCE() during resource
+ * lookup, by test loggers during logging, and by the moonunit program
+ * itself when specifying the desired subset of tests to run.
+ * Extensions or naming conventions of dynamic shared objects
+ * may differ between platforms; MU_LIBRARY_NAME() allows you to
+ * establish a consistent internal name for your test library.
+ *
+ * This setting is optional.  If an explicit name is not specified,
+ * it will default to the file name of the shared object with the file
+ * extension removed.
+ *
+ * This macro is equivalent to MU_LIBRARY_INFO(name, lib_name)
+ *
+ * <b>Example:</b>
+ * @code
+ * MU_LIBRARY_NAME("FooBarTests");
+ * @endcode
+ * @param lib_name the quoted name of this library
+ * @hideinitializer
+ */
+#define MU_LIBRARY_NAME(lib_name) MU_LIBRARY_INFO(name, lib_name)
 /*@}*/
 
 /**
@@ -700,32 +761,24 @@ C_BEGIN_DECLS
  * @ingroup test
  * @brief Macros to access resource strings
  *
- * This module contains macros to access externally-defined
- * resource strings, allowing unit tests to be parameterized.
- * This is useful to avoid hard-coding important settings or
- * control for externalities.  Examples:
- *
- * <ul>
- * <li>The server to connect to in a unit test for a networking library</li>
- * <li>The file to open in a unit test for a file format decoder.</li>
- * </ul>
+ * This module contains macros and functions to access externally-defined
+ * resource strings, allowing unit tests to be parameterized. This is useful
+ * to avoid hard-coding constants or to abstract out certain external resources
+ * such as the location of a file or the name of a remote host.
  */
 /*@{*/
 
 /**
  * @brief Access a resource string
  *
- * This macro returns the resource string for the given key.
- * The following resource sections will be searched for the key,
- * in order:
+ * This macro finds the resource string for the given key, searching
+ * through available resource sections until a match is found. A section
+ * will be searched for the key if the section's name is a slash-separated
+ * path of the form library/suite/test which matches that of the current
+ * test.  The section name may be a glob.  The "global" section is also
+ * searched after all other eligible sections.  If no key is found,
+ * the test immediately fails.
  * 
- * <ul>
- * <li>The section with the same name as the current test suite</li>
- * <li>The section with the same name as the current library, minus any file extension</li>
- * <li>The "global" section</li>
- * </ul>
- *
- *
  * <b>Example:</b>
  * @code
  * open_foobar_file(MU_RESOURCE("foobar_filename"));
@@ -740,7 +793,8 @@ C_BEGIN_DECLS
  *
  * This macro returns the resource string for the given key
  * in a specific section.  This macro does not perform the
- * search procedure used by MU_RESOURCE.
+ * search procedure used by MU_RESOURCE.  If the given
+ * key is not found, the test immediately fails.
  *
  * <b>Example:</b>
  * @code
@@ -758,7 +812,7 @@ C_BEGIN_DECLS
  * @ingroup test
  * @brief Macros and structures to inspect live unit tests
  *
- * This modules contains macros and structures that allow running
+ * This module contains macros and structures that allow running
  * unit tests to inspect their own attributes and environment
  */
 /*@{*/
@@ -811,7 +865,8 @@ typedef enum MuEntryType
     MU_ENTRY_FIXTURE_SETUP,
     MU_ENTRY_FIXTURE_TEARDOWN,
     MU_ENTRY_LIBRARY_CONSTRUCT,
-    MU_ENTRY_LIBRARY_DESTRUCT
+    MU_ENTRY_LIBRARY_DESTRUCT,
+    MU_ENTRY_LIBRARY_INFO
 } MuEntryType;
 
 typedef struct MuEntryInfo

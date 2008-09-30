@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <dlfcn.h>
 #include <ctype.h>
+#include <fnmatch.h>
 
 #include <moonunit/private/util.h>
 
@@ -44,6 +45,12 @@ ends_with (const char* haystack, const char* needle)
         return !strcmp(haystack + hlen - nlen, needle);
     else
         return false;
+}
+
+bool
+match_path (const char* path, const char *pattern)
+{
+    return !fnmatch(pattern, path, FNM_PATHNAME);
 }
 
 char* formatv(const char* format, va_list ap)

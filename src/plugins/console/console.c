@@ -28,6 +28,7 @@
 #include <moonunit/logger.h>
 #include <moonunit/plugin.h>
 #include <moonunit/test.h>
+#include <moonunit/library.h>
 #include <moonunit/private/util.h>
 
 #include <string.h>
@@ -122,13 +123,20 @@ leave(MuLogger* _self)
 }
 
 static void
-library_enter(MuLogger* _self, const char* name)
+library_enter(MuLogger* _self, const char* path, MuLibrary* library)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
 
     self->num_libraries++;
 
-	fprintf(self->out, "Library: %s\n", name);
+    if (library)
+    {
+        fprintf(self->out, "Library: %s (%s)\n", basename_pure(path), Mu_Library_Name(library));
+    }
+    else
+    {
+        fprintf(self->out, "Library: %s\n", basename_pure(path));
+    }
 }
 
 static void

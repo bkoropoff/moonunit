@@ -54,6 +54,7 @@ sh_open (struct MuLoader* self, const char* path, MuError** err)
     Process handle;
     array* tests = NULL;
     char* line = NULL;
+    char* dot = NULL;
     unsigned int len;
     struct stat statbuf;
     
@@ -74,6 +75,13 @@ sh_open (struct MuLoader* self, const char* path, MuError** err)
 
     library->base.loader = self;
     library->path = strdup(path);
+    library->name = strdup(basename_pure(path));
+
+    dot = strrchr(library->name, '.');
+    if (dot)
+    {
+        *dot = '\0';
+    }
 
     Mu_Sh_Exec(&handle, path, "mu_enum_test_functions >& ${MU_CMD_OUT}");
 
@@ -173,7 +181,7 @@ sh_library_name (struct MuLoader* self, struct MuLibrary* handle)
 {
     ShLibrary* library = (ShLibrary*) handle;
 
-    return basename_pure(library->path);
+    return library->name;
 }
 
 // Get the name of a test

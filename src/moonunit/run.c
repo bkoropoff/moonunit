@@ -70,27 +70,31 @@ static bool
 in_set(MuTest* test, int setc, char** set)
 {
     unsigned int i;
+    const char* test_name = Mu_Test_Name(test);
+    const char* suite_name = Mu_Test_Suite(test);
+    const char* library_name = Mu_Library_Name(test->library);
+    char* test_path = format("%s/%s/%s", library_name, suite_name, test_name);
+    bool result;
 
     for (i = 0; i < setc; i++)
     {
-        char* suite_name = set[i];
-        char* slash = strchr(set[i], '/');
-        char* test_name = slash ? slash+1 : NULL;
-
-        if (test_name)
+        if (match_path(test_path, set[i]))
         {
-            if (!strncmp(suite_name, Mu_Test_Suite(test), slash - suite_name) &&
-                !strcmp(test_name, Mu_Test_Name(test)))
-                return true;
-        }
-        else
-        {
-            if (!strcmp(suite_name, Mu_Test_Suite(test)))
-                return true;
+            result = true;
+            goto done;
         }
     }
 
-    return false;
+    result = false;
+
+done:
+
+    if (test_path)
+    {
+        free(test_path);
+    }
+
+    return result;
 }
 
 static void
@@ -116,9 +120,11 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         MU_RERAISE_GOTO(error, _err, err);
     }
 
-    Mu_Logger_LibraryEnter(logger, basename_pure(path));
-    
     library = Mu_Loader_Open(loader, path, &err);
+
+    /* Even if library loading failed, log that
+       we attempted to visit it */
+    Mu_Logger_LibraryEnter(logger, path, library); 
 
     MU_CATCH(err, MU_ERROR_LOAD_LIBRARY)
     {

@@ -27,7 +27,6 @@
 
 enum
 {
-    OPTION_SUITE,
     OPTION_TEST,
     OPTION_ALL,
     OPTION_GDB,
@@ -80,24 +79,17 @@ error(OptionTable* table, int code, const char* fmt, ...)
 static const struct UpoptOptionInfo options[] =
 {
     {
-        .longname = "suite",
-        .shortname = 's',
-        .description = "Run a specific test suite",
-        .argument = "suite",
-        .constant = OPTION_SUITE
-    },
-    {
         .longname = "test",
         .shortname = 't',
-        .argument = "suite/name",
+        .argument = "library/suite/name",
         .constant = OPTION_TEST,
-        .description = "Run a specific test",
+        .description = "Run a specific test or subset of tests (glob allowed)",
     },
     {
         .longname = "all",
         .shortname = 'a',
         .constant = OPTION_ALL,
-        .description = "Run all tests in all suites (default)",
+        .description = "Run all tests (default)",
         .argument = NULL
     },
     {
@@ -199,24 +191,9 @@ Option_Parse(int argc, char** argv, OptionTable* option)
 
         switch (constant)
         {
-        case OPTION_SUITE:
         case OPTION_TEST:
-        {
-            if (constant == OPTION_SUITE && strchr(value, '/'))
-            {
-                rc = UPOPT_ERROR(option, "The --suite option requires an argument without a forward slash");
-                goto error;
-            }
-            
-            if (constant == OPTION_TEST && !strchr(value, '/'))
-            {
-                rc = UPOPT_ERROR(option, "The --test option requires an argument with a forward slash");
-                goto error;
-            }
-
-            option->tests = array_append(option->tests, (char*) value);
+            option->tests = array_append(option->tests, strdup(value));
             break;
-        }
         case OPTION_ALL:
             option->all = true;
             break;

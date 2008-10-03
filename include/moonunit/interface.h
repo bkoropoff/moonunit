@@ -36,7 +36,7 @@
  * inspect unit tests
  *
  * This module contains the essential ingredients to add unit tests
- * to your code which Moonunit can discover and run.
+ * to your code which MoonUnit can discover and run.
  *
  * @warning As unit tests are not intended for installation on end
  * user systems, the APIs defined in these modules are not guaranteed to

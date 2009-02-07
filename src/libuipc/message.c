@@ -52,6 +52,7 @@ struct __uipc_handle
 	int socket;
 };
 
+static
 uipc_packet*
 packet_from_message(uipc_message* message)
 {

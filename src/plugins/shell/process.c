@@ -230,6 +230,7 @@ Process_Channel_Write(Process* handle, unsigned int cnum, const void* data, size
     return write(channel->fd, data, len);
 }
 
+static
 void
 timeval_diff(struct timeval* from, struct timeval* to, struct timeval* diff)
 {

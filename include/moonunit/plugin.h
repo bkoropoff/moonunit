@@ -59,8 +59,10 @@ typedef struct MuPlugin
     struct MuLogger*  (*create_logger) ();
 } MuPlugin;
 
+extern MuPlugin* __mu_p_init(void);
+
 #define MU_PLUGIN_INIT \
-    MuPlugin* __mu_p_init ()
+    MuPlugin* __mu_p_init (void)
 
 C_BEGIN_DECLS
 

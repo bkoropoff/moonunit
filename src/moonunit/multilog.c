@@ -30,6 +30,8 @@
 #include <moonunit/test.h>
 #include <moonunit/library.h>
 
+#include "multilog.h"
+
 typedef struct
 {
     MuLogger base;

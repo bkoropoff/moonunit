@@ -38,6 +38,8 @@
 
 #include <moonunit/test.h>
 
+#include "backtrace.h"
+
 #if defined(HAVE_BACKTRACE) && defined(HAVE_BACKTRACE_SYMBOLS)
 
 static void

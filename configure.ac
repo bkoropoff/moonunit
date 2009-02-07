@@ -211,7 +211,7 @@ AC_SUBST(LIBELF_LIBADD)
 LDFLAGS=$saved_LDFLAGS
 CPPFLAGS=$saved_CPPFLAGS
 
-CFLAGS="$CFLAGS -Wall -Werror"
+CFLAGS="$CFLAGS -Wall -Werror -Wmissing-prototypes"
 
 # Begin C++ checks
 if $WANT_CPLUSPLUS

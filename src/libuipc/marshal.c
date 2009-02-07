@@ -112,6 +112,7 @@ uipc_marshal_payload(void* buffer, unsigned long size, const void* payload, uipc
     return written;
 }
 
+static
 unsigned long
 unmarshal_string(void** out, const void* payload)
 {

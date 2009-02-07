@@ -52,6 +52,7 @@
 #include "backtrace.h"
 #include "c-token.h"
 #include "c-load.h"
+#include "c-run.h"
 
 #ifdef CPLUSPLUS_ENABLED
 #    include "cplusplus.h"
@@ -153,6 +154,7 @@ ctoken_current(void* data)
     return (MuInterfaceToken*) data;
 }
 
+static
 void
 ctoken_event(MuInterfaceToken* _token, const MuLogEvent* event)
 {
@@ -178,7 +180,9 @@ ctoken_event(MuInterfaceToken* _token, const MuLogEvent* event)
 
 static void ctoken_free(CToken* token);
 
-void ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
+static
+void
+ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
 {    
     CToken* token = (CToken*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
@@ -210,6 +214,7 @@ done:
     pthread_mutex_unlock(&token->lock);
 }
 
+static
 void
 ctoken_meta(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 {
@@ -295,6 +300,7 @@ ctoken_result_inproc(MuInterfaceToken* _token, const MuTestResult* summary)
     siglongjmp(token->inproc_jmpbuf, 1);
 }
 
+static
 void
 ctoken_meta_inproc(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 {
@@ -1034,25 +1040,29 @@ error:
     }
 }
 
-static void
+static
+void
 timeout_set(MuLoader* self, int timeout)
 {
     default_timeout = timeout;
 }
 
-static int
+static
+int
 timeout_get(MuLoader* self)
 {
     return default_timeout;
 }
 
-static void
+static
+void
 iterations_set(MuLoader* self, int count)
 {
     default_iterations = count;
 }
 
-static int
+static
+int
 iterations_get(MuLoader* self)
 {
     return (int) default_iterations;
@@ -1070,5 +1080,3 @@ MuOption cloader_options[] =
               "The number of times each test is run (unless specified by the test)"),
     MU_OPTION_END
 };
-
-

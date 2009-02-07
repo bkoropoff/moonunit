@@ -51,6 +51,7 @@
 
 OptionTable option = {0};
 
+static
 int
 list_plugins()
 {
@@ -89,6 +90,7 @@ list_plugins()
     return 0;
 }
 
+static
 void
 print_options(void* object, MuOption* options)
 {
@@ -104,6 +106,7 @@ print_options(void* object, MuOption* options)
     }
 }
 
+static
 int
 plugin_info(const char* name)
 {
@@ -139,6 +142,7 @@ plugin_info(const char* name)
     return 0;
 }
 
+static
 int
 run(char* self)
 {

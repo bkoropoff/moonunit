@@ -120,7 +120,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_LIBRARY_SETUP()                                              \
-    void __mu_f_library_setup();                                        \
+    void __mu_f_library_setup(void);                                    \
     C_DECL MuEntryInfo __mu_e_library_setup;                            \
     MuEntryInfo __mu_e_library_setup =                                  \
     {                                                                   \
@@ -131,7 +131,7 @@ C_BEGIN_DECLS
         FIELD(line, __LINE__),                                          \
         FIELD(run, __mu_f_library_setup)                                \
     };                                                                  \
-    void __mu_f_library_setup()
+    void __mu_f_library_setup(void)
 
 /**
  * @brief Define library teardown routine
@@ -152,7 +152,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_LIBRARY_TEARDOWN()                                           \
-    void __mu_f_library_teardown();                                     \
+    void __mu_f_library_teardown(void);                                 \
     C_DECL MuEntryInfo __mu_e_library_teardown;                         \
     MuEntryInfo __mu_e_library_teardown =                               \
     {                                                                   \
@@ -163,7 +163,7 @@ C_BEGIN_DECLS
         FIELD(line, __LINE__),                                          \
         FIELD(run, __mu_f_library_teardown)                             \
     };                                                                  \
-    void __mu_f_library_teardown()
+    void __mu_f_library_teardown(void)
 
 /**
  * @brief Define test fixture setup routine
@@ -287,7 +287,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_LIBRARY_CONSTRUCT()                                          \
-    void __mu_f_library_construct();                                    \
+    void __mu_f_library_construct(void);                                \
     C_DECL MuEntryInfo __mu_e_library_construct;                        \
     MuEntryInfo __mu_e_library_construct =                              \
     {                                                                   \
@@ -298,7 +298,7 @@ C_BEGIN_DECLS
         FIELD(line, __LINE__),                                          \
         FIELD(run, __mu_f_library_construct)                            \
     };                                                                  \
-    void __mu_f_library_construct()
+    void __mu_f_library_construct(void)
 
 /**
  * @brief Define library destruct routine
@@ -329,7 +329,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_LIBRARY_DESTRUCT()                                          \
-    void __mu_f_library_destruct();                                    \
+    void __mu_f_library_destruct(void);                                \
     C_DECL MuEntryInfo __mu_e_library_destruct;                        \
     MuEntryInfo __mu_e_library_destruct =                              \
     {                                                                  \
@@ -340,7 +340,7 @@ C_BEGIN_DECLS
         FIELD(line, __LINE__),                                         \
         FIELD(run, __mu_f_library_destruct)                            \
     };                                                                 \
-    void __mu_f_library_destruct()
+    void __mu_f_library_destruct(void)
 
 /**
  * @brief Define library metadata
@@ -878,6 +878,9 @@ typedef struct MuEntryInfo
     unsigned int line;
     void (*run)(void);
 } MuEntryInfo;
+
+extern void __mu_stub_hook(MuEntryInfo*** es);
+
 #endif
 
 C_END_DECLS

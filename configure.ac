@@ -37,7 +37,7 @@ case "$host_os" in
 		;;
         esac
 	;;
-    darwin8.*)
+    darwin8.*|darwin9.*)
 	moduleext=".so"
 	;;
     freebsd6.*|freebsd7.*)

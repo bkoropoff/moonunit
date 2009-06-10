@@ -40,7 +40,7 @@ case "$host_os" in
     darwin8.*|darwin9.*)
 	moduleext=".so"
 	;;
-    freebsd6.*|freebsd7.*)
+    freebsd6.*|freebsd7.*|freebsd8.*)
 	STDFLAGS="-std=c99"
 	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L -D__BSD_VISIBLE=1"
 	CC="$CC $STDFLAGS"

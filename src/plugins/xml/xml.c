@@ -181,6 +181,9 @@ static void test_leave(MuLogger* _self,
         case MU_STATUS_SUCCESS:
             result_str = "xpass";
             break;
+        case MU_STATUS_SKIPPED:
+            result_str = "skip";
+            break;
         default:
             result_str = "fail";
             break;
@@ -199,7 +202,7 @@ static void test_leave(MuLogger* _self,
         {
             fprintf(out, "        <result status=\"%s\" stage=\"%s\"", result_str, stage);
             if (summary->file)
-                fprintf(out, " file=\"%s\"", summary->file);
+                fprintf(out, " file=\"%s\"", basename_pure(summary->file));
             if (summary->line)
                 fprintf(out, " line=\"%i\"", summary->line);
 
@@ -211,7 +214,7 @@ static void test_leave(MuLogger* _self,
         {
             fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
             if (summary->file)
-                fprintf(out, " file=\"%s\"", summary->file);
+                fprintf(out, " file=\"%s\"", basename_pure(summary->file));
             if (summary->line)
                 fprintf(out, " line=\"%i\"", summary->line);
             fprintf(out, "/>\n");

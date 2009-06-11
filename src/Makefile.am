@@ -1,1 +1,1 @@
-SUBDIRS = libuipc libmoonunit plugins moonunit
+SUBDIRS = libuipc libmoonunit plugins moonunit muxml

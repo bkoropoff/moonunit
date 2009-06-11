@@ -1,0 +1,132 @@
+#!@BASH_PATH@
+#
+# Copyright (c) Brian Koropoff
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the Moonunit project nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY BRIAN KOROPOFF ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL BRIAN KOROPOFF BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+program="`basename $0`"
+prefix="@prefix@"
+datadir="@datadir@"
+html_xsl="muxhtml.xsl"
+html_res="muxhtml.css muxhtml.js"
+
+error()
+{
+    echo Error: "$1"
+    exit 1
+}
+
+usage_error()
+{
+    echo Error: "$1"
+    echo ""
+    usage
+    exit 1
+}
+
+check_xsltproc()
+{
+    if ! type xsltproc >/dev/null 2>&1
+    then
+	error "xsltproc not found"
+    fi
+}
+
+mode_html()
+{
+    local res
+
+    check_xsltproc
+
+    [ -z "$output" ] && output="."
+
+    mkdir -p "$output" || error "Could not create output directory '$output'"
+
+    xsltproc "${datadir}/${html_xsl}" "${input[@]}" > "${output}/index.xhtml" \
+	|| error "Failure processing xslt stylesheet"
+    for res in ${html_res}
+    do
+	cp "${datadir}/${res}" "${output}/${res}" \
+	    || error "Could not copy resource '$res'"
+    done
+}
+
+usage()
+{
+    cat << __EOF__
+$program -- MoonUnit XML processing utility
+
+  This program transforms and analyzes the output of the MoonUnit
+  XML logging plugin.
+
+Usage: $program -m <mode> [-o <output>] <input1> [ <input2> ... ]
+  -m mode             Selects output mode from one of the following:
+                      
+                      html - Generates a directory containing a
+                             DHTML webpage of test results
+  -o <output>         Write output to the given file or directory
+  -?,-h,--help        Display this usage information
+__EOF__
+}
+
+mode=""
+output=""
+input=()
+
+arg=$1
+
+while [ -n "$arg" ]
+do
+    shift
+    case "$arg" in
+        --help|-h|'-?')
+            usage $0
+            exit 0
+            ;;
+	-m)
+	    mode="$1"
+	    shift
+	    ;;
+        -o)
+            output="$1"
+            shift
+            ;;
+        *)
+            input=("${input[@]}" "$arg")
+            ;;
+    esac
+    arg="$1"
+done
+
+if [ -z "$mode" ]
+then
+    usage_error "No mode specified"
+fi
+
+if ! type "mode_${mode}" >/dev/null 2>&1
+then
+    error "Unknown mode '$mode'"
+fi
+
+"mode_${mode}"

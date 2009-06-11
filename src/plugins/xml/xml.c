@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <config.h>
+
 #include <moonunit/plugin.h>
 #include <moonunit/logger.h>
 #include <moonunit/test.h>
@@ -35,6 +37,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+#define INDENT "  "
+#define INDENT_MOONUNIT ""
+#define INDENT_PLATFORM INDENT_MOONUNIT INDENT
+#define INDENT_LIBRARY INDENT_PLATFORM INDENT
+#define INDENT_SUITE INDENT_LIBRARY INDENT
+#define INDENT_TEST INDENT_SUITE INDENT
 
 typedef struct
 {
@@ -52,17 +61,25 @@ enter(MuLogger* _self)
     XmlLogger* self = (XmlLogger*) _self;
     
     if (self->name)
-        fprintf(self->out, "<libraries name=\"%s\">\n", self->name);
+    {
+        fprintf(self->out, INDENT_MOONUNIT "<moonunit name=\"%s\">\n", self->name);
+    }
     else
-        fprintf(self->out, "<libraries>\n");
+    {
+        fprintf(self->out, INDENT_MOONUNIT "<moonunit>\n");
+    }
+
+    fprintf(self->out, INDENT_PLATFORM "<platform cpu=\"%s\" vendor=\"%s\" os=\"%s\">\n",
+            HOST_CPU, HOST_VENDOR, HOST_OS);
 }
 
 static void
 leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
-    
-    fprintf(self->out, "</libraries>\n");
+
+    fprintf(self->out, INDENT_PLATFORM "</platform>\n");
+    fprintf(self->out, INDENT_MOONUNIT "</moonunit>\n");
 }
 
 static void library_enter(MuLogger* _self, const char* path, MuLibrary* library)
@@ -71,12 +88,12 @@ static void library_enter(MuLogger* _self, const char* path, MuLibrary* library)
 
     if (library)
     {
-        fprintf(self->out, "  <library file=\"%s\" name=\"%s\">\n",
+        fprintf(self->out, INDENT_LIBRARY "<library file=\"%s\" name=\"%s\">\n",
                 basename_pure(path), Mu_Library_Name(library));
     }
     else
     {
-        fprintf(self->out, "  <library file=\"%s\">\n", basename_pure(path));
+        fprintf(self->out, INDENT_LIBRARY "<library file=\"%s\">\n", basename_pure(path));
     }
 }
 
@@ -84,7 +101,7 @@ static void library_fail(MuLogger* _self, const char* reason)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-    fprintf(self->out, "    <abort reason=\"%s\"/>\n", reason);
+    fprintf(self->out, INDENT_LIBRARY "  <abort reason=\"%s\"/>\n", reason);
 }
 
 
@@ -92,21 +109,21 @@ static void library_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-	fprintf(self->out, "  </library>\n");
+	fprintf(self->out, INDENT_LIBRARY "</library>\n");
 }
 
 static void suite_enter(MuLogger* _self, const char* name)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-	fprintf(self->out, "    <suite name=\"%s\">\n", name);
+	fprintf(self->out, INDENT_SUITE "<suite name=\"%s\">\n", name);
 }
 
 static void suite_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-	fprintf(self->out, "    </suite>\n");
+	fprintf(self->out, INDENT_SUITE "</suite>\n");
 }
 
 static void test_enter(MuLogger* _self, MuTest* test)
@@ -115,7 +132,7 @@ static void test_enter(MuLogger* _self, MuTest* test)
 
     self->current_test = test;
 
-    fprintf(self->out, "      <test name=\"%s\">\n", Mu_Test_Name(test));
+    fprintf(self->out, INDENT_TEST "<test name=\"%s\">\n", Mu_Test_Name(test));
 }
 
 static void test_log(MuLogger* _self, MuLogEvent* event)
@@ -136,7 +153,7 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
         case MU_LEVEL_TRACE:
             level_str = "trace"; break;
     }
-    fprintf(self->out, "        <event level=\"%s\"", level_str);
+    fprintf(self->out, INDENT_TEST "  <event level=\"%s\"", level_str);
 
     fprintf(self->out, " stage=\"%s\"", Mu_TestStageToString(event->stage));
     
@@ -146,8 +163,8 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
         fprintf(self->out, " line=\"%u\"", event->line);
 
     fprintf(self->out, ">\n");
-    fprintf(self->out, "          <![CDATA[%s]]>\n", event->message);
-    fprintf(self->out, "        </event>\n");
+    fprintf(self->out, INDENT_TEST "    <![CDATA[%s]]>\n", event->message);
+    fprintf(self->out, INDENT_TEST "  </event>\n");
 }
 
 static void test_leave(MuLogger* _self, 
@@ -192,7 +209,7 @@ static void test_leave(MuLogger* _self,
         
     if (summary->status == MU_STATUS_SUCCESS)
 	{
-        fprintf(out, "        <result status=\"%s\"/>\n", result_str);
+        fprintf(out, INDENT_TEST "  <result status=\"%s\"/>\n", result_str);
     }
     else
     {
@@ -200,19 +217,19 @@ static void test_leave(MuLogger* _self,
         
         if (summary->reason)
         {
-            fprintf(out, "        <result status=\"%s\" stage=\"%s\"", result_str, stage);
+            fprintf(out, INDENT_TEST "  <result status=\"%s\" stage=\"%s\"", result_str, stage);
             if (summary->file)
                 fprintf(out, " file=\"%s\"", basename_pure(summary->file));
             if (summary->line)
                 fprintf(out, " line=\"%i\"", summary->line);
 
             fprintf(out, ">\n");
-            fprintf(out, "          <![CDATA[%s]]>\n", summary->reason);
-            fprintf(out, "        </result>\n");
+            fprintf(out, INDENT_TEST "    <![CDATA[%s]]>\n", summary->reason);
+            fprintf(out, INDENT_TEST "  </result>\n");
         }
         else
         {
-            fprintf(out, "        <result status=\"fail\" stage=\"%s\"", stage);
+            fprintf(out, INDENT_TEST "  <result status=\"fail\" stage=\"%s\"", stage);
             if (summary->file)
                 fprintf(out, " file=\"%s\"", basename_pure(summary->file));
             if (summary->line)
@@ -224,10 +241,10 @@ static void test_leave(MuLogger* _self,
     if (summary->backtrace)
     {
         MuBacktrace* frame;
-        fprintf(out, "        <backtrace>\n");
+        fprintf(out, INDENT_TEST "  <backtrace>\n");
         for (frame = summary->backtrace; frame; frame = frame->up)
         {
-            fprintf(out, "          <frame");
+            fprintf(out, INDENT_TEST "    <frame");
             if (frame->file_name)
             {
                 fprintf(out, " binary_file=\"%s\"", frame->file_name);
@@ -246,10 +263,10 @@ static void test_leave(MuLogger* _self,
             }
             fprintf(out, "/>\n");
         }
-        fprintf(out, "        </backtrace>\n");
+        fprintf(out, INDENT_TEST " 　</backtrace>\n");
     }
 
-    fprintf(out, "      </test>\n");
+    fprintf(out, INDENT_TEST "</test>\n");
 }
 
 static int

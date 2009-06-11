@@ -1,28 +1,22 @@
-.header {
-    padding: 0.25em;
-}
-
 .title {
-    display: inline;
     font-weight: bold;
-    font-size: 100%;
 }
 
-.expander {
-    display: inline;
-    float: left;
-    width: 10pt;
-    height: 10pt;
+.header {
+    padding: 0.15em;
 }
 
 .result {
-    font-family: monospace;
+    text-transform: uppercase;
+    font-weight: bold;
     font-size: 80%;
-    border: 1px solid black;
+    border: 1px solid #2e3436;
+    padding: 1px;
     background: #2e3436;
     color: #eeeeec;
-    padding: 1px;
     float: right;
+    width: 4em;
+    text-align: center;
 }
 
 .result[status="pass"] {
@@ -37,20 +31,46 @@
     background-color: #c4a000;
 }
 
-.content {
-    position: relative;
+.main > .header {
+    font-size: 200%;
+    text-align: center;
+}
+
+.platform:first-child
+{
+    margin-top: 0;
+}
+
+.platform {
+    margin-top: 2em;
+}
+
+.platform > .header {
+    font-size: 150%;
+}
+
+.platform > .content {
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+.platform > .header > .title:before {
+    content: "Platform: "
+}
+
+.platform > .header .title span[name='vendor'] {
+    display: none;
 }
 
 .library {
     margin: 0.5em;
-    border: 2px solid black;
-    width: 25em;
-    display: block;
-    float: left;
+    border: 2px solid #2e3436;
+    color: #2e3436;
+    max-width: 50em;
 }
 
 .library > .header {
-    color: white;
+    color: #eeeeec;
     background: #3465a4;
     font-size: 130%;
 }
@@ -61,12 +81,17 @@
     padding-left: 1.0em;
 }
 
+.test {
+    border-top: 1px dotted #babdb6;
+}
+
+.test:first-child {
+    border-top: none;
+}
+
 .test > .header {
     padding-left: 2.0em;
-    padding-top: 1px;
-    padding-bottom: 1px;
     font-size: 105%;
-    
 }
 
 .test > .header[full] > .title:after {
@@ -79,6 +104,7 @@
 
 .test > .content {
     padding-left: 3.0em;
+    padding-bottom: 0.5em;
 }
 
 .events .content {
@@ -89,34 +115,62 @@
     background: #d3d7cf;
 }
 
-.event {
-    display: block;
-}
-
 .level {
     font-family: monospace;
-    font-size: 80%;
-    border: 1px solid black;
+    border: 1px solid #2e3436;
     background: #2e3436;
     color: #eeeeec;
     padding: 1px;
-    display: inline;
-    float: right;
-    margin-right: 0.25em;
-    margin-left: 0.25em;
+    width: 6em;
+    display: inline-block;
+    text-align: center;
+    vertical-align: bottom;
 }
 
-.source
-{
+.source {
     font-family: monospace;
-    font-size: 80%;
-    border: 1px solid black;
+    border: 1px solid #2e3436;
     background: #eeeeec;
     color: #2e3436;
     padding: 1px;
-    display: inline;
-    float: right;
-    margin-right: 0.25em;
-    margin-left: 0.25em;
+    width: 12em;
+    display: inline-block;
+    text-align: center;
+    vertical-align: bottom;
 }
 
+.summary > .header {
+    font-size: 150%;
+}
+
+.summary > .content {
+    display: table;
+    width: 100%;
+    max-width: 20em;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+.summary > .content > div {
+    display: table-row;
+}
+
+.summary > .content > div > div {
+    display: table-cell;
+}
+
+.statistic > div:first-child {
+    font-weight: bold;
+}
+
+.statistic[name="passed"] > div:first-child {
+    color: #4e9a06;
+}
+
+.statistic[name="failed"] > div:first-child {
+    color: #a40000;
+}
+
+.statistic[name="skipped"] > div:first-child {
+    color: #c4a000;
+}

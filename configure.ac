@@ -227,13 +227,27 @@ fi
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [false])
 if test x"$DOXYGEN" != x"false"
 then
-	HAVE_DOXYGEN=true
+	AC_MSG_CHECKING([doxygen version])
+	doxy_triple="`doxygen --version | sed 's/\./ /g'`"
+	doxy_major="`echo $doxy_triple | awk '{print $1;}'`"
+	doxy_minor="`echo $doxy_triple | awk '{print $2;}'`"
+	doxy_micro="`echo $doxy_triple | awk '{print $3;}'`"
+	doxy_version="`expr $doxy_major '*' 10000 + $doxy_minor '*' 100 + $doxy_micro`"
+
+	if test "$doxy_version" -ge 10503
+	then
+		AC_MSG_RESULT([supported])
+		HAVE_DOXYGEN=true
+	else
+		AC_MSG_RESULT([unsupported])
+		HAVE_DOXYGEN=false
+	fi
 else
 	HAVE_DOXYGEN=false
 fi
 
 AM_CONDITIONAL([HAVE_DOXYGEN], [$HAVE_DOXYGEN])
-
+  
 AC_CHECK_PROG([XSLTPROC], [xsltproc], [xsltproc], [false])
 if test x"$XSLTPROC" != x"false"
 then

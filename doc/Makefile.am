@@ -2,12 +2,13 @@ INSTALL_DIR = ${MKDIR_P} -m 755
 
 DOCBOOK_DEPS = Doxyfile.in @top_srcdir@/include/moonunit/*.h
 DOC_TARGETS =
-DOC_INSTALL_TARGETS = doxygen-install docbook-install
+DOC_INSTALL_TARGETS =
 DOCBOOK_XML = index.xml moonunit.xml moonunit-lt.xml moonunit-stub.xml
 EXTRA_DIST = $(DOCBOOK_XML) main.doxy doxygen-html doxygen-man docbook-html docbook-man
 
 if HAVE_DOXYGEN
 DOC_TARGETS += doxygen-doc
+DOC_INSTALL_TARGETS += doxygen-install
 
 doxygen-html: $(DOCBOOK_DEPS)
 	$(MKDIR_P) doxygen-html

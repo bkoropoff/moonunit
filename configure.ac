@@ -51,6 +51,10 @@ case "$host_os" in
 	;;
 esac
 
+AC_DEFINE_UNQUOTED([HOST_CPU], ["$host_cpu"], [Host CPU type])
+AC_DEFINE_UNQUOTED([HOST_VENDOR], ["$host_vendor"], [Host vendor])
+AC_DEFINE_UNQUOTED([HOST_OS], ["$host_os"], [Host OS])
+
 plugindir="${libdir}/moonunit"
 AC_SUBST(plugindir)
 AC_SUBST(moduleext)
@@ -314,6 +318,8 @@ AC_CONFIG_FILES([
 	src/plugins/shell/mu.sh
 	src/plugins/console/Makefile
 	src/plugins/xml/Makefile
+	src/muxml/Makefile
+	src/muxml/moonunit-xml.sh
 	test/Makefile
 	doc/Makefile
 	doc/Doxyfile

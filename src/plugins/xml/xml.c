@@ -40,8 +40,8 @@
 
 #define INDENT "  "
 #define INDENT_MOONUNIT ""
-#define INDENT_PLATFORM INDENT_MOONUNIT INDENT
-#define INDENT_LIBRARY INDENT_PLATFORM INDENT
+#define INDENT_RUN INDENT_MOONUNIT INDENT
+#define INDENT_LIBRARY INDENT_RUN INDENT
 #define INDENT_SUITE INDENT_LIBRARY INDENT
 #define INDENT_TEST INDENT_SUITE INDENT
 
@@ -52,6 +52,7 @@ typedef struct
     char* file;
     FILE* out;
     MuTest* current_test;
+    char* title;
     char* name;
 } XmlLogger;
 
@@ -60,16 +61,23 @@ enter(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-    if (self->name)
+    fprintf(self->out, INDENT_MOONUNIT "<moonunit");
+    if (self->title)
     {
-        fprintf(self->out, INDENT_MOONUNIT "<moonunit name=\"%s\">\n", self->name);
-    }
-    else
-    {
-        fprintf(self->out, INDENT_MOONUNIT "<moonunit>\n");
+        fprintf(self->out, " title=\"%s\"", self->title);
     }
 
-    fprintf(self->out, INDENT_PLATFORM "<platform cpu=\"%s\" vendor=\"%s\" os=\"%s\">\n",
+    fprintf(self->out, ">\n");
+
+    fprintf(self->out, INDENT_RUN "<run");
+
+    if (self->name)
+    {
+        fprintf(self->out, " name=\"%s\"", self->name);
+    }
+
+    fprintf(self->out,
+            " cpu=\"%s\" vendor=\"%s\" os=\"%s\">\n",
             HOST_CPU, HOST_VENDOR, HOST_OS);
 }
 
@@ -78,7 +86,7 @@ leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-    fprintf(self->out, INDENT_PLATFORM "</platform>\n");
+    fprintf(self->out, INDENT_RUN "</run>\n");
     fprintf(self->out, INDENT_MOONUNIT "</moonunit>\n");
 }
 
@@ -101,7 +109,7 @@ static void library_fail(MuLogger* _self, const char* reason)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-    fprintf(self->out, INDENT_LIBRARY "  <abort reason=\"%s\"/>\n", reason);
+    fprintf(self->out, INDENT_LIBRARY INDENT "<abort reason=\"%s\"/>\n", reason);
 }
 
 
@@ -153,7 +161,7 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
         case MU_LEVEL_TRACE:
             level_str = "trace"; break;
     }
-    fprintf(self->out, INDENT_TEST "  <event level=\"%s\"", level_str);
+    fprintf(self->out, INDENT_TEST INDENT "<event level=\"%s\"", level_str);
 
     fprintf(self->out, " stage=\"%s\"", Mu_TestStageToString(event->stage));
     
@@ -163,8 +171,8 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
         fprintf(self->out, " line=\"%u\"", event->line);
 
     fprintf(self->out, ">\n");
-    fprintf(self->out, INDENT_TEST "    <![CDATA[%s]]>\n", event->message);
-    fprintf(self->out, INDENT_TEST "  </event>\n");
+    fprintf(self->out, INDENT_TEST INDENT INDENT "<![CDATA[%s]]>\n", event->message);
+    fprintf(self->out, INDENT_TEST INDENT "</event>\n");
 }
 
 static void test_leave(MuLogger* _self, 
@@ -209,7 +217,7 @@ static void test_leave(MuLogger* _self,
         
     if (summary->status == MU_STATUS_SUCCESS)
 	{
-        fprintf(out, INDENT_TEST "  <result status=\"%s\"/>\n", result_str);
+        fprintf(out, INDENT_TEST INDENT "<result status=\"%s\"/>\n", result_str);
     }
     else
     {
@@ -217,19 +225,19 @@ static void test_leave(MuLogger* _self,
         
         if (summary->reason)
         {
-            fprintf(out, INDENT_TEST "  <result status=\"%s\" stage=\"%s\"", result_str, stage);
+            fprintf(out, INDENT_TEST INDENT "<result status=\"%s\" stage=\"%s\"", result_str, stage);
             if (summary->file)
                 fprintf(out, " file=\"%s\"", basename_pure(summary->file));
             if (summary->line)
                 fprintf(out, " line=\"%i\"", summary->line);
 
             fprintf(out, ">\n");
-            fprintf(out, INDENT_TEST "    <![CDATA[%s]]>\n", summary->reason);
-            fprintf(out, INDENT_TEST "  </result>\n");
+            fprintf(out, INDENT_TEST INDENT INDENT "<![CDATA[%s]]>\n", summary->reason);
+            fprintf(out, INDENT_TEST INDENT "</result>\n");
         }
         else
         {
-            fprintf(out, INDENT_TEST "  <result status=\"fail\" stage=\"%s\"", stage);
+            fprintf(out, INDENT_TEST INDENT "<result status=\"fail\" stage=\"%s\"", stage);
             if (summary->file)
                 fprintf(out, " file=\"%s\"", basename_pure(summary->file));
             if (summary->line)
@@ -241,10 +249,10 @@ static void test_leave(MuLogger* _self,
     if (summary->backtrace)
     {
         MuBacktrace* frame;
-        fprintf(out, INDENT_TEST "  <backtrace>\n");
+        fprintf(out, INDENT_TEST INDENT "<backtrace>\n");
         for (frame = summary->backtrace; frame; frame = frame->up)
         {
-            fprintf(out, INDENT_TEST "    <frame");
+            fprintf(out, INDENT_TEST INDENT INDENT "<frame");
             if (frame->file_name)
             {
                 fprintf(out, " binary_file=\"%s\"", frame->file_name);
@@ -314,7 +322,21 @@ set_name(XmlLogger* self, const char* name)
     if (self->name)
         free(self->name);
     self->name = strdup(name);
-}                       
+}
+
+static const char*
+get_title(XmlLogger* self)
+{
+    return self->title;
+}
+
+static void
+set_title(XmlLogger* self, const char* title)
+{
+    if (self->title)
+        free(self->title);
+    self->title = strdup(title);
+}
 
 static void
 destroy(MuLogger* _logger)
@@ -338,7 +360,9 @@ static MuOption xmllogger_options[] =
     MU_OPTION("file", MU_TYPE_STRING, get_file, set_file,
               "File to which results will be written"),
     MU_OPTION("name", MU_TYPE_STRING, get_name, set_name,
-              "Name attribute which will be set on the top-level <libraries> element"),
+              "Value of the name attribute on the <run> node"),
+    MU_OPTION("title", MU_TYPE_STRING, get_title, set_title,
+              "Value of the title attribute on the <moonunit> node"),
     MU_OPTION_END
 };
 
@@ -373,6 +397,7 @@ create_xmllogger()
     *logger = xmllogger;
 
     Mu_Logger_SetOption((MuLogger*) logger, "fd", fileno(stdout));
+    Mu_Logger_SetOption((MuLogger*) logger, "title", "Test Results");
    
     return (MuLogger*) logger;
 }

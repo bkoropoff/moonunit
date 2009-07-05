@@ -10,11 +10,11 @@
     <html>
       <head>
 	<xsl:choose>
-	  <xsl:when test="@name">
-	    <title>MoonUnit: <xsl:value-of select="@name"/></title>
+	  <xsl:when test="@title">
+	    <title>MoonUnit: <xsl:value-of select="@title"/></title>
 	  </xsl:when>
 	  <xsl:otherwise>
-	    <title>MoonUnit Test Results</title>
+	    <title>MoonUnit: Test Results</title>
 	  </xsl:otherwise>
 	</xsl:choose>
 	<link rel="stylesheet" type="text/css" href="muxhtml.css"/>
@@ -33,8 +33,8 @@
 	  </div>
 	  <div class="content">
 	    <xsl:call-template name="emit-summary"/>
-	    <xsl:for-each select="platform">
-	      <xsl:call-template name="emit-platform"/>
+	    <xsl:for-each select="run">
+	      <xsl:call-template name="emit-run"/>
 	    </xsl:for-each>
 	  </div>
 	</div>
@@ -80,14 +80,21 @@
     </div>
   </xsl:template>
 
-  <!-- Emit platform entry -->
-  <xsl:template name="emit-platform">
-    <div class="platform">
+  <!-- Emit run entry -->
+  <xsl:template name="emit-run">
+    <div class="run">
       <div class="header">
 	<span class="title">
-	  <span name="cpu"><xsl:value-of select="@cpu"/></span>
-	  <span name="vendor"><xsl:value-of select="@vendor"/></span>
-	  <span name="os"><xsl:value-of select="@os"/></span>
+	  <xsl:if test="@name">
+	    <span name="name"><xsl:value-of select="@name"/></span>    
+	  </xsl:if>
+	  <span name="platform">
+	    <xsl:value-of select="@cpu"/>
+	    <xsl:text> </xsl:text>
+	    <xsl:value-of select="@vendor"/>
+	    <xsl:text> </xsl:text>
+	    <xsl:value-of select="@os"/>
+	  </span>
 	</span>
       </div>
       <div class="content">
@@ -190,5 +197,9 @@
 	<xsl:value-of select="normalize-space(.)"/>
       </span>
     </div>
+  </xsl:template>
+
+  <!-- Emit backtrace -->
+  <xsl:template name="emit-backtrace">
   </xsl:template>
 </xsl:stylesheet>

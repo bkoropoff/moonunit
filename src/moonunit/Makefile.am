@@ -20,4 +20,6 @@ moonunit-stub: moonunit-stub.sh
 	cp $< $@
 	chmod +x $@
 
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include $(MU_CPPFLAGS)
+AM_CFLAGS = $(MU_CFLAGS)
+AM_LDFLAGS = $(MU_LDFLAGS)

@@ -4,4 +4,6 @@ libuipc_la_SOURCES= marshal.c message.c wire.c time.c
 
 libuipc_la_LIBADD = @LIB_socket@
 
-AM_CPPFLAGS = -I@top_srcdir@/include
+AM_CPPFLAGS = -I@top_srcdir@/include $(MU_CPPFLAGS)
+AM_CFLAGS = $(MU_CFLAGS)
+AM_LDFLAGS = $(MU_LDFLAGS)

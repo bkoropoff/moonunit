@@ -5,11 +5,17 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_PROG_CXX
 
+MU_CFLAGS="-Wall -Werror -Wmissing-prototypes"
+MU_CXXFLAGS="-Wall -Werror -Wmissing-prototypes"
+MU_CPPFLAGS=""
+MU_LDFLAGS=""
+MU_STDFLAGS=""
+
 case "$host_os" in
     solaris2.*)
-	STDFLAGS="-std=c99"
-	CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__"
-	CC="$CC $STDFLAGS"
+	MU_STDFLAGS="$MU_STDFLAGS -std=c99"
+	MU_CPPFLAGS="$MU_CPPFLAGS -D_POSIX_C_SOURCE=200112L -D__EXTENSIONS__"
+	CC="$CC $MU_STDFLAGS"
 	moduleext=".so"
 	;;
     aix5.*|aix6.*)
@@ -17,9 +23,9 @@ case "$host_os" in
 	LDFLAGS="$LDFLAGS -Wl,-brtl"
 	;;
     linux-gnu)
-	STDFLAGS="-std=c99"
-	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500"
-	CC="$CC $STDFLAGS"
+	MU_STDFLAGS="-std=c99"
+	MU_CPPFLAGS="$MU_CPPFLAGS -D_XOPEN_SOURCE=500"
+	CC="$CC $MU_STDFLAGS"
         moduleext=".so"
 	;;
     hpux11.*)
@@ -41,15 +47,30 @@ case "$host_os" in
 	moduleext=".so"
 	;;
     freebsd6.*|freebsd7.*|freebsd8.*)
-	STDFLAGS="-std=c99"
-	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L -D__BSD_VISIBLE=1"
-	CC="$CC $STDFLAGS"
+	MU_STDFLAGS="-std=c99"
+	MU_CPPFLAGS="$MU_CPPFLAGS -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200112L -D__BSD_VISIBLE=1"
+	CC="$CC $MU_STDFLAGS"
 	moduleext=".so"
 	;;
     *)
 	AC_MSG_ERROR([Unsupported OS: $host_os])
 	;;
 esac
+
+AC_SUBST(MU_CFLAGS)
+AC_SUBST(MU_CXXFLAGS)
+AC_SUBST(MU_CPPFLAGS)
+AC_SUBST(MU_LDFLAGS)
+AC_SUBST(MU_STDFLAGS)
+
+saved_CFLAGS="$CFLAGS"
+saved_LDFLAGS="$LDFLAGS"
+saved_CPPFLAGS="$CPPFLAGS"
+
+CFLAGS="$CFLAGS $MU_CFLAGS"
+CXXFLAGS="$CXXFLAGS $MU_CXXFLAGS"
+LDFLAGS="$LDFLAGS $LIBELF_LDFLAGS $MU_LDFLAGS"
+CPPFLAGS="$CPPFLAGS $LIBELF_INCLUDES $MU_CPPFLAGS"
 
 AC_DEFINE_UNQUOTED([HOST_CPU], ["$host_cpu"], [Host CPU type])
 AC_DEFINE_UNQUOTED([HOST_VENDOR], ["$host_vendor"], [Host vendor])
@@ -82,7 +103,7 @@ AC_ARG_ENABLE([debug],
 		then
 			AC_DEFINE([DEBUG], [], [Debugging enabled])
 			CFLAGS="$CFLAGS -O0 -g"
-			CXXFLAGS="$CXXFLAGS -O0 -g"
+			MU_CXXFLAGS="$MU_CXXFLAGS -O0 -g"
 		fi
 	])
 
@@ -183,12 +204,6 @@ AC_TRY_RUN(
 		AC_DEFINE([SYMBOL_LAYOUT_REVERSE], [], [Define if symbols are laid out in reverse textual order in object file])
 	])
 
-saved_LDFLAGS=$LDFLAGS
-saved_CPPFLAGS=$CPPFLAGS
-
-LDFLAGS="$LDFLAGS $LIBELF_LDFLAGS"
-CPPFLAGS="$CPPFLAGS $LIBELF_INCLUDES"
-
 if $WANT_LIBELF
 then
 	AC_CHECK_HEADER([libelf.h],[FOUND_LIBELF_H=true],[FOUND_LIBELF_H=false])
@@ -214,18 +229,11 @@ AM_CONDITIONAL([HAVE_LIBELF], [$FOUND_LIBELF])
 AC_SUBST(LIBELF_INCLUDES)
 AC_SUBST(LIBELF_LIBADD)
 
-LDFLAGS=$saved_LDFLAGS
-CPPFLAGS=$saved_CPPFLAGS
-
-CFLAGS="$CFLAGS -Wall -Werror -Wmissing-prototypes"
-
 # Begin C++ checks
 if $WANT_CPLUSPLUS
 then
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADERS([cxxabi.h])
-
-	CXXFLAGS="$CXXFLAGS -Wall -Werror"
 fi
 			
 # Begin program/misc checks
@@ -300,6 +308,11 @@ fi
 
 AC_SUBST(DOCBOOK_XSL_DIR)
 AM_CONDITIONAL([HAVE_DOCBOOK], [$HAVE_DOCBOOK])
+
+CFLAGS="$saved_CFLAGS"
+CXXFLAGS="$saved_CXXFLAGS"
+CPPFLAGS="$saved_CPPFLAGS"
+LDFLAGS="$saved_LDFLAGS"
 
 AC_CONFIG_FILES([
 	Makefile

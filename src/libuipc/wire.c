@@ -140,8 +140,8 @@ uipc_packet_recv(int socket, uipc_packet** packet)
 
     if (!*packet)
         return UIPC_NOMEM;
-	
-	**packet = *(uipc_packet*)&header;
+
+    memcpy(*packet, &header, sizeof(header));
 	
     amount_read = 0;
     remaining = header.length;

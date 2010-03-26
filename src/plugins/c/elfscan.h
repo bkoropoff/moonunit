@@ -42,6 +42,6 @@ typedef bool (*SymbolCallback)(symbol*, void* data, MuError**);
 typedef bool (*SymbolFilter)(const char*, void* data);
 typedef bool (*SymbolScanner)(void *, SymbolFilter, SymbolCallback, void *, MuError**);
 
-SymbolScanner ElfScan_GetScanner(void);
+SymbolScanner elf_scan_get_scanner(void);
 
 #endif

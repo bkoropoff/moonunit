@@ -81,7 +81,7 @@ get_section(const char* name)
 }
 
 const char*
-Mu_Resource_Get(const char* section_name, const char* key)
+mu_resource_get(const char* section_name, const char* key)
 {
     MuResourceSection* section;
     const char* value;
@@ -94,7 +94,7 @@ Mu_Resource_Get(const char* section_name, const char* key)
 }
 
 void
-Mu_Resource_Set(const char* section_name, const char* key, const char* value)
+mu_resource_set(const char* section_name, const char* key, const char* value)
 {
     MuResourceSection* section;
 
@@ -104,7 +104,7 @@ Mu_Resource_Set(const char* section_name, const char* key, const char* value)
 }
 
 bool
-Mu_Resource_IterateSections(MuResourceSectionIter iter, void* data)
+mu_resource_iterate_sections(MuResourceSectionIter iter, void* data)
 {
     size_t i;
 
@@ -127,12 +127,12 @@ typedef struct search_info
 } search_info;
 
 static bool
-Mu_Resource_GetResourceSection(const char* section, void* data)
+mu_resource_get_resource_section(const char* section, void* data)
 {
     search_info* info = (search_info*) data;
     if (match_path(info->test_path, section))
     {
-        info->value = Mu_Resource_Get(section, info->key);
+        info->value = mu_resource_get(section, info->key);
 
         if (info->value)
             return true;
@@ -142,7 +142,7 @@ Mu_Resource_GetResourceSection(const char* section, void* data)
 }
 
 const char*
-Mu_Resource_GetForTest(const char* library, const char* suite, const char* test, const char* key)
+mu_resource_get_for_test(const char* library, const char* suite, const char* test, const char* key)
 {
     search_info info = {NULL, NULL, NULL};
     
@@ -151,9 +151,9 @@ Mu_Resource_GetForTest(const char* library, const char* suite, const char* test,
 
     /* If we don't find anything through pattern matching,
        fall back on the global section */
-    if (!Mu_Resource_IterateSections(Mu_Resource_GetResourceSection, &info))
+    if (!mu_resource_iterate_sections(mu_resource_get_resource_section, &info))
     {
-        info.value = Mu_Resource_Get("global", key);
+        info.value = mu_resource_get("global", key);
     }
 
     if (info.test_path)

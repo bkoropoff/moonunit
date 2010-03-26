@@ -43,7 +43,7 @@
 extern "C" void
 cplusplus_trampoline(MuThunk thunk)
 {
-    MuInterfaceToken* _token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* _token = mu_interface_current_token();
     CToken* token = reinterpret_cast<CToken*>(_token);
 
     try

@@ -66,12 +66,12 @@ extern MuPlugin* __mu_p_init(void);
 
 C_BEGIN_DECLS
 
-struct MuLoader* Mu_Plugin_GetLoaderWithName(const char *name);
-struct MuLoader* Mu_Plugin_GetLoaderForFile(const char *file);
-struct MuLogger* Mu_Plugin_CreateLogger(const char* name);
-MuPlugin** Mu_Plugin_List(void);
-MuPlugin* Mu_Plugin_GetByName(const char* name);
-void Mu_Plugin_Shutdown(void);
+struct MuLoader* mu_plugin_get_loader_with_name(const char *name);
+struct MuLoader* mu_plugin_get_loader_for_file(const char *file);
+struct MuLogger* mu_plugin_create_logger(const char* name);
+MuPlugin** mu_plugin_list(void);
+MuPlugin* mu_plugin_get_by_name(const char* name);
+void mu_plugin_shutdown(void);
 
 C_END_DECLS
 

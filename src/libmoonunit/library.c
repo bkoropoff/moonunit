@@ -29,37 +29,37 @@
 #include <moonunit/library.h>
 
 struct MuTest**
-Mu_Library_GetTests(MuLibrary* handle)
+mu_library_get_tests(MuLibrary* handle)
 {
     return handle->loader->get_tests(handle->loader, handle);
 }
 
 void
-Mu_Library_FreeTests(MuLibrary* handle, struct MuTest** tests)
+mu_library_free_tests(MuLibrary* handle, struct MuTest** tests)
 {
     handle->loader->free_tests(handle->loader, handle, tests);
 }
 
 void
-Mu_Library_Close(MuLibrary* handle)
+mu_library_close(MuLibrary* handle)
 {
     handle->loader->close(handle->loader, handle);
 }
 
 const char*
-Mu_Library_Name(MuLibrary* handle)
+mu_library_name(MuLibrary* handle)
 {
     return handle->loader->library_name(handle->loader, handle);
 }
 
 void
-Mu_Library_Construct(MuLibrary* handle, MuError** err)
+mu_library_construct(MuLibrary* handle, MuError** err)
 {
     handle->loader->construct(handle->loader, handle, err);
 }
 
 void
-Mu_Library_Destruct(MuLibrary* handle, MuError** err)
+mu_library_destruct(MuLibrary* handle, MuError** err)
 {
     handle->loader->destruct(handle->loader, handle, err);
 }

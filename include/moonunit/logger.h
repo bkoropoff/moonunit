@@ -51,22 +51,22 @@ typedef struct MuLogger
 
 C_BEGIN_DECLS
 
-void Mu_Logger_SetOption(MuLogger* logger, const char *name, ...);
-void Mu_Logger_SetOptionString(MuLogger* logger, const char *name, const char *value);
-MuType Mu_Logger_OptionType(MuLogger* logger, const char *name);
+void mu_logger_set_option(MuLogger* logger, const char *name, ...);
+void mu_logger_set_option_string(MuLogger* logger, const char *name, const char *value);
+MuType mu_logger_option_type(MuLogger* logger, const char *name);
 
-void Mu_Logger_Enter(struct MuLogger*);
-void Mu_Logger_Leave(struct MuLogger*);
-void Mu_Logger_LibraryEnter (struct MuLogger*, const char*, struct MuLibrary* library);
-void Mu_Logger_LibraryFail (struct MuLogger*, const char*);
-void Mu_Logger_LibraryLeave (struct MuLogger*);
-void Mu_Logger_SuiteEnter (struct MuLogger*, const char*);
-void Mu_Logger_SuiteLeave (struct MuLogger*);
-void Mu_Logger_TestEnter (struct MuLogger*, struct MuTest* test);
-void Mu_Logger_TestLog (struct MuLogger*, struct MuLogEvent* event);
-void Mu_Logger_TestLeave (struct MuLogger*, 
+void mu_logger_enter(struct MuLogger*);
+void mu_logger_leave(struct MuLogger*);
+void mu_logger_library_enter (struct MuLogger*, const char*, struct MuLibrary* library);
+void mu_logger_library_fail (struct MuLogger*, const char*);
+void mu_logger_library_leave (struct MuLogger*);
+void mu_logger_suite_enter (struct MuLogger*, const char*);
+void mu_logger_suite_leave (struct MuLogger*);
+void mu_logger_test_enter (struct MuLogger*, struct MuTest* test);
+void mu_logger_test_log (struct MuLogger*, struct MuLogEvent* event);
+void mu_logger_test_leave (struct MuLogger*, 
                           struct MuTest*, struct MuTestResult*);
-void Mu_Logger_Destroy(MuLogger* logger);
+void mu_logger_destroy(MuLogger* logger);
 
 C_END_DECLS
 

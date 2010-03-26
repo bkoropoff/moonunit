@@ -43,7 +43,7 @@ struct UpoptContext
 };
 
 UpoptContext*
-Upopt_CreateContext(const UpoptOptionInfo* options, int argc, char** argv)
+upopt_create_context(const UpoptOptionInfo* options, int argc, char** argv)
 {
     UpoptContext* context = malloc(sizeof(*context));
     
@@ -103,7 +103,7 @@ is_option(const char* arg)
 }
 
 UpoptStatus
-Upopt_Next(UpoptContext* context, int* constant, const char** value, char** error)
+upopt_next(UpoptContext* context, int* constant, const char** value, char** error)
 {
     const char* arg;
     const char* val = NULL;
@@ -121,7 +121,7 @@ Upopt_Next(UpoptContext* context, int* constant, const char** value, char** erro
             if (!arg[2])
             {
                 context->only_normal = 1;
-                return Upopt_Next(context, constant, value, error);
+                return upopt_next(context, constant, value, error);
             }
             else
             {
@@ -207,13 +207,13 @@ Upopt_Next(UpoptContext* context, int* constant, const char** value, char** erro
 }
 
 void
-Upopt_DestroyContext(UpoptContext* context)
+upopt_destroy_context(UpoptContext* context)
 {
     free(context);
 }
 
 void
-Upopt_SetInfo(UpoptContext* context, const char* program_name, const char* normal_arguments, const char* description)
+upopt_set_info(UpoptContext* context, const char* program_name, const char* normal_arguments, const char* description)
 {
     context->program_name = program_name;
     context->normal_arguments = normal_arguments;
@@ -252,7 +252,7 @@ print_wrapped(FILE* out, int* used, int columns, int indent, const char* format,
 }
 
 void
-Upopt_PrintUsage(UpoptContext* context, FILE* out, int columns)
+upopt_print_usage(UpoptContext* context, FILE* out, int columns)
 {
 #define PRINT(...) (print_wrapped(out, &used, columns, indent, __VA_ARGS__))
     int i, used = 0;
@@ -302,7 +302,7 @@ Upopt_PrintUsage(UpoptContext* context, FILE* out, int columns)
 }
 
 void
-Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
+upopt_print_help(UpoptContext* context, FILE* out, int columns)
 {
 #define PRINT(...) (print_wrapped(out, &used, columns, indent + indent_newline, __VA_ARGS__))
 #define PRINT_NEW(...) (print_wrapped(out, &used, columns, indent_newline, __VA_ARGS__))
@@ -310,7 +310,7 @@ Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns)
     int indent = 40;
     int indent_newline = 4;
     int i;
-    Upopt_PrintUsage(context, out, columns);
+    upopt_print_usage(context, out, columns);
 
     fprintf(out, "\nOptions:");
     PRINT_NEW("\n");

@@ -30,7 +30,7 @@
 #include <stdlib.h>
 
 const char*
-Mu_Type_ToString(MuType type)
+mu_type_to_string(MuType type)
 {
     switch (type)
     {

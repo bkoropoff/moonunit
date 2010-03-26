@@ -220,7 +220,7 @@ error:
 }
 
 SymbolScanner 
-ElfScan_GetScanner()
+elf_scan_get_scanner()
 {
 	return libelf_symbol_scanner;
 }

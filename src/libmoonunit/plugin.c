@@ -172,7 +172,7 @@ get_plugin(const char* name)
 }
 
 struct MuLoader*
-Mu_Plugin_GetLoaderWithName(const char *name)
+mu_plugin_get_loader_with_name(const char *name)
 {
     MuPlugin* plugin = get_plugin(name);
     MuLoader* loader;
@@ -197,7 +197,7 @@ Mu_Plugin_GetLoaderWithName(const char *name)
 }
 
 struct MuLoader*
-Mu_Plugin_GetLoaderForFile(const char* file)
+mu_plugin_get_loader_for_file(const char* file)
 {
     unsigned int index;
 
@@ -208,7 +208,7 @@ Mu_Plugin_GetLoaderForFile(const char* file)
         {
             MuLoader* loader = plugin->loader();
             
-            if (loader && Mu_Loader_CanOpen(loader, file))
+            if (loader && mu_loader_can_open(loader, file))
                 return loader;
         }
     }
@@ -217,7 +217,7 @@ Mu_Plugin_GetLoaderForFile(const char* file)
 }
 
 struct MuLogger*
-Mu_Plugin_CreateLogger(const char* name)
+mu_plugin_create_logger(const char* name)
 {
     MuPlugin* plugin = get_plugin(name);
     MuLogger* logger;
@@ -242,7 +242,7 @@ Mu_Plugin_CreateLogger(const char* name)
 }
 
 MuPlugin**
-Mu_Plugin_List(void)
+mu_plugin_list(void)
 {
     if (plugin_list == NULL)
     {
@@ -255,13 +255,13 @@ Mu_Plugin_List(void)
 }
 
 MuPlugin*
-Mu_Plugin_GetByName(const char* name)
+mu_plugin_get_by_name(const char* name)
 {
     return get_plugin(name);
 }
 
 void
-Mu_Plugin_Shutdown(void)
+mu_plugin_shutdown(void)
 {
     array_free(plugin_list);
 }

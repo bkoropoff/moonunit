@@ -29,37 +29,37 @@
 #include <moonunit/library.h>
 
 bool
-Mu_Loader_CanOpen(struct MuLoader* loader, const char* path)
+mu_loader_can_open(struct MuLoader* loader, const char* path)
 {
     return loader->can_open(loader, path);
 }
 
 MuLibrary*
-Mu_Loader_Open(struct MuLoader* loader, const char* path, MuError** err)
+mu_loader_open(struct MuLoader* loader, const char* path, MuError** err)
 {
     return loader->open(loader, path, err);
 }
 
 void
-Mu_Loader_SetOption(MuLoader* loader, const char *name, ...)
+mu_loader_set_option(MuLoader* loader, const char *name, ...)
 {
     va_list ap;
 
     va_start(ap, name);
 
-    Mu_Option_Setv(loader->options, loader, name, ap);
+    mu_option_setv(loader->options, loader, name, ap);
 
     va_end(ap);
 }
 
 void 
-Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value)
+mu_loader_set_option_string(MuLoader* loader, const char *name, const char *value)
 {
-    Mu_Option_SetString(loader->options, loader, name, value);
+    mu_option_set_string(loader->options, loader, name, value);
 }
 
 MuType
-Mu_Loader_OptionType(MuLoader* loader, const char *name)
+mu_loader_option_type(MuLoader* loader, const char *name)
 {
-    return Mu_Option_Type(loader->options, name);
+    return mu_option_type(loader->options, name);
 }

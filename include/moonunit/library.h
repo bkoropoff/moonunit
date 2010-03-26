@@ -40,12 +40,12 @@ typedef struct MuLibrary
     struct MuLoader* loader;
 } MuLibrary;
 
-struct MuTest** Mu_Library_GetTests(MuLibrary* handle);
-void Mu_Library_FreeTests(MuLibrary* handle, struct MuTest**);
-void Mu_Library_Close(MuLibrary* handle);
-const char* Mu_Library_Name(MuLibrary* handle);
-void Mu_Library_Construct(MuLibrary* handle, MuError** err);
-void Mu_Library_Destruct(MuLibrary* handle, MuError** err);
+struct MuTest** mu_library_get_tests(MuLibrary* handle);
+void mu_library_free_tests(MuLibrary* handle, struct MuTest**);
+void mu_library_close(MuLibrary* handle);
+const char* mu_library_name(MuLibrary* handle);
+void mu_library_construct(MuLibrary* handle, MuError** err);
+void mu_library_destruct(MuLibrary* handle, MuError** err);
 
 C_END_DECLS
 

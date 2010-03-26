@@ -64,14 +64,14 @@ typedef struct
     long microseconds;
 } ProcessTimeout;
 
-int Process_Open(Process* handle, char * const argv[],
+int process_open(Process* handle, char * const argv[],
                  unsigned long num_channels, ...);
-int Process_Channel_ReadLine(Process* handle, unsigned int channel, char** out);
-int Process_Channel_Write(Process* handle, unsigned int channel, const void* data, size_t len);
-int Process_Select(Process* handle, ProcessTimeout* abs, unsigned int cnum, ...);
-int Process_Channel_Ready(Process* handle, int cnum);
-int Process_Finished(Process* handle, int* status);
-void Process_Close(Process* handle);
-void Process_GetTime(ProcessTimeout* timeout, unsigned long msoffset);
+int process_channel_read_line(Process* handle, unsigned int channel, char** out);
+int process_channel_write(Process* handle, unsigned int channel, const void* data, size_t len);
+int process_select(Process* handle, ProcessTimeout* abs, unsigned int cnum, ...);
+int process_channel_ready(Process* handle, int cnum);
+int process_finished(Process* handle, int* status);
+void process_close(Process* handle);
+void process_get_time(ProcessTimeout* timeout, unsigned long msoffset);
 
 #endif

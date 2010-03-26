@@ -33,9 +33,9 @@
 
 typedef bool (*MuResourceSectionIter) (const char* section_name, void* data);
 
-const char* Mu_Resource_Get(const char* section_name, const char* key);
-void Mu_Resource_Set(const char* section_name, const char* key, const char* value);
-bool Mu_Resource_IterateSections(MuResourceSectionIter iter, void* data);
-const char* Mu_Resource_GetForTest(const char* library, const char* suite, const char* test, const char* key);
+const char* mu_resource_get(const char* section_name, const char* key);
+void mu_resource_set(const char* section_name, const char* key, const char* value);
+bool mu_resource_iterate_sections(MuResourceSectionIter iter, void* data);
+const char* mu_resource_get_for_test(const char* library, const char* suite, const char* test, const char* key);
 
 #endif

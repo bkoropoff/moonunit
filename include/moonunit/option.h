@@ -61,13 +61,13 @@ typedef struct MuOption
 
 C_BEGIN_DECLS
 
-void Mu_Option_SetString(MuOption* table, void* object, const char *name, const char* value);
-void Mu_Option_Setv(MuOption* table, void* object, const char *name, va_list ap);
-void Mu_Option_Set(MuOption* table, void* object, const char *name, ...);
-void Mu_Option_Get(MuOption* table, void* object, const char *name, void* res);
-char* Mu_Option_GetString(MuOption* table, void* object, const char *name);
-MuType Mu_Option_Type(MuOption* table, const char* name);
-const char* Mu_Option_Description(MuOption* table, const char *name);
+void mu_option_set_string(MuOption* table, void* object, const char *name, const char* value);
+void mu_option_setv(MuOption* table, void* object, const char *name, va_list ap);
+void mu_option_set(MuOption* table, void* object, const char *name, ...);
+void mu_option_get(MuOption* table, void* object, const char *name, void* res);
+char* mu_option_get_string(MuOption* table, void* object, const char *name);
+MuType mu_option_type(MuOption* table, const char* name);
+const char* mu_option_description(MuOption* table, const char *name);
 
 C_END_DECLS
 

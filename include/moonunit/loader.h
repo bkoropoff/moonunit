@@ -75,11 +75,11 @@ typedef struct MuLoader
     void (*destruct) (struct MuLoader*, struct MuLibrary* handle, MuError** err);
 } MuLoader;
 
-bool Mu_Loader_CanOpen(MuLoader* loader, const char* path);
-struct MuLibrary* Mu_Loader_Open(MuLoader* loader, const char* path, MuError** err);
-void Mu_Loader_SetOption(MuLoader* loader, const char *name, ...);
-void Mu_Loader_SetOptionString(MuLoader* loader, const char *name, const char *value);
-MuType Mu_Loader_OptionType(MuLoader* loader, const char *name);
+bool mu_loader_can_open(MuLoader* loader, const char* path);
+struct MuLibrary* mu_loader_open(MuLoader* loader, const char* path, MuError** err);
+void mu_loader_set_option(MuLoader* loader, const char *name, ...);
+void mu_loader_set_option_string(MuLoader* loader, const char *name, const char *value);
+MuType mu_loader_option_type(MuLoader* loader, const char *name);
 
 C_END_DECLS
 

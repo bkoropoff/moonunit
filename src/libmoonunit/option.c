@@ -118,7 +118,7 @@ lookup(MuOption* table, const char* name)
 }
 
 void
-Mu_Option_SetString(MuOption* table, void* object, const char *name, const char* value)
+mu_option_set_string(MuOption* table, void* object, const char *name, const char* value)
 {
     MuOption* option = lookup(table, name);
 
@@ -155,7 +155,7 @@ Mu_Option_SetString(MuOption* table, void* object, const char *name, const char*
 }
 
 void
-Mu_Option_Setv(MuOption* table, void* object, const char *name, va_list ap)
+mu_option_setv(MuOption* table, void* object, const char *name, va_list ap)
 {
     MuOption* option = lookup(table, name);
 
@@ -185,19 +185,19 @@ Mu_Option_Setv(MuOption* table, void* object, const char *name, va_list ap)
 }
 
 void
-Mu_Option_Set(MuOption* table, void* object, const char *name, ...)
+mu_option_set(MuOption* table, void* object, const char *name, ...)
 {
     va_list ap;
 
     va_start(ap, name);
 
-    Mu_Option_Setv(table, object, name, ap);
+    mu_option_setv(table, object, name, ap);
 
     va_end(ap);
 }
 
 void
-Mu_Option_Get(MuOption* table, void* object, const char *name, void* res)
+mu_option_get(MuOption* table, void* object, const char *name, void* res)
 {
     MuOption* option = lookup(table, name);
 
@@ -227,7 +227,7 @@ Mu_Option_Get(MuOption* table, void* object, const char *name, void* res)
 }
 
 char*
-Mu_Option_GetString(MuOption* table, void* object, const char *name)
+mu_option_get_string(MuOption* table, void* object, const char *name)
 {
     MuOption* option = lookup(table, name);
 
@@ -265,7 +265,7 @@ Mu_Option_GetString(MuOption* table, void* object, const char *name)
 }
 
 MuType
-Mu_Option_Type(MuOption* table, const char* name)
+mu_option_type(MuOption* table, const char* name)
 {
     MuOption* option = lookup(table, name);
 
@@ -276,7 +276,7 @@ Mu_Option_Type(MuOption* table, const char* name)
 }
 
 const char*
-Mu_Option_Description(MuOption* table, const char *name)
+mu_option_description(MuOption* table, const char *name)
 {
     MuOption* option = lookup(table, name);
 

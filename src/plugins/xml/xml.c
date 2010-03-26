@@ -97,7 +97,7 @@ static void library_enter(MuLogger* _self, const char* path, MuLibrary* library)
     if (library)
     {
         fprintf(self->out, INDENT_LIBRARY "<library file=\"%s\" name=\"%s\">\n",
-                basename_pure(path), Mu_Library_Name(library));
+                basename_pure(path), mu_library_name(library));
     }
     else
     {
@@ -140,7 +140,7 @@ static void test_enter(MuLogger* _self, MuTest* test)
 
     self->current_test = test;
 
-    fprintf(self->out, INDENT_TEST "<test name=\"%s\">\n", Mu_Test_Name(test));
+    fprintf(self->out, INDENT_TEST "<test name=\"%s\">\n", mu_test_name(test));
 }
 
 static void test_log(MuLogger* _self, MuLogEvent* event)
@@ -163,7 +163,7 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
     }
     fprintf(self->out, INDENT_TEST INDENT "<event level=\"%s\"", level_str);
 
-    fprintf(self->out, " stage=\"%s\"", Mu_TestStageToString(event->stage));
+    fprintf(self->out, " stage=\"%s\"", mu_test_stage_to_string(event->stage));
     
     if (event->file)
         fprintf(self->out, " file=\"%s\"", basename_pure(event->file));
@@ -221,7 +221,7 @@ static void test_leave(MuLogger* _self,
     }
     else
     {
-        stage = Mu_TestStageToString(summary->stage);
+        stage = mu_test_stage_to_string(summary->stage);
         
         if (summary->reason)
         {
@@ -396,8 +396,8 @@ create_xmllogger()
 
     *logger = xmllogger;
 
-    Mu_Logger_SetOption((MuLogger*) logger, "fd", fileno(stdout));
-    Mu_Logger_SetOption((MuLogger*) logger, "title", "Test Results");
+    mu_logger_set_option((MuLogger*) logger, "fd", fileno(stdout));
+    mu_logger_set_option((MuLogger*) logger, "title", "Test Results");
    
     return (MuLogger*) logger;
 }

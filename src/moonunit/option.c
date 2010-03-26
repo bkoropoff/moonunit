@@ -166,15 +166,15 @@ static const struct UpoptOptionInfo options[] =
 };
 
 int
-Option_Parse(int argc, char** argv, OptionTable* option)
+option_parse(int argc, char** argv, OptionTable* option)
 {
-    UpoptContext* context = Upopt_CreateContext(options, argc, argv);
+    UpoptContext* context = upopt_create_context(options, argc, argv);
     UpoptStatus rc;
     int constant;
     const char* value;
 
 
-    Upopt_SetInfo(context, basename_pure(argv[0]), "libraries ...", "Run MoonUnit unit tests");
+    upopt_set_info(context, basename_pure(argv[0]), "libraries ...", "Run MoonUnit unit tests");
 
     /* Set defaults */
 
@@ -182,7 +182,7 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     option->timeout = 0;
     option->mode = MODE_RUN;
 
-    while ((rc = Upopt_Next(context, &constant, &value, &option->errormsg)) != UPOPT_STATUS_DONE)
+    while ((rc = upopt_next(context, &constant, &value, &option->errormsg)) != UPOPT_STATUS_DONE)
     {
         if (rc == UPOPT_STATUS_ERROR)
         {
@@ -223,11 +223,11 @@ Option_Parse(int argc, char** argv, OptionTable* option)
             option->plugin_info = value;
             break;
         case OPTION_USAGE:
-            Upopt_PrintUsage(context, stdout, 80);
+            upopt_print_usage(context, stdout, 80);
             option->mode = MODE_USAGE;
             break;
         case OPTION_HELP:
-            Upopt_PrintHelp(context, stdout, 80);
+            upopt_print_help(context, stdout, 80);
             option->mode = MODE_HELP;
             break;
         case UPOPT_ARG_NORMAL:
@@ -245,13 +245,13 @@ Option_Parse(int argc, char** argv, OptionTable* option)
     
 error:
     
-    Upopt_DestroyContext(context);
+    upopt_destroy_context(context);
 
     return rc != UPOPT_STATUS_DONE;
 }
 
 static void
-Option_ParsePluginOptions(const char* str, 
+option_parse_plugin_options(const char* str, 
                           void (*cb)(const char* target, const char* key, const char* value, void* data),
                           void* data)
 {
@@ -306,23 +306,23 @@ logger_parse_cb(const char* logger, const char* key, const char* value, void* da
 
     if (!key)
     {
-        *plogger = Mu_Plugin_CreateLogger(logger);
+        *plogger = mu_plugin_create_logger(logger);
     }
     else if (*plogger && key)
     {
         if (value)
         {
-            Mu_Logger_SetOptionString(*plogger, key, value);
+            mu_logger_set_option_string(*plogger, key, value);
         }
-        else if (Mu_Logger_OptionType(*plogger, key) == MU_TYPE_BOOLEAN)
+        else if (mu_logger_option_type(*plogger, key) == MU_TYPE_BOOLEAN)
         {
-            Mu_Logger_SetOption(*plogger, key, true);
+            mu_logger_set_option(*plogger, key, true);
         }
     }
 }
 
 array*
-Option_CreateLoggers(OptionTable* option)
+option_create_loggers(OptionTable* option)
 {
     unsigned int index;
     array mu_loggers = NULL;
@@ -330,7 +330,7 @@ Option_CreateLoggers(OptionTable* option)
 
     for (index = 0; index < array_size(option->loggers); index++)
     {
-        Option_ParsePluginOptions((char*) option->loggers[index], logger_parse_cb, &logger);
+        option_parse_plugin_options((char*) option->loggers[index], logger_parse_cb, &logger);
         mu_loggers = array_append(mu_loggers, logger);
     }
 
@@ -342,41 +342,41 @@ loader_parse_cb(const char* name, const char* key, const char* value, void* data
 {
     if (key)
     {
-        MuLoader* loader = Mu_Plugin_GetLoaderWithName(name);
+        MuLoader* loader = mu_plugin_get_loader_with_name(name);
         
         if (loader)
         {
             if (value)
             {
-                Mu_Loader_SetOptionString(loader, key, value);
+                mu_loader_set_option_string(loader, key, value);
             }
-            else if (Mu_Loader_OptionType(loader, key) == MU_TYPE_BOOLEAN)
+            else if (mu_loader_option_type(loader, key) == MU_TYPE_BOOLEAN)
             {
-                Mu_Loader_SetOption(loader, key, true);
+                mu_loader_set_option(loader, key, true);
             }
         }
     }
 }
 
 void
-Option_ConfigureLoaders(OptionTable* option)
+option_configure_loaders(OptionTable* option)
 {
     unsigned int index;
 
     for (index = 0; index < array_size(option->loader_options); index++)
     {
-        Option_ParsePluginOptions((char*) option->loader_options[index], loader_parse_cb, NULL);
+        option_parse_plugin_options((char*) option->loader_options[index], loader_parse_cb, NULL);
     }
 }
 
 static void
 add_resource(const char* section, const char* key, const char* value, void* unused)
 {
-    Mu_Resource_Set(section, key, value);
+    mu_resource_set(section, key, value);
 }
 
 int
-Option_ProcessResources(OptionTable* option)
+option_process_resources(OptionTable* option)
 {
     unsigned int index;
 
@@ -398,7 +398,7 @@ Option_ProcessResources(OptionTable* option)
 }
 
 void
-Option_Release(OptionTable* option)
+option_release(OptionTable* option)
 {
     int i;
     if (option->errormsg)

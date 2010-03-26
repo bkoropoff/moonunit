@@ -46,7 +46,7 @@ test_compare(const void* _a, const void* _b)
 	MuTest* b = *(MuTest**) _b;
 	int result;
 	
-	if ((result = strcmp(Mu_Test_Suite(a), Mu_Test_Suite(b))))
+	if ((result = strcmp(mu_test_suite(a), mu_test_suite(b))))
 		return result;
 	else
 #ifdef SYMBOL_LAYOUT_REVERSE
@@ -70,9 +70,9 @@ static bool
 in_set(MuTest* test, int setc, char** set)
 {
     unsigned int i;
-    const char* test_name = Mu_Test_Name(test);
-    const char* suite_name = Mu_Test_Suite(test);
-    const char* library_name = Mu_Library_Name(test->library);
+    const char* test_name = mu_test_name(test);
+    const char* suite_name = mu_test_suite(test);
+    const char* library_name = mu_library_name(test->library);
     char* test_path = format("%s/%s/%s", library_name, suite_name, test_name);
     bool result;
 
@@ -102,7 +102,7 @@ event_proxy_cb(MuLogEvent* event, void* data)
 {
     MuLogger* logger = (MuLogger*) data;
 
-    Mu_Logger_TestLog(logger, event);
+    mu_logger_test_log(logger, event);
 }
 
 unsigned int
@@ -120,25 +120,25 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         MU_RERAISE_GOTO(error, _err, err);
     }
 
-    library = Mu_Loader_Open(loader, path, &err);
+    library = mu_loader_open(loader, path, &err);
 
     /* Even if library loading failed, log that
        we attempted to visit it */
-    Mu_Logger_LibraryEnter(logger, path, library); 
+    mu_logger_library_enter(logger, path, library); 
 
     MU_CATCH(err, MU_ERROR_LOAD_LIBRARY)
     {
-        Mu_Logger_LibraryFail(logger, err->message);
+        mu_logger_library_fail(logger, err->message);
         failed++;
         MU_HANDLE(&err);
         goto leave;
     }
 
-    Mu_Library_Construct(library, &err);
+    mu_library_construct(library, &err);
 
     MU_CATCH(err, MU_ERROR_CONSTRUCT_LIBRARY)
     {
-        Mu_Logger_LibraryFail(logger, err->message);
+        mu_logger_library_fail(logger, err->message);
         failed++;
         MU_HANDLE(&err);
         goto leave;
@@ -149,7 +149,7 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         MU_RERAISE_GOTO(error, _err, err);
     }
 
-    tests = Mu_Library_GetTests(library);
+    tests = mu_library_get_tests(library);
     
     if (tests)
     {
@@ -166,17 +166,17 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             if (set != NULL && !in_set(test, setc, set))
                 continue;
             
-            if (current_suite == NULL || strcmp(current_suite, Mu_Test_Suite(test)))
+            if (current_suite == NULL || strcmp(current_suite, mu_test_suite(test)))
             {
                 if (current_suite)
-                    Mu_Logger_SuiteLeave(logger);
-                current_suite = Mu_Test_Suite(test);
-                Mu_Logger_SuiteEnter(logger, Mu_Test_Suite(test));
+                    mu_logger_suite_leave(logger);
+                current_suite = mu_test_suite(test);
+                mu_logger_suite_enter(logger, mu_test_suite(test));
             }
             
-            Mu_Logger_TestEnter(logger, test);
+            mu_logger_test_enter(logger, test);
             summary = loader->dispatch(loader, test, event_proxy_cb, logger);
-            Mu_Logger_TestLeave(logger, test, summary);
+            mu_logger_test_leave(logger, test, summary);
             
             if (summary->status != MU_STATUS_SKIPPED &&
                 summary->status != summary->expected &&
@@ -203,14 +203,14 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         }
         
         if (current_suite)
-            Mu_Logger_SuiteLeave(logger);
+            mu_logger_suite_leave(logger);
     }
 
-    Mu_Library_Destruct(library, &err);
+    mu_library_destruct(library, &err);
 
     MU_CATCH(err, MU_ERROR_DESTRUCT_LIBRARY)
     {
-        Mu_Logger_LibraryFail(logger, err->message);
+        mu_logger_library_fail(logger, err->message);
         failed++;
         MU_HANDLE(&err);
         goto leave;
@@ -222,14 +222,14 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
 
 leave:
 
-    Mu_Logger_LibraryLeave(logger);
+    mu_logger_library_leave(logger);
     
 error:
     if (tests)
-        Mu_Library_FreeTests(library, tests);
+        mu_library_free_tests(library, tests);
    
     if (library)
-        Mu_Library_Close(library);
+        mu_library_close(library);
 
     return failed;
 }

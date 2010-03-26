@@ -114,7 +114,7 @@ C_BEGIN_DECLS
  * @code
  * MU_LIBRARY_SETUP()
  * {
- *     Library_Init();
+ *     library_init();
  * }
  * @endcode
  * @hideinitializer
@@ -146,7 +146,7 @@ C_BEGIN_DECLS
  * @code
  * MU_LIBRARY_TEARDOWN()
  * {
- *     Library_Free_Resources();
+ *     library_free_resources();
  * }
  * @endcode
  * @hideinitializer
@@ -281,7 +281,7 @@ C_BEGIN_DECLS
  * @code
  * MU_LIBRARY_CONSTRUCT()
  * {
- *     Organize_Filesystem();
+ *     organize_filesystem();
  * }
  * @endcode
  * @hideinitializer
@@ -323,7 +323,7 @@ C_BEGIN_DECLS
  * @code
  * MU_LIBRARY_DESTRUCT()
  * {
- *     Cleanup_Filesystem();
+ *     cleanup_filesystem();
  * }
  * @endcode
  * @hideinitializer
@@ -434,7 +434,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_ASSERT(expr)                                     \
-    (Mu_Interface_Assert(__FILE__, __LINE__, #expr, 1, (expr)))
+    (mu_interface_assert(__FILE__, __LINE__, #expr, 1, (expr)))
 
 /**
  * @brief Confirm equality of values or fail
@@ -470,7 +470,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_ASSERT_EQUAL(type, expr1, expr2)                     \
-    (Mu_Interface_AssertEqual(__FILE__, __LINE__,               \
+    (mu_interface_assert_equal(__FILE__, __LINE__,               \
                               #expr1, #expr2, 1,                \
                               type, (expr1), (expr2)))          \
     
@@ -508,7 +508,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_ASSERT_NOT_EQUAL(type, expr1, expr2)                 \
-    (Mu_Interface_AssertEqual(__FILE__, __LINE__,               \
+    (mu_interface_assert_equal(__FILE__, __LINE__,               \
                          #expr1, #expr2, 0,                     \
                          type, (expr1), (expr2)))               \
 
@@ -528,7 +528,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_ASSERT_NOT_REACHED()                                     \
-    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_ASSERTION,   \
+    (mu_interface_result(__FILE__, __LINE__, MU_STATUS_ASSERTION,   \
                          "Statement reached unexpectedly"))
 
 /**
@@ -544,7 +544,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_SUCCESS()                                                \
-    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_SUCCESS, NULL))
+    (mu_interface_result(__FILE__, __LINE__, MU_STATUS_SUCCESS, NULL))
 
 /**
  * @brief Fail immediately
@@ -570,7 +570,7 @@ C_BEGIN_DECLS
 #  define MU_FAILURE(format, ...)
 #else
 #  define MU_FAILURE(...)                                               \
-    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_FAILURE, __VA_ARGS__))
+    (mu_interface_result(__FILE__, __LINE__, MU_STATUS_FAILURE, __VA_ARGS__))
 #endif
 
 /**
@@ -598,7 +598,7 @@ C_BEGIN_DECLS
 #    define MU_SKIP(format, ...)
 #else
 #    define MU_SKIP(...)                                                \
-    (Mu_Interface_Result(__FILE__, __LINE__, MU_STATUS_SKIPPED, __VA_ARGS__))
+    (mu_interface_result(__FILE__, __LINE__, MU_STATUS_SKIPPED, __VA_ARGS__))
 #endif
 
 /**
@@ -633,7 +633,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_EXPECT(result) \
-    (Mu_Interface_Expect((result)))
+    (mu_interface_expect((result)))
 
 /**
  * @brief Set or reset time allowance
@@ -654,7 +654,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_TIMEOUT(ms) \
-    (Mu_Interface_Timeout((ms)))
+    (mu_interface_timeout((ms)))
 
 /**
  * @brief Specify number of iterations for current test
@@ -681,7 +681,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_ITERATE(count)                       \
-    (Mu_Interface_Iterations((count)))
+    (mu_interface_iterations((count)))
 
 /**
  * @brief Log non-fatal message
@@ -710,7 +710,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_LOG(level, ...)                                              \
-    (Mu_Interface_Event(__FILE__, __LINE__, (level), __VA_ARGS__))
+    (mu_interface_event(__FILE__, __LINE__, (level), __VA_ARGS__))
 
 /**
  * @brief Log a warning
@@ -786,7 +786,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_RESOURCE(key) \
-    (Mu_Interface_GetResource(__FILE__, __LINE__, key))
+    (mu_interface_get_resource(__FILE__, __LINE__, key))
 
 /**
  * @brief Access a resource string in a specific section
@@ -803,7 +803,7 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_RESOURCE_FROM_SECTION(section, key)   \
-    (Mu_Interface_GetResourceFromSection(__FILE__, __LINE__, section, key))
+    (mu_interface_get_resource_from_section(__FILE__, __LINE__, section, key))
 
 /*@}*/
 
@@ -835,7 +835,7 @@ C_BEGIN_DECLS
  * @endcode
  * @hideinitializer
  */
-#define MU_CURRENT_TEST (Mu_Interface_CurrentTest())
+#define MU_CURRENT_TEST (mu_interface_current_test())
 
 /*@}*/
 
@@ -845,17 +845,17 @@ C_BEGIN_DECLS
 #define MU_FS_PREFIX "__mu_fs_"
 #define MU_FT_PREFIX "__mu_ft_"
 
-void Mu_Interface_Expect(MuTestStatus status);
-void Mu_Interface_Timeout(long ms);
-void Mu_Interface_Iterations(unsigned int count);
-void Mu_Interface_Event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...);
-void Mu_Interface_Assert(const char* file, unsigned int line, const char* expr, int sense, int result);
-void Mu_Interface_AssertEqual(const char* file, unsigned int line, const char* expr1, const char* expr2, int sense, MuType type, ...);
-void Mu_Interface_Result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...);
-MuTest* Mu_Interface_CurrentTest(void);
+void mu_interface_expect(MuTestStatus status);
+void mu_interface_timeout(long ms);
+void mu_interface_iterations(unsigned int count);
+void mu_interface_event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...);
+void mu_interface_assert(const char* file, unsigned int line, const char* expr, int sense, int result);
+void mu_interface_assert_equal(const char* file, unsigned int line, const char* expr1, const char* expr2, int sense, MuType type, ...);
+void mu_interface_result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...);
+MuTest* mu_interface_current_test(void);
 
-const char* Mu_Interface_GetResource(const char* file, unsigned int line, const char* key);
-const char* Mu_Interface_GetResourceInSection(const char* file, unsigned int line, const char* section, const char* key);
+const char* mu_interface_get_resource(const char* file, unsigned int line, const char* key);
+const char* mu_interface_get_resource_in_section(const char* file, unsigned int line, const char* section, const char* key);
 
 typedef enum MuEntryType
 {

@@ -431,7 +431,7 @@ cloader_run_child(MuTest* test, CToken* token)
     MuThunk thunk;
 
     /* Set up the C/C++ interface to call into our token */
-    Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
+    mu_interface_set_current_token_callback(ctoken_current, token);
         
     /* Set up handlers to catch asynchronous/fatal signals */
     signal_setup();
@@ -466,7 +466,7 @@ cloader_run_child(MuTest* test, CToken* token)
         INVOKE(thunk);
     
     /* If we got this far without incident, explicitly succeed */
-    Mu_Interface_Result(NULL, 0, MU_STATUS_SUCCESS, NULL);
+    mu_interface_result(NULL, 0, MU_STATUS_SUCCESS, NULL);
 }
 
 #ifdef HAVE_SIGTIMEDWAIT
@@ -839,7 +839,7 @@ cloader_run_thunk_inproc(MuThunk thunk)
     {
         token->inproc_result = result;
         /* Set up the C/C++ interface to call into our token */
-        Mu_Interface_SetCurrentTokenCallback(ctoken_current, token);
+        mu_interface_set_current_token_callback(ctoken_current, token);
         
         INVOKE(thunk);
     }

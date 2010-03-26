@@ -41,7 +41,7 @@
 
 typedef int fdpair[2];
 
-int Process_Open(Process* handle, char * const argv[],
+int process_open(Process* handle, char * const argv[],
                  unsigned long num_channels, ...)
 {
     fdpair* pipes;
@@ -166,7 +166,7 @@ error:
 }
 
 int
-Process_Channel_ReadLine(Process* handle, unsigned int cnum, char** out)
+process_channel_read_line(Process* handle, unsigned int cnum, char** out)
 {
     int res = 0;
     ProcessChannel* channel = &handle->channels[cnum];
@@ -223,7 +223,7 @@ Process_Channel_ReadLine(Process* handle, unsigned int cnum, char** out)
 }
 
 int
-Process_Channel_Write(Process* handle, unsigned int cnum, const void* data, size_t len)
+process_channel_write(Process* handle, unsigned int cnum, const void* data, size_t len)
 {
     ProcessChannel* channel = &handle->channels[cnum];
     
@@ -251,7 +251,7 @@ timeval_diff(struct timeval* from, struct timeval* to, struct timeval* diff)
 }
 
 int
-Process_Select(Process* handle, ProcessTimeout* abs, unsigned int cnum, ...)
+process_select(Process* handle, ProcessTimeout* abs, unsigned int cnum, ...)
 {
     int maxfd = 0;
     fd_set readfds;
@@ -334,19 +334,19 @@ Process_Select(Process* handle, ProcessTimeout* abs, unsigned int cnum, ...)
 }
 
 int
-Process_Finished(Process* handle, int* status)
+process_finished(Process* handle, int* status)
 {
     return waitpid(handle->pid, status, WNOHANG) == handle->pid;
 }
 
 int
-Process_Channel_Ready(Process* handle, int cnum)
+process_channel_ready(Process* handle, int cnum)
 {
     return handle->channels[cnum].ready;
 }
 
 void
-Process_Close(Process* handle)
+process_close(Process* handle)
 {
     int i;
 
@@ -365,7 +365,7 @@ Process_Close(Process* handle)
 }
 
 void
-Process_GetTime(ProcessTimeout* timeout, unsigned long msoffset)
+process_get_time(ProcessTimeout* timeout, unsigned long msoffset)
 {
     struct timeval timeval;
 

@@ -42,7 +42,7 @@ typedef enum MuType
 
 C_BEGIN_DECLS
 
-const char* Mu_Type_ToString(MuType type);
+const char* mu_type_to_string(MuType type);
 
 C_END_DECLS
 

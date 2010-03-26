@@ -63,12 +63,12 @@ typedef enum UpoptStatus
     UPOPT_STATUS_ERROR
 } UpoptStatus;
 
-UpoptContext* Upopt_CreateContext(const UpoptOptionInfo* options, int argc, char** argv);
-UpoptStatus Upopt_Next(UpoptContext* context, int* constant, const char** value, char** error);
-void Upopt_SetInfo(UpoptContext* context, const char* program_name, const char* normal_arguments,
+UpoptContext* upopt_create_context(const UpoptOptionInfo* options, int argc, char** argv);
+UpoptStatus upopt_next(UpoptContext* context, int* constant, const char** value, char** error);
+void upopt_set_info(UpoptContext* context, const char* program_name, const char* normal_arguments,
                    const char* description);
-void Upopt_PrintUsage(UpoptContext* context, FILE* out, int columns);
-void Upopt_PrintHelp(UpoptContext* context, FILE* out, int columns);
-void Upopt_DestroyContext(UpoptContext* context);
+void upopt_print_usage(UpoptContext* context, FILE* out, int columns);
+void upopt_print_help(UpoptContext* context, FILE* out, int columns);
+void upopt_destroy_context(UpoptContext* context);
 
 #endif

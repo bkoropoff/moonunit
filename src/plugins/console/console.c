@@ -131,7 +131,7 @@ library_enter(MuLogger* _self, const char* path, MuLibrary* library)
 
     if (library)
     {
-        fprintf(self->out, "Library: %s (%s)\n", basename_pure(path), Mu_Library_Name(library));
+        fprintf(self->out, "Library: %s (%s)\n", basename_pure(path), mu_library_name(library));
     }
     else
     {
@@ -286,7 +286,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     const char* result_str = NULL;
     unsigned int result_code;
 
-    name = Mu_Test_Name(test);
+    name = mu_test_name(test);
 
 	fprintf(out, "    %s:", name);
 	
@@ -359,8 +359,8 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     }
     else
     {
-        stage = Mu_TestStageToString(summary->stage);
-        status = Mu_TestStatusToString(summary->status);
+        stage = mu_test_stage_to_string(summary->stage);
+        status = mu_test_status_to_string(summary->status);
 		
         for (i = self->align - strlen(name) - strlen(stage) - 1 - 5 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
@@ -620,7 +620,7 @@ create_consolelogger()
 
     *logger = consolelogger;
 
-    Mu_Logger_SetOption((MuLogger*) logger, "fd", fileno(stdout));
+    mu_logger_set_option((MuLogger*) logger, "fd", fileno(stdout));
 
     return (MuLogger*) logger;
 }

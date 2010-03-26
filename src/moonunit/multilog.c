@@ -47,7 +47,7 @@ enter(MuLogger* _self)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_Enter(self->loggers[index]);
+        mu_logger_enter(self->loggers[index]);
     }
 }
 
@@ -59,7 +59,7 @@ leave(MuLogger* _self)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_Leave(self->loggers[index]);
+        mu_logger_leave(self->loggers[index]);
     }
 }
 
@@ -71,7 +71,7 @@ library_enter(MuLogger* _self, const char* path, MuLibrary* library)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_LibraryEnter(self->loggers[index], path, library);
+        mu_logger_library_enter(self->loggers[index], path, library);
     }
 }
 
@@ -83,7 +83,7 @@ library_leave(MuLogger* _self)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_LibraryLeave(self->loggers[index]);
+        mu_logger_library_leave(self->loggers[index]);
     }
 }
 
@@ -95,7 +95,7 @@ suite_enter(MuLogger* _self, const char* name)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_SuiteEnter(self->loggers[index], name);
+        mu_logger_suite_enter(self->loggers[index], name);
     }
 }
 
@@ -107,7 +107,7 @@ suite_leave(MuLogger* _self)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_SuiteLeave(self->loggers[index]);
+        mu_logger_suite_leave(self->loggers[index]);
     }
 }
 
@@ -119,7 +119,7 @@ test_enter(MuLogger* _self, MuTest* test)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_TestEnter(self->loggers[index], test);
+        mu_logger_test_enter(self->loggers[index], test);
     }
 }
 
@@ -131,7 +131,7 @@ test_log(MuLogger* _self, MuLogEvent* event)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_TestLog(self->loggers[index], event);
+        mu_logger_test_log(self->loggers[index], event);
     }
 }
 
@@ -143,7 +143,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_TestLeave(self->loggers[index], test, summary);
+        mu_logger_test_leave(self->loggers[index], test, summary);
     }
 }
 
@@ -155,7 +155,7 @@ destroy(MuLogger* _self)
 
     for (index = 0; index < array_size(self->loggers); index++)
     {
-        Mu_Logger_Destroy(self->loggers[index]);
+        mu_logger_destroy(self->loggers[index]);
     }
 
     array_free(self->loggers);

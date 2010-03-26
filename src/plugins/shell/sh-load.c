@@ -83,9 +83,9 @@ sh_open (struct MuLoader* self, const char* path, MuError** err)
         *dot = '\0';
     }
 
-    Mu_Sh_Exec(&handle, path, "mu_enum_test_functions >& ${MU_CMD_OUT}");
+    mu_sh_exec(&handle, path, "mu_enum_test_functions >& ${MU_CMD_OUT}");
 
-    while ((len = Process_Channel_ReadLine(&handle, 4, &line)))
+    while ((len = process_channel_read_line(&handle, 4, &line)))
     {
         ShTest* test = calloc(1, sizeof(ShTest));
         char* div1, *div2;
@@ -111,7 +111,7 @@ sh_open (struct MuLoader* self, const char* path, MuError** err)
         free(line);
     }
 
-    Process_Close(&handle);
+    process_close(&handle);
 
     library->tests = (ShTest**) tests;
 
@@ -165,7 +165,7 @@ sh_construct(struct MuLoader* self, struct MuLibrary* handle, MuError** err)
 {
     ShLibrary* library = (ShLibrary*) handle;
 
-    Mu_Sh_Construct(library, err);
+    mu_sh_construct(library, err);
 }
 
 static void
@@ -173,7 +173,7 @@ sh_destruct(struct MuLoader* self, struct MuLibrary* handle, MuError** err)
 {
     ShLibrary* library = (ShLibrary*) handle;
 
-    Mu_Sh_Destruct(library, err);
+    mu_sh_destruct(library, err);
 }
 
 static const char*
@@ -207,7 +207,7 @@ sh_dispatch (struct MuLoader* self, struct MuTest* handle, MuLogCallback lcb, vo
 {
     ShTest* test = (ShTest*) handle;
     
-    return Mu_Sh_Dispatch (test, lcb, data);
+    return mu_sh_dispatch (test, lcb, data);
 }
 
 static void

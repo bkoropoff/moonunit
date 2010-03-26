@@ -63,68 +63,68 @@ typedef struct MuError
     char* message;
 } MuError;
 
-void Mu_Error_Raise(MuError** err, MuStatusCode code, const char* format, ...);
-void Mu_Error_Handle(MuError** err);
-void Mu_Error_Reraise(MuError** err, MuError* src);
-bool Mu_Error_Equal(MuError* err, int code);
+void mu_error_raise(MuError** err, MuStatusCode code, const char* format, ...);
+void mu_error_handle(MuError** err);
+void mu_error_reraise(MuError** err, MuError* src);
+bool mu_error_equal(MuError* err, int code);
 
 #define MU_RAISE_RETURN_VOID(err, code, ...)            \
     do                                                  \
     {                                                   \
-        Mu_Error_Raise(err,  code, __VA_ARGS__);        \
+        mu_error_raise(err,  code, __VA_ARGS__);        \
         return;                                         \
     } while (0)                                         \
         
 #define MU_RAISE_RETURN(ret, err, code, ...)            \
     do                                                  \
     {                                                   \
-        Mu_Error_Raise(err,  code, __VA_ARGS__);        \
+        mu_error_raise(err,  code, __VA_ARGS__);        \
         return (ret);                                   \
     } while (0)                                         \
 
 #define MU_RAISE_GOTO(lab, err, code, ...)              \
     do                                                  \
     {                                                   \
-        Mu_Error_Raise(err, code, __VA_ARGS__);         \
+        mu_error_raise(err, code, __VA_ARGS__);         \
         goto lab;                                       \
     } while (0)                                         \
 
 #define MU_RERAISE_RETURN_VOID(err, src)        \
     do                                          \
     {                                           \
-        Mu_Error_Reraise(err, src);             \
+        mu_error_reraise(err, src);             \
         return;                                 \
     } while (0)                                 \
 
 #define MU_RERAISE_RETURN(ret, err, src)        \
     do                                          \
     {                                           \
-        Mu_Error_Reraise(err, src);             \
+        mu_error_reraise(err, src);             \
         return (ret);                           \
     } while (0)                                 \
 
 #define MU_RERAISE_GOTO(lab, err, src)          \
     do                                          \
     {                                           \
-        Mu_Error_Reraise(err, src);             \
+        mu_error_reraise(err, src);             \
         goto lab;                               \
     } while (0)                                 \
 
 #define MU_CATCH_GOTO(lab, code)                \
     do                                          \
     {                                           \
-        if (Mu_Error_Equal(err, code))          \
+        if (mu_error_equal(err, code))          \
             goto lab;                           \
     } while (0)                                 \
         
 #define MU_CATCH(err, code)             \
-    if (Mu_Error_Equal(err, code))      \
+    if (mu_error_equal(err, code))      \
         
 #define MU_CATCH_ALL(err)                       \
     if (err)                                    \
 
 #define MU_HANDLE(err)                          \
-    Mu_Error_Handle(err)
+    mu_error_handle(err)
 
 C_END_DECLS
 

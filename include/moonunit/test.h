@@ -171,10 +171,10 @@ typedef struct MuTest
 
 typedef void (*MuThunk) (void);
 
-const char* Mu_TestStatusToString(MuTestStatus status);
-const char* Mu_TestStageToString(MuTestStage stage);
-const char* Mu_Test_Name(MuTest* test);
-const char* Mu_Test_Suite(MuTest* test);
+const char* mu_test_status_to_string(MuTestStatus status);
+const char* mu_test_stage_to_string(MuTestStage stage);
+const char* mu_test_name(MuTest* test);
+const char* mu_test_suite(MuTest* test);
 
 #endif
 

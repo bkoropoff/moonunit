@@ -55,7 +55,7 @@ static
 int
 list_plugins()
 {
-    MuPlugin** plugins = Mu_Plugin_List();
+    MuPlugin** plugins = mu_plugin_list();
     unsigned int i;
 
     if (!plugins)
@@ -99,9 +99,9 @@ print_options(void* object, MuOption* options)
     for (i = 0; options[i].name; i++)
     {
         printf("  Option: %s\n", options[i].name);
-        printf("    Type: %s\n", Mu_Type_ToString(options[i].type));
+        printf("    Type: %s\n", mu_type_to_string(options[i].type));
         printf("    Description: %s\n", options[i].description);
-        printf("    Default: %s\n", Mu_Option_GetString(options, object, options[i].name));
+        printf("    Default: %s\n", mu_option_get_string(options, object, options[i].name));
         printf("\n");
     }
 }
@@ -110,7 +110,7 @@ static
 int
 plugin_info(const char* name)
 {
-    MuPlugin* plugin = Mu_Plugin_GetByName(name);
+    MuPlugin* plugin = mu_plugin_get_by_name(name);
 
     if (!plugin)
         die("No such plugin: %s\n", name);
@@ -134,7 +134,7 @@ plugin_info(const char* name)
         printf("  Type: logger\n");
         printf("  Author: %s\n\n", plugin->author);
         print_options(logger, logger->options);
-        Mu_Logger_Destroy(logger);
+        mu_logger_destroy(logger);
         break;
     }
     }
@@ -152,13 +152,13 @@ run(char* self)
     array* loggers;
     unsigned int failed = 0;
 
-    if (Option_ProcessResources(&option))
+    if (option_process_resources(&option))
     {
         die("Error: %s", option.errormsg);
     }
 
-    Option_ConfigureLoaders(&option);
-    loggers = Option_CreateLoggers(&option);
+    option_configure_loaders(&option);
+    loggers = option_create_loggers(&option);
     
     settings.self = self;
     settings.debug = option.gdb;
@@ -166,14 +166,14 @@ run(char* self)
     if (array_size(loggers) == 0)
     {
         /* Create default console logger */
-        settings.logger = Mu_Plugin_CreateLogger("console");
+        settings.logger = mu_plugin_create_logger("console");
 
         if (!settings.logger)
         {
             die("Error: Could not create logger 'console'");
         }
         
-        Mu_Logger_SetOption(settings.logger, "ansi", true);
+        mu_logger_set_option(settings.logger, "ansi", true);
     }
     else if (array_size(loggers) == 1)
     {
@@ -184,27 +184,27 @@ run(char* self)
         settings.logger = create_multilogger(loggers);
     }
 
-    Mu_Logger_Enter(settings.logger);
+    mu_logger_enter(settings.logger);
 
     for (file_index = 0; file_index < array_size(option.files); file_index++)
     {
         char* file = option.files[file_index];
 
-        settings.loader = Mu_Plugin_GetLoaderForFile(file);
+        settings.loader = mu_plugin_get_loader_for_file(file);
 
         if (!settings.loader)
         {
             die("Error: Could not find loader for file %s", basename_pure(file));
         }
 
-        if (option.timeout && Mu_Loader_OptionType(settings.loader, "timeout") == MU_TYPE_INTEGER)
+        if (option.timeout && mu_loader_option_type(settings.loader, "timeout") == MU_TYPE_INTEGER)
         {
-            Mu_Loader_SetOption(settings.loader, "timeout", option.timeout);
+            mu_loader_set_option(settings.loader, "timeout", option.timeout);
         }
         
-        if (option.iterations && Mu_Loader_OptionType(settings.loader, "iterations") == MU_TYPE_INTEGER)
+        if (option.iterations && mu_loader_option_type(settings.loader, "iterations") == MU_TYPE_INTEGER)
         {
-            Mu_Loader_SetOption(settings.loader, "iterations", option.iterations);
+            mu_loader_set_option(settings.loader, "iterations", option.iterations);
         }
         
         if (option.all || array_size(option.tests) == 0)
@@ -222,10 +222,10 @@ run(char* self)
         }
     }
 
-    Mu_Logger_Leave(settings.logger);
-    Mu_Logger_Destroy(settings.logger);
+    mu_logger_leave(settings.logger);
+    mu_logger_destroy(settings.logger);
 
-    Option_Release(&option);
+    option_release(&option);
 
     if (failed > 255)
         return 255;
@@ -238,7 +238,7 @@ main (int argc, char** argv)
 {
     int res = 0;
 
-    if (Option_Parse(argc, argv, &option))
+    if (option_parse(argc, argv, &option))
     {
         die("Error: %s", option.errormsg);
     }
@@ -262,7 +262,7 @@ main (int argc, char** argv)
         break;
     }
 
-    Mu_Plugin_Shutdown();
+    mu_plugin_shutdown();
 
     return res;
 }

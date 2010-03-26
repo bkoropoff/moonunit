@@ -42,30 +42,30 @@ static MuInterfaceToken* (*current_callback) (void* data) = NULL;
 static void* current_callback_data = NULL;
 
 void
-Mu_Interface_Expect(MuTestStatus status)
+mu_interface_expect(MuTestStatus status)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     token->meta(token, MU_META_EXPECT, status);
 }
 
 void
-Mu_Interface_Timeout(long ms)
+mu_interface_timeout(long ms)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     token->meta(token, MU_META_TIMEOUT, ms);
 }
 
 void
-Mu_Interface_Iterations(unsigned int count)
+mu_interface_iterations(unsigned int count)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     token->meta(token, MU_META_ITERATIONS, count);
 }
 
 void
-Mu_Interface_Event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...)
+mu_interface_event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     MuLogEvent event;
     va_list ap;
 
@@ -84,9 +84,9 @@ Mu_Interface_Event(const char* file, unsigned int line, MuLogLevel level, const 
 }
 
 void
-Mu_Interface_Assert(const char* file, unsigned int line, const char* expr, int sense, int result)
+mu_interface_assert(const char* file, unsigned int line, const char* expr, int sense, int result)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     result = result ? 1 : 0;
     sense = sense ? 1 : 0;
     
@@ -198,11 +198,11 @@ assert_equal_boolean(const char* expr, const char* expected, va_list ap, int* re
 }
 
 void
-Mu_Interface_AssertEqual(const char* file, unsigned int line, 
+mu_interface_assert_equal(const char* file, unsigned int line, 
                          const char* expr1, const char* expr2, 
                          int sense, MuType type, ...)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
 	int result;
 	char* reason;
 	
@@ -255,9 +255,9 @@ Mu_Interface_AssertEqual(const char* file, unsigned int line,
 }
 
 void   
-Mu_Interface_Result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...)
+mu_interface_result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     va_list ap;
     MuTestResult summary;
 
@@ -274,7 +274,7 @@ Mu_Interface_Result(const char* file, unsigned int line, MuTestStatus result, co
 }
 
 MuInterfaceToken*
-Mu_Interface_CurrentToken()
+mu_interface_current_token()
 {
     if (current_callback)
         return current_callback(current_callback_data);
@@ -283,30 +283,30 @@ Mu_Interface_CurrentToken()
 }
 
 void
-Mu_Interface_SetCurrentTokenCallback(MuInterfaceToken* (*cb) (void* data), void* data)
+mu_interface_set_current_token_callback(MuInterfaceToken* (*cb) (void* data), void* data)
 {
     current_callback = cb;
     current_callback_data = data;
 }
 
 MuTest*
-Mu_Interface_CurrentTest(void)
+mu_interface_current_test(void)
 {
-    return Mu_Interface_CurrentToken()->test;
+    return mu_interface_current_token()->test;
 }
 
 const char*
-Mu_Interface_GetResource(const char* file, unsigned int line, const char* key)
+mu_interface_get_resource(const char* file, unsigned int line, const char* key)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     MuTest* test = token->test;
     const char* value = NULL;
     MuTestResult summary;
     
-    value = Mu_Resource_GetForTest(
-        Mu_Library_Name(test->library),
-        Mu_Test_Suite(test),
-        Mu_Test_Name(test),
+    value = mu_resource_get_for_test(
+        mu_library_name(test->library),
+        mu_test_suite(test),
+        mu_test_name(test),
         key);
 
     if (!value)
@@ -329,13 +329,13 @@ error:
 }
 
 const char*
-Mu_Interface_GetResourceInSection(const char* file, unsigned int line, const char* section, const char* key)
+mu_interface_get_resource_in_section(const char* file, unsigned int line, const char* section, const char* key)
 {
-    MuInterfaceToken* token = Mu_Interface_CurrentToken();
+    MuInterfaceToken* token = mu_interface_current_token();
     const char* value;
     MuTestResult summary;
 
-    value = Mu_Resource_Get(section, key);
+    value = mu_resource_get(section, key);
 
     if (value)
         return value;

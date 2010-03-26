@@ -53,8 +53,8 @@ typedef struct MuInterfaceToken
     MuTest* test;
 } MuInterfaceToken;
 
-MuInterfaceToken* Mu_Interface_CurrentToken(void);
-void Mu_Interface_SetCurrentTokenCallback(MuInterfaceToken* (*cb) (void* data), void* data);
+MuInterfaceToken* mu_interface_current_token(void);
+void mu_interface_set_current_token_callback(MuInterfaceToken* (*cb) (void* data), void* data);
 
 C_END_DECLS
 

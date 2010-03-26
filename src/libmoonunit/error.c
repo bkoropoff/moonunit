@@ -39,7 +39,7 @@ static MuError error_mem =
 };
 
 void
-Mu_Error_Raise(MuError** err, MuStatusCode code, const char* format, ...)
+mu_error_raise(MuError** err, MuStatusCode code, const char* format, ...)
 {
     va_list ap;
 
@@ -79,7 +79,7 @@ Mu_Error_Raise(MuError** err, MuStatusCode code, const char* format, ...)
 }
 
 void
-Mu_Error_Handle(MuError** err)
+mu_error_handle(MuError** err)
 {
     if (!err)
         return;
@@ -94,7 +94,7 @@ Mu_Error_Handle(MuError** err)
 }
 
 void
-Mu_Error_Reraise(MuError** err, MuError* src)
+mu_error_reraise(MuError** err, MuError* src)
 {
     if (err)
     {
@@ -102,12 +102,12 @@ Mu_Error_Reraise(MuError** err, MuError* src)
     }
     else
     {
-        Mu_Error_Handle(&src);
+        mu_error_handle(&src);
     }
 }
 
 bool
-Mu_Error_Equal(MuError* err, int code)
+mu_error_equal(MuError* err, int code)
 {
     return err && err->code == code;
 }

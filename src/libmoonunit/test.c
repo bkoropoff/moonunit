@@ -35,7 +35,7 @@
 #include <stdio.h>
 
 const char*
-Mu_TestStatusToString(MuTestStatus result)
+mu_test_status_to_string(MuTestStatus result)
 {
 	switch (result)
 	{
@@ -61,7 +61,7 @@ Mu_TestStatusToString(MuTestStatus result)
 }
 
 const char*
-Mu_TestStageToString(MuTestStage stage)
+mu_test_stage_to_string(MuTestStage stage)
 {
 	switch (stage)
 	{
@@ -82,13 +82,13 @@ Mu_TestStageToString(MuTestStage stage)
 }
 
 const char*
-Mu_Test_Name(MuTest* test)
+mu_test_name(MuTest* test)
 {
     return test->loader->test_name(test->loader, test);
 }
 
 const char*
-Mu_Test_Suite(MuTest* test)
+mu_test_suite(MuTest* test)
 {
     return test->loader->test_suite(test->loader, test);
 }

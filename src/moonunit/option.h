@@ -55,10 +55,10 @@ typedef struct
 
 struct MuLogger;
 
-int Option_Parse(int argc, char** argv, OptionTable* option);
-void Option_Release(OptionTable* option);
-array* Option_CreateLoggers(OptionTable* option);
-void Option_ConfigureLoaders(OptionTable* option);
-int Option_ProcessResources(OptionTable* option);
+int option_parse(int argc, char** argv, OptionTable* option);
+void option_release(OptionTable* option);
+array* option_create_loggers(OptionTable* option);
+void option_configure_loaders(OptionTable* option);
+int option_process_resources(OptionTable* option);
 
 #endif

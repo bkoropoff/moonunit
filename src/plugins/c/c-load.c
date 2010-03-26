@@ -135,7 +135,7 @@ cloader_scan (MuLoader* _self, CLibrary* handle, MuError ** _err)
 {
     MuError* err = NULL;
     
-	if (!ElfScan_GetScanner()(handle->dlhandle, entry_filter, entry_add, handle, &err))
+	if (!elf_scan_get_scanner()(handle->dlhandle, entry_filter, entry_add, handle, &err))
     {
         MU_RERAISE_GOTO(error, _err, err);
     }

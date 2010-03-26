@@ -6,7 +6,7 @@ AC_PROG_CC
 AC_PROG_CXX
 
 MU_CFLAGS="-Wall -Werror -Wmissing-prototypes"
-MU_CXXFLAGS="-Wall -Werror -Wmissing-prototypes"
+MU_CXXFLAGS="-Wall -Werror"
 MU_CPPFLAGS=""
 MU_LDFLAGS=""
 MU_STDFLAGS=""

@@ -27,8 +27,8 @@
 
 program="`basename $0`"
 prefix="@prefix@"
-datadir="@datadir@"
 datarootdir="@datarootdir@"
+datadir="@datadir@"
 html_xsl="muxhtml.xsl"
 html_res="muxhtml.css muxhtml.js"
 

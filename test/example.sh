@@ -7,7 +7,7 @@ construct()
 
 destruct()
 {
-    rm -f "${TMPFILE}" || mu_failure "Coult not remove ${TMPFILE}"
+    rm -f "${TMPFILE}" || mu_failure "Could not remove ${TMPFILE}"
 }
 
 fixture_Shell_setup()
@@ -40,8 +40,8 @@ test_Shell_assert_failure()
 test_Shell_success_subshell()
 {
     (
-	( mu_success )
-	mu_failure "Should not be here"
+        ( mu_success )
+	    mu_failure "Should not be here"
     )
 }
 

@@ -190,9 +190,6 @@ ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
     /* If we are in debug mode (no communication channel) */
     if (!ipc_handle)
     {
-        /* Trap so the user has a chance to inspect the
-           process before we exit */
-        raise(SIGTRAP);
         goto done;
     }
 
@@ -205,11 +202,13 @@ ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
     uipc_msg_free(message);
 
 done:
-    if (ipc_handle)
-        uipc_close(ipc_handle);
-    ctoken_free(token); 
 
-    exit(0);
+    if (ipc_handle)
+    {
+        ctoken_free(token);
+        uipc_close(ipc_handle);
+        exit(0);
+    }
 
     pthread_mutex_unlock(&token->lock);
 }
@@ -426,7 +425,7 @@ ctoken_free(CToken* token)
 #endif
 
 static void
-cloader_run_child(MuTest* test, CToken* token)
+cloader_run_child(MuTest* test, CToken* token, int debug)
 {
     MuThunk thunk;
 
@@ -434,7 +433,8 @@ cloader_run_child(MuTest* test, CToken* token)
     mu_interface_set_current_token_callback(ctoken_current, token);
         
     /* Set up handlers to catch asynchronous/fatal signals */
-    signal_setup();
+    if (!debug)
+        signal_setup();
 
     /* Stage: library setup */
     token->current_stage = MU_STAGE_LIBRARY_SETUP;
@@ -789,7 +789,7 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
         token->child = getpid();
         
         /* Run test procedure */
-        cloader_run_child(test, token);
+        cloader_run_child(test, token, 0);
 
         /* Tear down ipc handle and close connection */
         uipc_detach(ipc);
@@ -847,114 +847,6 @@ cloader_run_thunk_inproc(MuThunk thunk)
     return result;
 }
 
-static void
-empty_handler(int sig)
-{
-}
-
-static void
-wait_for_debugger(pid_t parent)
-{
-    sigset_t set, oldset;
-    int sig;
-
-    sigemptyset(&set);
-    sigaddset(&set, SIGCONT);
-    sigprocmask(SIG_BLOCK, &set, &oldset);
-    signal(SIGCONT, empty_handler);
-
-    /* Tell the parent process that we are ready for
-       the debugger to attach */
-
-    kill(parent, SIGUSR1);
-
-    do
-    {
-        sigwait(&set, &sig);
-    } while (sig != SIGCONT);
-
-    /* Restore old signal handler */
-    sigprocmask(SIG_SETMASK, &oldset, NULL);
-}
-
-static void
-wait_until_debuggable(void)
-{
-    sigset_t set;
-    int sig;
-
-    sigemptyset(&set);
-    sigaddset(&set, SIGUSR1);
-
-    do
-    {
-        sigwait(&set, &sig);
-    } while (sig != SIGUSR1);
-
-    sigprocmask(SIG_UNBLOCK, &set, NULL);
-    signal(SIGUSR1, SIG_DFL);
-}
-
-static void
-cloader_run_debug(MuTest* test, MuTestStage debug_stage, pid_t* _pid, void** breakpoint)
-{
-    pid_t pid, parent;
-    CToken* token = current_token = ctoken_new(test);
-    sigset_t set;
-
-    /* Block SIGUSR1, which will be used by the child
-       to let us know when the debugger can attach */
-    sigemptyset(&set);
-    sigaddset(&set, SIGUSR1);
-    sigprocmask(SIG_BLOCK, &set, NULL);    
-    signal(SIGUSR1, empty_handler);
-
-    parent = getpid();
-
-    if (!(pid = fork()))
-    {
-        token->child = getpid();
-
-        token->base.test = test;
-        token->ipc_handle = NULL;
-
-        wait_for_debugger(parent);  
-        cloader_run_child(test, token);
-        exit(0);
-    }
-    else
-    {
-        CTest* ctest = (CTest*) test;
-
-        switch (debug_stage)
-        {
-        case MU_STAGE_TEST:
-            *breakpoint = ctest->entry->run;
-            break;
-        case MU_STAGE_FIXTURE_SETUP:
-            *breakpoint = cloader_fixture_setup(test->loader, test);
-            break;
-        case MU_STAGE_FIXTURE_TEARDOWN:
-            *breakpoint = cloader_fixture_teardown(test->loader, test);
-            break;
-        case MU_STAGE_LIBRARY_SETUP:
-            *breakpoint = cloader_library_setup(test->loader, test->library);
-            break;
-        case MU_STAGE_LIBRARY_TEARDOWN:
-            *breakpoint = cloader_library_teardown(test->loader, test->library);
-            break;
-        case MU_STAGE_UNKNOWN:
-            /* Not sure where the test failed, so default to the most likely function */
-            *breakpoint = ctest->entry->run;
-            break;
-        }
-
-        wait_until_debuggable();
-
-        *_pid = pid;
-    }
-}
-
 void
 cloader_free_result(MuLoader* _self, MuTestResult* result)
 {
@@ -982,14 +874,18 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
     return result;
 }
 
-pid_t 
-cloader_debug(MuLoader* _self, MuTest* test, MuTestStage stage, void** breakpoint)
+void
+cloader_debug(MuLoader* _self, MuTest* test)
 {
-    pid_t result;
+    CToken* token = current_token = ctoken_new(test);
 
-    cloader_run_debug(test, stage, &result, breakpoint);
+    token->child = getpid();
+    token->base.test = test;
+    token->ipc_handle = NULL;
 
-    return result;
+    cloader_run_child(test, token, 1);
+
+    ctoken_free(token);
 }
 
 void

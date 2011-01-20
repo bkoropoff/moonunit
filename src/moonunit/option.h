@@ -42,8 +42,8 @@ typedef struct
         MODE_USAGE,
         MODE_HELP
     } mode;
-    bool gdb;
     bool all;
+    bool debug;
     unsigned int iterations;
     long timeout;
     char* logger;

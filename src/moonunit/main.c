@@ -161,7 +161,7 @@ run(char* self)
     loggers = option_create_loggers(&option);
     
     settings.self = self;
-    settings.debug = option.gdb;
+    settings.debug = option.debug;
 
     if (array_size(loggers) == 0)
     {

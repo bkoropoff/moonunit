@@ -1,7 +1,7 @@
 bin_PROGRAMS = moonunit
 bin_SCRIPTS = moonunit-lt moonunit-stub
 
-moonunit_SOURCES = main.c option.c run.c gdb.c multilog.c upopt.c
+moonunit_SOURCES = main.c option.c run.c multilog.c upopt.c
 moonunit_LDADD = $(top_builddir)/src/libmoonunit/libmoonunit.la @LIB_pthread@
 if CPLUSPLUS_ENABLED
 moonunit_SOURCES += dummy.cpp

@@ -29,7 +29,7 @@ enum
 {
     OPTION_TEST,
     OPTION_ALL,
-    OPTION_GDB,
+    OPTION_DEBUG,
     OPTION_LOGGER,
     OPTION_LOADER_OPTION,
     OPTION_ITERATIONS,
@@ -93,10 +93,10 @@ static const struct UpoptOptionInfo options[] =
         .argument = NULL
     },
     {
-        .longname = "gdb",
-        .shortname = 'g',
-        .constant = OPTION_GDB,
-        .description = "Rerun failed tests in an interactive gdb session",
+        .longname = "debug",
+        .shortname = 'd',
+        .constant = OPTION_DEBUG,
+        .description = "Run a specific test directly and exit",
         .argument = NULL
     },
     {
@@ -197,8 +197,8 @@ option_parse(int argc, char** argv, OptionTable* option)
         case OPTION_ALL:
             option->all = true;
             break;
-        case OPTION_GDB:
-            option->gdb = true;
+        case OPTION_DEBUG:
+            option->debug = true;
             break;
         case OPTION_LOGGER:
             option->loggers = array_append(option->loggers, strdup(value));

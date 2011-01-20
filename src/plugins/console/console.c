@@ -290,8 +290,13 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 
 	fprintf(out, "    %s:", name);
 	
-    
-    if (result)
+    if (summary->status == MU_STATUS_DEBUG)
+    {
+        result_str = "DEBUG";
+        result_code = 33;
+        self->num_skip++;
+    }
+    else if (result)
     {
         result_code = 32;
 
@@ -315,6 +320,8 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             result_code = 33;
             self->num_skip++;
             break;
+        case MU_STATUS_DEBUG:
+            abort();
         }
     }
     else
@@ -341,10 +348,14 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             result_code = 33;
             self->num_skip++;
             break;
+        case MU_STATUS_DEBUG:
+            abort();
         }
     }
 
-    if (summary->status == MU_STATUS_SUCCESS || (result && !self->details))
+    if (summary->status == MU_STATUS_SUCCESS ||
+        summary->status == MU_STATUS_DEBUG ||
+        (result && !self->details))
     {
         for (i = self->align - strlen(name) - 5 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");

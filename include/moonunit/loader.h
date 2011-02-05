@@ -65,10 +65,8 @@ typedef struct MuLoader
     struct MuTestResult* (*dispatch)(struct MuLoader*, struct MuTest*, MuLogCallback, void*);
     // Free the result of a unit test
     void (*free_result)(struct MuLoader*, struct MuTestResult*);
-    // Called to run and immediately suspend a unit test in
-    // a separate process.  The test can then be traced by
-    // a debugger.
-    pid_t (*debug)(struct MuLoader*, struct MuTest*, MuTestStage, void**);
+    // Runs test in-process for debugging purposes
+    void (*debug)(struct MuLoader*, struct MuTest*);
     /* Runs the constructor for a library, which does any needed *one-time* setup */
     void (*construct) (struct MuLoader*, struct MuLibrary* handle, MuError** err);
     /* Runs the destructor for a library, which does any needed *one-time* teardown */

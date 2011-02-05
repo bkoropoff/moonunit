@@ -59,15 +59,16 @@
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>-g</option></term>
-        <term><option>--gdb</option></term>
+        <term><option>-d</option></term>
+        <term><option>--debug</option></term>
         <listitem>
           <para>
-            Interactively trace failed tests in <emphasis>gdb</emphasis>,
-            the GNU debugger. Each test that fails will immediately be 
-            rerun inside a <emphasis>gdb</emphasis> session with a breakpoint
-            set at the failed function.  After leaving the <emphasis>gdb</emphasis>
-	    session, <command>moonunit</command> will resume at the next unit test.
+            Causes <command>moonunit</command> to run all tests directly
+            rather than in a separate process and ignore the results.
+            This lets you run <command>moonunit</command> under a debugger
+            to inspect failing tests.  Since running in this mode does
+            not enforce test isolation, you might want to use the
+            <option>-t</option> to run just the failing test.
           </para>
         </listitem>
       </varlistentry>

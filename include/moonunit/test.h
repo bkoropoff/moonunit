@@ -71,6 +71,8 @@ typedef enum MuTestStatus
     MU_STATUS_RESOURCE,
     /** Test skipped */
     MU_STATUS_SKIPPED,
+    /** Test debugged */
+    MU_STATUS_DEBUG
 } MuTestStatus;
 
 /**

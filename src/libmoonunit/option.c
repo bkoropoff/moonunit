@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
 #include <moonunit/option.h>
 #include <moonunit/private/util.h>
 #include <stdbool.h>

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
 #include <moonunit/logger.h>
 #include <moonunit/plugin.h>
 #include <moonunit/test.h>

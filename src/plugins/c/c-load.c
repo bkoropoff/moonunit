@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
 #include <moonunit/loader.h>
 #include <moonunit/private/util.h>
 #include <moonunit/test.h>
@@ -35,8 +36,6 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <config.h>
 
 #ifdef HAVE_LIBELF
 #include "elfscan.h"

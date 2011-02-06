@@ -25,24 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-enum
-{
-    OPTION_TEST,
-    OPTION_ALL,
-    OPTION_DEBUG,
-    OPTION_LOGGER,
-    OPTION_LOADER_OPTION,
-    OPTION_ITERATIONS,
-    OPTION_TIMEOUT,
-    OPTION_LIST_PLUGINS,
-    OPTION_PLUGIN_INFO,
-    OPTION_RESOURCE,
-    OPTION_USAGE,
-    OPTION_HELP
-};
-
-
-
+#include "config.h"
 #include <moonunit/private/util.h>
 #include <moonunit/logger.h>
 #include <moonunit/loader.h>
@@ -59,6 +42,22 @@ enum
 
 #include "option.h"
 #include "upopt.h"
+
+enum
+{
+    OPTION_TEST,
+    OPTION_ALL,
+    OPTION_DEBUG,
+    OPTION_LOGGER,
+    OPTION_LOADER_OPTION,
+    OPTION_ITERATIONS,
+    OPTION_TIMEOUT,
+    OPTION_LIST_PLUGINS,
+    OPTION_PLUGIN_INFO,
+    OPTION_RESOURCE,
+    OPTION_USAGE,
+    OPTION_HELP
+};
 
 static int
 error(OptionTable* table, int code, const char* fmt, ...)

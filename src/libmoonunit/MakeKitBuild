@@ -1,0 +1,13 @@
+make()
+{
+    LIB_SOURCES="\
+        error.c util.c test.c logger.c loader.c plugin.c option.c \
+	interface.c type.c library.c resource.c"
+    
+    mk_library \
+        LIB="moonunit" \
+        SOURCES="$LIB_SOURCES" \
+        INCLUDEDIRS="../../include" \
+        GROUPS="../libuipc/uipc" \
+        LIBDEPS="$LIB_DL"
+}

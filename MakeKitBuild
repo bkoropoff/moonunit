@@ -1,0 +1,73 @@
+PROJECT_NAME="moonunit"
+MODULES="compiler doxygen docbook"
+SUBDIRS="include src test doc"
+
+option()
+{
+    mk_option \
+        OPTION="cplusplus" \
+        VAR="CPLUSPLUS_ENABLED" \
+        PARAM="yes|no" \
+        DEFAULT="yes" \
+        HELP="Enable C++ support"
+}
+
+configure()
+{
+    mk_config_header include/config.h
+
+    case "${MK_HOST_OS}" in
+        linux)
+            STDFLAGS="-std=c99"
+            mk_define _XOPEN_SOURCE 500
+            mk_define _GNU_SOURCE
+            ;;
+    esac
+
+    MK_CFLAGS="$MK_CFLAGS $STDFLAGS -Wall -Werror"
+    MK_CXXFLAGS="$MK_CXXFLAGS -Wall -Werror"
+
+    mk_declare -i -e MU_PLUGIN_PATH="${MK_LIBDIR}/moonunit"
+    mk_declare -i CPLUSPLUS_ENABLED
+
+    [ "$CPLUSPLUS_ENABLED" = "yes" ] && mk_define CPLUSPLUS_ENABLED
+    mk_define PLUGIN_EXTENSION "\"$MK_DLO_EXT\""
+    mk_define DSO_EXT "\"$MK_DLO_EXT\""
+    mk_define PLUGIN_PATH "\"$MU_PLUGIN_PATH\""
+    mk_define LIBEXEC_PATH "\"$MK_LIBEXECDIR\""
+    mk_define HOST_CPU "\"$MK_HOST_ARCH\""
+    mk_define HOST_VENDOR "\"unknown\""
+    mk_define HOST_OS "\"$MK_HOST_OS\""
+
+    mk_check_headers string.h strings.h sys/time.h execinfo.h unistd.h signal.h
+
+    mk_check_libraries socket dl pthread
+
+    mk_check_types HEADERDEPS="sys/time.h" suseconds_t
+
+    if [ "$HAVE_SUSECONDS_T" = "yes" ]
+    then
+        mk_define USEC_T suseconds_t
+    else
+        mk_define USEC_T long
+    fi
+
+    mk_check_functions \
+        HEADERDEPS="string.h execinfo.h unistd.h signal.h" \
+        strsignal backtrace backtrace_symbols \
+        setpgid setpgrp tcgetpgrp tcsetpgrp sigtimedwait
+
+    mk_check_program FAIL=yes bash
+
+    mk_declare -o BASH_PATH="$BASH" DOCBOOK_XSL_DIR="$MK_DOCBOOK_XSL_DIR"
+
+    mk_check_doxygen
+
+    mk_output_file src/moonunit/moonunit-lt.sh
+    mk_output_file src/moonunit/moonunit-stub.sh
+    mk_output_file src/plugins/shell/mu.sh
+    mk_output_file src/muxml/moonunit-xml.sh
+    mk_output_file doc/docbook-html.xsl
+    mk_output_file doc/docbook-man.xsl
+    mk_output_file src/muxml/moonunit-xml.sh
+}

@@ -1,0 +1,9 @@
+make()
+{
+    mk_dlo \
+        DLO=xml \
+        INSTALLDIR="$MU_PLUGIN_PATH" \
+        INCLUDEDIRS="../../../include" \
+        SOURCES="xml.c" \
+        LIBDEPS="moonunit"
+}

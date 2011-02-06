@@ -1,0 +1,22 @@
+make()
+{
+    MOONUNIT_SOURCES="main.c option.c run.c multilog.c upopt.c"
+
+    [ "$CPLUSPLUS_ENABLED" = "yes" ] && MOONUNIT_SOURCES="$MOONUNIT_SOURCES dummy.cpp"
+
+    mk_program \
+        PROGRAM=moonunit \
+        SOURCES="$MOONUNIT_SOURCES" \
+        INCLUDEDIRS=". ../../include" \
+        LIBDEPS="moonunit $LIB_PTHREAD"
+
+    mk_stage \
+        DEST="$MK_BINDIR/moonunit-lt" \
+        SOURCE="moonunit-lt.sh" \
+        MODE="0755"
+
+    mk_stage \
+        DEST="$MK_BINDIR/moonunit-stub" \
+        SOURCE="moonunit-stub.sh" \
+        MODE="0755"
+}

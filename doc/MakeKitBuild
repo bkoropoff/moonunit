@@ -1,0 +1,24 @@
+make()
+{
+    mk_have_doxygen && mk_doxygen_html \
+        INSTALLDIR="$MK_HTMLDIR/api" \
+        DOXYFILE="Doxyfile.makekit" \
+        HEADERDIRS="../include" \
+        INPUT="main.doxy" \
+        EXAMPLES="../test/example.c"
+    
+    if mk_have_docbook
+    then
+        mk_docbook_html \
+            INSTALLDIR="$MK_HTMLDIR/tools" \
+            SOURCE="index.xml" \
+            STYLESHEET="docbook-html.xsl" \
+            INCLUDES="moonunit-lt.xml moonunit.xml moonunit-stub.xml"
+
+        mk_docbook_man \
+            SOURCE="index.xml" \
+            STYLESHEET="docbook-man.xsl" \
+            INCLUDES="moonunit-lt.xml moonunit.xml moonunit-stub.xml" \
+            MANPAGES="moonunit-lt.1 moonunit.1 moonunit-stub.1"
+    fi
+}

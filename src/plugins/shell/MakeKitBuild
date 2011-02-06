@@ -1,0 +1,13 @@
+make()
+{
+    mk_dlo \
+        DLO=shell \
+        INSTALLDIR="$MU_PLUGIN_PATH" \
+        INCLUDEDIRS="../../../include" \
+        SOURCES="sh-exec.c sh-load.c process.c" \
+        LIBDEPS="moonunit"
+
+    mk_stage \
+        DESTDIR="$MK_LIBEXECDIR" \
+        mu.sh
+}

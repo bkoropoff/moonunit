@@ -1,0 +1,8 @@
+make()
+{
+    mk_group \
+        GROUP=uipc \
+        SOURCES="marshal.c message.c wire.c time.c" \
+        INCLUDEDIRS="../../include" \
+        LIBDEPS="$LIB_SOCKET"
+}

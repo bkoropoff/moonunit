@@ -1,0 +1,9 @@
+make()
+{
+    mk_dlo \
+        DLO=console \
+        INSTALLDIR="$MU_PLUGIN_PATH" \
+        INCLUDEDIRS="../../../include" \
+        SOURCES="console.c" \
+        LIBDEPS="moonunit"
+}

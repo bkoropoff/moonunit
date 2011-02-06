@@ -1,0 +1,72 @@
+make()
+{
+    if [ "$MK_CROSS_COMPILING" = "no" ]
+    then
+        TEST_SOURCES="example.c"
+
+        [ "$CPLUSPLUS_ENABLED" = "yes" ] && TEST_SOURCES="$TEST_SOURCES example_cpp.cpp"
+        
+        mk_target \
+            TARGET="test-stub.c" \
+            DEPS="'${MK_BINDIR}/moonunit-stub' $TEST_SOURCES" \
+            make_stub '$@' "&$TEST_SOURCES"
+
+        mk_dlo \
+            DLO="example" \
+            INSTALLDIR="@mu" \
+            SOURCES="test-stub.c $TEST_SOURCES" \
+            INCLUDEDIRS=". ../include"
+
+        TEST_DEPS="\
+            $result \
+            '$MK_BINDIR/moonunit' \
+            '$MU_PLUGIN_PATH/c.la' \
+            '$MU_PLUGIN_PATH/console.la' \
+            '$MU_PLUGIN_PATH/shell.la' \
+            '$MK_LIBEXECDIR/mu.sh'"
+
+        mk_target \
+            TARGET="@test" \
+            DEPS="$TEST_DEPS" \
+            run_test "&example.res" "${result%.la}${MK_DLO_EXT}" "&example.sh"
+
+        mk_add_clean_target "@mu"
+    fi
+}
+
+make_stub()
+{
+    OUTPUT="$1"
+    shift
+
+    mk_msg_domain moonunit-stub
+
+    mk_msg "${OUTPUT#$MK_OBJECT_DIR/}"
+
+    CPPFLAGS="$CPPFLAGS -I${MK_SOURCE_DIR}${MK_SUBDIR}"
+    CPPFLAGS="$CPPFLAGS -I${MK_OBJECT_DIR}${MK_SUBDIR}"
+    CPPFLAGS="$CPPFLAGS -I${MK_SOURCE_DIR}${MK_SUBDIR}/../include"
+    CPPFLAGS="$CPPFLAGS -I${MK_OBJECT_DIR}${MK_SUBDIR}/../include"
+
+    mk_run_or_fail \
+        "${MK_STAGE_DIR}${MK_BINDIR}/moonunit-stub" \
+        CPP="$MK_CC -E" \
+        CXXCPP="$MK_CXX -E" \
+        CPPFLAGS="$CPPFLAGS" \
+        -o "$OUTPUT" \
+        "$@"
+}
+
+run_test()
+{  
+    RES="$1"
+    shift
+
+    mk_run_or_fail \
+        env \
+        LD_LIBRARY_PATH="${MK_STAGE_DIR}${MK_LIBDIR}:${MK_STAGE_DIR}${MU_PLUGIN_PATH}:$LD_LIBRARY_PATH" \
+        MU_EXTRA_PLUGINS="c${MK_DLO_EXT} console${MK_DLO_EXT} shell${MK_DLO_EXT}" \
+        "${MK_STAGE_DIR}${MK_BINDIR}/moonunit" \
+        --loader-option "sh:helper=${MK_STAGE_DIR}${MK_LIBEXECDIR}/mu.sh" \
+        -r "$RES" "$@"
+}

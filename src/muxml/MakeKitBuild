@@ -1,0 +1,13 @@
+make()
+{
+    mk_stage \
+        SOURCE="moonunit-xml.sh" \
+        DEST="${MK_BINDIR}/moonunit-xml" \
+        MODE="0755"
+
+    mk_stage \
+        DESTDIR="$MK_DATADIR" \
+        muxhtml.css \
+	muxhtml.xsl \
+	muxhtml.js
+}

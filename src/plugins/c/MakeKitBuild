@@ -1,0 +1,13 @@
+make()
+{
+    C_SOURCES="c.c c-run.c c-load.c backtrace.c"
+    
+    [ "$CPLUSPLUS_ENABLED" = "yes" ] && C_SOURCES="$C_SOURCES cplusplus.cpp"
+
+    mk_dlo \
+        DLO=c \
+        INSTALLDIR="$MU_PLUGIN_PATH" \
+        INCLUDEDIRS="../../../include" \
+        SOURCES="$C_SOURCES" \
+        LIBDEPS="moonunit $LIB_PTHREAD"
+}

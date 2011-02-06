@@ -1,0 +1,11 @@
+make()
+{
+    mk_headers \
+        MASTER=moonunit/moonunit.h \
+        moonunit/test.h moonunit/loader.h \
+        moonunit/logger.h moonunit/option.h \
+	moonunit/type.h moonunit/interface.h \
+        moonunit/error.h moonunit/plugin.h \
+	moonunit/library.h moonunit/resource.h \
+        moonunit/internal/boilerplate.h
+}

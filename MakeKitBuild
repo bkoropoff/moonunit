@@ -61,6 +61,7 @@ configure()
 
     mk_declare -o BASH_PATH="$BASH" DOCBOOK_XSL_DIR="$MK_DOCBOOK_XSL_DIR"
 
+    mk_check_docbook
     mk_check_doxygen
 
     mk_output_file src/moonunit/moonunit-lt.sh

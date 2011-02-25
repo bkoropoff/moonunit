@@ -172,8 +172,6 @@ run(char* self)
         {
             die("Error: Could not create logger 'console'");
         }
-        
-        mu_logger_set_option(settings.logger, "ansi", true);
     }
     else if (array_size(loggers) == 1)
     {

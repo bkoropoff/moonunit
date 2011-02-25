@@ -47,7 +47,12 @@ typedef struct
     FILE* out;
 
     int align;
-    bool ansi;
+    enum
+    {
+        ANSI_FALSE,
+        ANSI_AUTO,
+        ANSI_TRUE
+    } ansi;
     bool details;
     MuLogLevel loglevel;
     char* log;
@@ -76,6 +81,18 @@ enter(MuLogger* _self)
     self->num_xfail = 0;
     self->num_skip = 0;
     self->num_lib_abort = 0;
+
+    if (self->ansi == ANSI_AUTO)
+    {
+        if (isatty(self->fd))
+        {
+            self->ansi = ANSI_TRUE;
+        }
+        else
+        {
+            self->ansi = ANSI_FALSE;
+        }
+    }
 }
 
 static void
@@ -105,9 +122,9 @@ leave(MuLogger* _self)
     else
     {
         fprintf(self->out, "Summary:\n");
-        fprintf(self->out, "  Libraries:         %6u\e\n", self->num_libraries);
-        fprintf(self->out, "  Suites:            %6u\e\n", self->num_suites);
-        fprintf(self->out, "  Tests:             %6u\e\n", self->num_tests);
+        fprintf(self->out, "  Libraries:         %6u\n", self->num_libraries);
+        fprintf(self->out, "  Suites:            %6u\n", self->num_suites);
+        fprintf(self->out, "  Tests:             %6u\n", self->num_tests);
         if (self->num_pass + self->num_xfail)
             fprintf(self->out, "  Passed tests:      %6u\n",
                     self->num_pass + self->num_xfail);
@@ -479,16 +496,37 @@ set_file(ConsoleLogger* self, const char* file)
     self->fd = fileno(self->out);
 }
 
-static bool
+static const char*
 get_ansi(ConsoleLogger* self)
 {
-    return self->ansi;
+    switch (self->ansi)
+    {
+    case ANSI_AUTO:
+        return "auto";
+    case ANSI_TRUE:
+        return "true";
+    case ANSI_FALSE:
+        return "false";
+    default:
+        return "auto";
+    }
 }
 
 static void
-set_ansi(ConsoleLogger* self, bool ansi)
+set_ansi(ConsoleLogger* self, const char* ansi)
 {
-    self->ansi = ansi;
+    if (!strcmp(ansi, "true"))
+    {
+        self->ansi = ANSI_TRUE;
+    }
+    if (!strcmp(ansi, "false"))
+    {
+        self->ansi = ANSI_FALSE;
+    }
+    else
+    {
+        self->ansi = ANSI_AUTO;
+    }
 }
 
 static int
@@ -588,8 +626,8 @@ static MuOption consolelogger_options[] =
               "File descriptor to which results will be written"),
     MU_OPTION("file", MU_TYPE_STRING, get_file, set_file,
               "File to which results will be written"),
-    MU_OPTION("ansi", MU_TYPE_BOOLEAN, get_ansi, set_ansi,
-              "Whether to use ANSI color/fonts in output"),
+    MU_OPTION("ansi", MU_TYPE_STRING, get_ansi, set_ansi,
+              "Whether to use ANSI color/fonts in output (auto/true/false)"),
     MU_OPTION("align", MU_TYPE_INTEGER, get_align, set_align,
               "Column number use for right-aligned output"),
     MU_OPTION("details", MU_TYPE_BOOLEAN, get_details, set_details,
@@ -620,7 +658,7 @@ static ConsoleLogger consolelogger =
     },
     .fd = -1,
     .out = NULL,
-    .ansi = false,
+    .ansi = ANSI_AUTO,
     .align = 60,
     .loglevel = MU_LEVEL_INFO
 };

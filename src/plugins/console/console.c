@@ -55,7 +55,6 @@ typedef struct
     } ansi;
     bool details;
     MuLogLevel loglevel;
-    char* log;
     unsigned int num_tests;
     unsigned int num_suites;
     unsigned int num_libraries;
@@ -65,6 +64,7 @@ typedef struct
     unsigned int num_xfail;
     unsigned int num_skip;
     unsigned int num_lib_abort;
+    unsigned int position;
 } ConsoleLogger;
 
 static void
@@ -217,9 +217,15 @@ static void
 test_enter(MuLogger* _self, MuTest* test)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
+    const char* name = NULL;
+    FILE* out = self->out;
 
     self->num_tests++;
-    self->log = strdup("");
+
+    name = mu_test_name(test);
+
+    fprintf(out, "    %s:", name);
+    self->position = 5 + strlen(name);
 }
 
 static void
@@ -228,7 +234,6 @@ test_log(MuLogger* _self, MuLogEvent* event)
     ConsoleLogger* self = (ConsoleLogger*) _self;
     char* level_str = NULL;
     int level_code = 0;
-    char* old;
 
     if (self->loglevel == -1 || event->level > self->loglevel)
         return;
@@ -247,25 +252,29 @@ test_log(MuLogger* _self, MuLogEvent* event)
             level_str = "trace"; level_code = 35; break;
     }
 
-    old = self->log;
+    if (self->position)
+    {
+        fprintf(self->out, "\n");
+        self->position = 0;
+    }
 
     if (self->ansi)
     {
         if (event->file && event->line)
         {
-            self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s:%u: %s\n", old,
+            fprintf(self->out, "      (\e[%im\e[1m%s\e[22m\e[0m) %s:%u: %s\n",
                                level_code, level_str, basename_pure(event->file), 
                                event->line, event->message);
         }
         else if (event->file)
         {
-            self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s: %s\n", old,
+            fprintf(self->out, "      (\e[%im\e[1m%s\e[22m\e[0m) %s: %s\n",
                                level_code, level_str, basename_pure(event->file), 
                                event->message);
         }
         else
         {
-            self->log = format("%s      (\e[%im\e[1m%s\e[22m\e[0m) %s\n", old,
+            fprintf(self->out, "      (\e[%im\e[1m%s\e[22m\e[0m) %s\n",
                                level_code, level_str, event->message);
         }
     }
@@ -273,24 +282,22 @@ test_log(MuLogger* _self, MuLogEvent* event)
     {
         if (event->file && event->line)
         {
-            self->log = format("%s      (%s) %s:%u: %s\n", old,
+            fprintf(self->out, "      (%s) %s:%u: %s\n",
                                level_str, basename_pure(event->file), 
                                event->line, event->message);
         }
         else if (event->file)
         {
-            self->log = format("%s      (%s) %s: %s\n", old,
+            fprintf(self->out, "      (%s) %s: %s\n",
                                level_str, basename_pure(event->file), 
                                event->message);
         }
         else
         {
-            self->log = format("%s      (%s) %s\n", old,
+            fprintf(self->out, "      (%s) %s\n",
                                level_str, event->message);
         }
     }
-
-    free(old);
 }
 
 static void
@@ -299,15 +306,11 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     ConsoleLogger* self = (ConsoleLogger*) _self;
     FILE* out = self->out;
 	int i;
-	const char* reason, *stage, *name, *status;
+	const char* reason, *stage, *status;
     bool result = summary->status == MU_STATUS_SKIPPED || summary->status == summary->expected;
     const char* result_str = NULL;
     unsigned int result_code;
 
-    name = mu_test_name(test);
-
-	fprintf(out, "    %s:", name);
-	
     if (summary->status == MU_STATUS_DEBUG)
     {
         result_str = "DEBUG";
@@ -375,23 +378,19 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         summary->status == MU_STATUS_DEBUG ||
         (result && !self->details))
     {
-        for (i = self->align - strlen(name) - 5 - strlen(result_str); i > 0; i--)
+        for (i = self->align - self->position - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
         if (self->ansi)
             fprintf(out, "\e[%um\e[1m%s\e[22m\e[0m\n", result_code, result_str);
         else
             fprintf(out, "%s\n", result_str);
-
-        fprintf(out, "%s", self->log);
-        free(self->log);
-        self->log = NULL;
     }
     else
     {
         stage = mu_test_stage_to_string(summary->stage);
         status = mu_test_status_to_string(summary->status);
 		
-        for (i = self->align - strlen(name) - strlen(stage) - 1 - 5 - strlen(result_str); i > 0; i--)
+        for (i = self->align - self->position - strlen(stage) - 1 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
         
         reason = summary->reason ? summary->reason : "unknown";
@@ -404,10 +403,6 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             fprintf(out, "%s %s\n", stage, result_str);
         }
         
-        fprintf(out, "%s", self->log);
-        free(self->log);
-        self->log = NULL;
-
         if (self->ansi)
         {
             fprintf(out, "      (\e[%um\e[1m%s\e[22m\e[0m) ", result_code, status);
@@ -613,8 +608,6 @@ destroy(MuLogger* _self)
         fclose(self->out);
     if (self->file)
         free(self->file);
-    if (self->log)
-        free(self->log);
 
     free(self);
 }

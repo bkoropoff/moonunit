@@ -308,7 +308,7 @@ upopt_print_help(UpoptContext* context, FILE* out, int columns)
 #define PRINT(...) (print_wrapped(out, &used, columns, indent + indent_newline, __VA_ARGS__))
 #define PRINT_NEW(...) (print_wrapped(out, &used, columns, indent_newline, __VA_ARGS__))
     int used = 0;
-    int indent = 40;
+    int indent = 30;
     int indent_newline = 4;
     int i;
     upopt_print_usage(context, out, columns);
@@ -347,6 +347,10 @@ upopt_print_help(UpoptContext* context, FILE* out, int columns)
             PRINT("-%c", info->shortname);
         }
 
+        if (used >= indent + indent_newline)
+        {
+            PRINT_NEW("\n");
+        }
 
         for (; used < indent + indent_newline; used++)
             fprintf(out, " ");
@@ -379,9 +383,9 @@ upopt_print_help(UpoptContext* context, FILE* out, int columns)
 
         if (context->options[i+1].constant != UPOPT_ARG_END)
         {
-            fprintf(out, "\n");
             PRINT_NEW("\n");
         }
+
     }
 
     fprintf(out, "\n");

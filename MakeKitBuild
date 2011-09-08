@@ -59,7 +59,12 @@ configure()
 
     mk_check_program FAIL=yes bash
 
-    mk_declare -o BASH_PATH="$BASH" DOCBOOK_XSL_DIR="$MK_DOCBOOK_XSL_DIR"
+    mk_declare -o \
+        BASH_PATH="$BASH" \
+        DOCBOOK_XSL_DIR="$MK_DOCBOOK_XSL_DIR" \
+        prefix="$MK_PREFIX" \
+        datarootdir="$MK_DATAROOTDIR" \
+        datadir="$MK_DATADIR"
 
     mk_check_docbook
     mk_check_doxygen

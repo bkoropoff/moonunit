@@ -190,7 +190,16 @@ ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
     /* If we are in debug mode (no communication channel) */
     if (!ipc_handle)
     {
-        goto done;
+        if (summary->status != token->expected)
+        {
+            /* Abort on failure */
+            abort();
+        }
+        else
+        {
+            /* Just return */
+            goto done;
+        }
     }
 
     pthread_mutex_lock(&token->lock);

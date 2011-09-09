@@ -551,7 +551,7 @@ set_details(ConsoleLogger* self, bool details)
 static const char*
 get_loglevel(ConsoleLogger* self)
 {
-    switch (self->loglevel)
+    switch ((int) self->loglevel)
     {
     case -1:
         return "none";

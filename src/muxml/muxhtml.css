@@ -1,3 +1,10 @@
+body {
+    padding: 0;
+    margin: 1em auto 1em;
+    max-width: 70em;
+    font-family: sans-serif;
+}
+
 .title {
     font-weight: bold;
 }
@@ -17,6 +24,7 @@
     float: right;
     width: 4em;
     text-align: center;
+    margin-right: 3px;
 }
 
 .result[status="pass"] {
@@ -65,8 +73,8 @@
 .library {
     border: 2px solid #2e3436;
     color: #2e3436;
-    max-width: 50em;
-    margin-top: 1em;
+    max-width: 54em;
+    margin: 1em auto;
 }
 
 .library > .header {
@@ -83,6 +91,7 @@
 
 .test {
     border-top: 1px dotted #babdb6;
+    background: #d3d7cf;
 }
 
 .test:first-child {
@@ -90,8 +99,12 @@
 }
 
 .test > .header {
-    padding-left: 2.0em;
-    font-size: 105%;
+    padding: 3px 0 5px 2.0em;
+    
+}
+
+.test > .header[full] {
+    cursor: pointer;
 }
 
 .test > .header[full] > .title:after {
@@ -105,38 +118,59 @@
 .test > .content {
     padding-left: 3.0em;
     padding-bottom: 0.5em;
+    display: table;
+    border-spacing: 0.5em;
+    empty-cells: hide;
 }
 
-.events .content {
-    padding-left: 1.0em;
+.result-message, .event {
+    display: table-row;
 }
 
-.test {
-    background: #d3d7cf;
+.message-type, .message-source {
+    display: table-cell;
+    padding-right: 4px;
 }
 
-.level {
+.message-content {
+    display: table-cell;
+    vertical-align: middle;
+    font-family: monospace;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap !important;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+}
+
+.level-tag, .result-tag {
     font-family: monospace;
     border: 1px solid #2e3436;
     background: #2e3436;
     color: #eeeeec;
     padding: 1px;
-    width: 6em;
     display: inline-block;
     text-align: center;
-    vertical-align: bottom;
+    vertical-align: top;
+    width: 100%;
+    white-space: nowrap;
 }
 
-.source {
+.source-tag {
     font-family: monospace;
     border: 1px solid #2e3436;
     background: #eeeeec;
     color: #2e3436;
     padding: 1px;
-    width: 12em;
     display: inline-block;
     text-align: center;
-    vertical-align: bottom;
+    vertical-align: top;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.summary {
+    max-width: 20em;
 }
 
 .summary > .header {

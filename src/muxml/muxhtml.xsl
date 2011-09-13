@@ -3,7 +3,13 @@
    version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
    xmlns="http://www.w3.org/1999/xhtml">
-  <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+  <xsl:output 
+      method="xml"
+      indent="yes"
+      encoding="UTF-8"
+      doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
+      doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"/>
+  <xsl:strip-space elements="*"/>
 
   <!-- Emit main page -->
   <xsl:template match="/moonunit">
@@ -138,9 +144,12 @@
     <xsl:variable name="status" select="result/@status"/>
     <xsl:variable name="cid" select="generate-id()"/>
     <div class="test">
-      <div class="header" onclick="activate_content('{$cid}')">
+      <div class="header">
 	<xsl:if test="event or normalize-space(result/.)">
-	  <xsl:attribute name="full"><xsl:text>true</xsl:text></xsl:attribute>
+	  <xsl:attribute name="onclick">activate_content('<xsl:value-of select="$cid"/>')</xsl:attribute>
+	  <xsl:attribute name="full">
+	    <xsl:text>true</xsl:text>
+	  </xsl:attribute>
 	</xsl:if>
 	<span class="result">
 	  <xsl:attribute name="status">
@@ -160,42 +169,59 @@
 	</span>
 	<span class="title"><xsl:value-of select="@name"/></span>
       </div>
-      <div class="content" id="{$cid}" name="test-content">
-	<xsl:for-each select="event">
-	  <xsl:call-template name="emit-event"/>
-	</xsl:for-each>
-	<!-- Emit file/line number if we know it -->
-	<xsl:if test="result/@file">
-	  <span class="source">
-	    <xsl:value-of select="result/@file"/>
-	    <xsl:text>:</xsl:text>
-	    <xsl:value-of select="result/@line"/>
-	  </span>
-	</xsl:if>
-	<span class="message">
-	  <xsl:value-of select="normalize-space(result)"/>
-	</span>
-      </div>
+      <xsl:if test="event or normalize-space(result/.)">
+	<div class="content" id="{$cid}" name="test-content">
+	  <xsl:for-each select="event">
+	    <xsl:call-template name="emit-event"/>
+	  </xsl:for-each>
+	  <xsl:if test="normalize-space(result)">
+	    <div class="result-message">
+	      <div class="message-type">
+		<span class="result-tag">result</span>
+	      </div>
+	      <!-- Emit file/line number if we know it -->
+	      <div class="message-source">
+		<span class="source-tag">
+		  <xsl:if test="result/@file">
+		    <xsl:value-of select="result/@file"/>
+		    <xsl:text>:</xsl:text>
+		    <xsl:value-of select="result/@line"/>
+		  </xsl:if>
+		</span>
+	      </div>
+	      <div class="message-content">
+		<xsl:value-of select="result"/>
+	      </div>
+	    </div>
+	  </xsl:if>
+	</div>
+      </xsl:if>
     </div>
   </xsl:template>
   
   <!-- Emit event entry -->
   <xsl:template name="emit-event">
     <div class="event">
-      <xsl:attribute name="level">
-	<xsl:value-of select="@level"/>
-      </xsl:attribute>
-      <xsl:if test="@file">
-	<span class="source">
-	  <xsl:value-of select="@file"/>
-	  <xsl:text>:</xsl:text>
-	  <xsl:value-of select="@line"/>
+      <div class="message-type">
+	<span class="level-tag">
+	  <xsl:attribute name="level">
+	    <xsl:value-of select="@level"/>
+	  </xsl:attribute>
+	  <xsl:value-of select="@level"/>
 	</span>
-      </xsl:if>
-      <span class="level"><xsl:value-of select="@level"/></span>
-      <span class="message">
-	<xsl:value-of select="normalize-space(.)"/>
-      </span>
+      </div>
+      <div class="message-source">
+	<span class="source-tag">
+	  <xsl:if test="@file">
+	    <xsl:value-of select="@file"/>
+	    <xsl:text>:</xsl:text>
+	    <xsl:value-of select="@line"/>
+	  </xsl:if>
+	</span>
+      </div>
+      <div class="message-content">
+	  <xsl:value-of select="."/>
+      </div>
     </div>
   </xsl:template>
 

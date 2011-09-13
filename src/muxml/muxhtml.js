@@ -1,4 +1,5 @@
 var slideDuration = 200
+var menuDuration = 100
 
 function filterTests(name, pass, fail, skip) {
     function matchesFilter(i, test) {
@@ -28,6 +29,51 @@ function filterTests(name, pass, fail, skip) {
     });
 }
 
+function buildLibMenus()
+{
+    var d = document;
+    var libs = $(".library");
+
+    $(libs).each(function(i, library) {
+        var menu = d.createElement("div");
+        menu.className = "menu";
+        
+        $(libs).each(function(j, other) {
+            if (other != library) {
+                var name = other.getAttribute("library-name");
+                var entry = d.createElement("div");
+                entry.className = "entry";
+                entry.appendChild(d.createTextNode(name));
+                menu.appendChild(entry);
+            }
+        });
+        
+        $(library).children(".header").append(menu);
+        $(menu).hide();
+    });
+}
+
+function toggleMenu() {
+    $(this).children(".title").toggleClass("opened");
+    $(this).children(".menu").toggle();
+}
+
+function closeMenu() {
+    $(this).children(".title").removeClass("opened");
+    $(this).children(".menu").hide();
+}
+
+function switchLibrary() {
+    var menu = $(this).parent()[0];
+    var title = $(menu).siblings(".title")[0];
+    var library = $(this).parents(".library")[0];
+
+    $(menu).hide();
+    $(title).toggleClass("opened");
+    $(library).hide();
+    $(".library[library-name='" + this.firstChild.nodeValue + "']").show();
+}
+
 function connectUi() {
     var filterReset = $("#filter-reset-button")[0];
     var filterName = $("#filter-name")[0];
@@ -52,6 +98,25 @@ function connectUi() {
         filterSkip.checked = true;
         applyFilter();
     })
+
+    $(".library > .header").each(function(){
+        var header = this;
+        $(this).children(".title").click(function() {
+            toggleMenu.call(header);
+        })
+    });
+
+    $(".library > .header > .menu > .entry").click(switchLibrary);
+
+    $(document).click(function(e){
+        $(".library > .header > .menu").each(function() {
+            title = $(this).siblings(".title")[0];
+            if (!$(e.target).closest(this).length &&
+                !$(e.target).closest(title).length) {
+                closeMenu.call(this.parentNode);
+            }
+        });
+    });
 }
 
 function initialize() {
@@ -63,6 +128,11 @@ function initialize() {
             $(content).slideToggle(slideDuration);
         });
     });
+
+    buildLibMenus();
+    $(".library").hide();
+    var libZero = $(".library")[0];
+    $(libZero).show();
 
     connectUi();
 }

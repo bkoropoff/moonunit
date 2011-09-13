@@ -10,5 +10,9 @@ make()
         muxhtml.css \
 	muxhtml.xsl \
 	muxhtml.js \
-        jquery-1.6.2.min.js
+        jquery-1.6.2.min.js \
+        g-black.png \
+        g-blue.png \
+        g-green.png \
+        menu-arrow.png
 }

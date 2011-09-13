@@ -28,7 +28,10 @@ body {
 }
 
 .result[status="pass"] {
-    background-color: #4e9a06;
+    background-color: #488f06;
+    background-image: url('g-green.png');
+    background-repeat: repeat-x;
+    background-position: top left;
 }
 
 .result[status="fail"] {
@@ -75,12 +78,52 @@ body {
     color: #2e3436;
     max-width: 54em;
     margin: 1em auto;
+    -webkit-border-radius: 8px 8px 0 0;
+    -moz-border-radius: 8px 8px 0 0;
+    border-radius: 8px 8px 0 0;
+    background-image: url('g-blue.png');
+    background-repeat: repeat-x;
+    background-position: left top;
+    background-color: #2b5387;
 }
 
 .library > .header {
     color: #eeeeec;
-    background: #3465a4;
-    font-size: 130%;
+    font-size: 120%;
+    height: 30px;
+    border-bottom: 1px solid white;
+    padding: 0.5em 0 0 0.5em;
+}
+
+.library > .header > .title {
+    height: 20px;
+    padding: 3px 0 0 6px;
+    margin: 0;
+    cursor: pointer;
+    max-width: 20%;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.library > .header > .title:hover,
+.library > .header > .title.opened {
+/*
+    border: 1px solid #2b5387;
+    border-bottom: none;
+    margin-top: -1px;
+    margin-left: -1px;*/
+    color: #214069;
+    background-color: #eeeeec;
+    background-image: url('menu-arrow.png');
+    background-repeat: no-repeat;
+    background-position: right center;
+}
+
+.library > .header > .title.opened {
+    -webkit-border-radius: 4px 4px 0 0;
+    -moz-border-radius: 4px 4px 0 0;
+    border-radius: 4px 4px 0 0;
 }
 
 .suite > .header {
@@ -112,7 +155,7 @@ body {
 }
 
 .test > .header:hover {
-    background: #729fcf;
+    background: #b1c8e0;
 }
 
 .test > .content {
@@ -147,6 +190,9 @@ body {
     font-family: monospace;
     border: 1px solid #2e3436;
     background: #2e3436;
+    background-image: url('g-black.png');
+    background-repeat: repeat-x;
+    background-position: top left;
     color: #eeeeec;
     padding: 1px;
     display: inline-block;
@@ -238,4 +284,29 @@ body {
 
 #controls .buttons > * {
     float: right;
+}
+
+.menu {
+    position: relative;
+    left: -1px;
+    z-index: 1;
+    background: #eeeeec;
+    color: black;
+    border: 1px solid #888a85;
+    max-width: 30%;
+}
+
+.menu > .entry {
+    border-top: 1px dotted #888a85;
+    margin: 0 8px 0 8px;
+    padding: 2px 0 2px 0;
+    cursor: pointer;
+}
+
+.menu > .entry:hover {
+    background: #b1c8e0;
+}
+
+.menu > .entry:first-child {
+    border-top: none;
 }

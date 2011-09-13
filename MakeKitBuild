@@ -57,6 +57,10 @@ configure()
         strsignal backtrace backtrace_symbols \
         setpgid setpgrp tcgetpgrp tcsetpgrp sigtimedwait
 
+    mk_check_lang c++
+
+    mk_check_headers cxxabi.h
+
     mk_check_program FAIL=yes bash
 
     mk_declare -o \

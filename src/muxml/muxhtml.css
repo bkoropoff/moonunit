@@ -118,7 +118,7 @@ body {
 .test > .content {
     padding-left: 3.0em;
     padding-bottom: 0.5em;
-    display: table;
+    /*display: table;*/
     border-spacing: 0.5em;
     empty-cells: hide;
 }
@@ -207,4 +207,35 @@ body {
 
 .statistic[name="skipped"] > div:first-child {
     color: #c4a000;
+}
+
+#controls {
+    margin: 2em auto 0 auto;
+    border: 2px solid black;
+    padding: 1em;
+    max-width: 30em;
+}
+
+#controls .header {
+    font-size: 120%;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+    border-bottom: 1px dotted black;
+    padding: 2px;
+}
+
+#controls > .header {
+    font-size: 150%
+}
+
+#controls .content {
+    margin-left: 1em;
+}
+
+#controls .buttons {
+    height: 2em;
+}
+
+#controls .buttons > * {
+    float: right;
 }

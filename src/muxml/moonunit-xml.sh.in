@@ -30,7 +30,7 @@ prefix="@prefix@"
 datarootdir="@datarootdir@"
 datadir="@datadir@"
 html_xsl="muxhtml.xsl"
-html_res="muxhtml.css muxhtml.js"
+html_res="muxhtml.css muxhtml.js jquery-1.6.2.min.js"
 
 error()
 {

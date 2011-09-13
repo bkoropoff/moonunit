@@ -9,5 +9,6 @@ make()
         DESTDIR="$MK_DATADIR" \
         muxhtml.css \
 	muxhtml.xsl \
-	muxhtml.js
+	muxhtml.js \
+        jquery-1.6.2.min.js
 }

@@ -24,11 +24,14 @@
 	  </xsl:otherwise>
 	</xsl:choose>
 	<link rel="stylesheet" type="text/css" href="muxhtml.css"/>
+	<script type="text/javascript" src="jquery-1.6.2.min.js">
+	  <xsl:comment>Nothing to see here</xsl:comment>
+	</script>
 	<script type="text/javascript" src="muxhtml.js">
 	  <xsl:comment>This space intentionally left blank</xsl:comment>
 	</script>
       </head>
-      <body onload="collapse_tests()">
+      <body>
 	<div class="main">
 	  <div class="header">
 	    <xsl:if test="@name">
@@ -39,6 +42,7 @@
 	  </div>
 	  <div class="content">
 	    <xsl:call-template name="emit-summary"/>
+	    <xsl:call-template name="emit-controls"/>
 	    <xsl:for-each select="run">
 	      <xsl:call-template name="emit-run"/>
 	    </xsl:for-each>
@@ -114,6 +118,9 @@
   <!-- Emit library entry -->
   <xsl:template name="emit-library">
     <div class="library">
+      <xsl:attribute name="library-name">
+	<xsl:value-of select="@name"/>
+      </xsl:attribute>
       <div class="header">
 	<div class="title"><xsl:value-of select="@name"/></div>
       </div>
@@ -128,6 +135,9 @@
   <!-- Emit suite entry -->
   <xsl:template name="emit-suite">
     <div class="suite">
+      <xsl:attribute name="suite-name">
+	<xsl:value-of select="@name"/>
+      </xsl:attribute>
       <div class="header">
 	<span class="title"><xsl:value-of select="@name"/></span>
       </div>
@@ -142,11 +152,15 @@
   <!-- Emit test entry -->
   <xsl:template name="emit-test">
     <xsl:variable name="status" select="result/@status"/>
-    <xsl:variable name="cid" select="generate-id()"/>
     <div class="test">
+      <xsl:attribute name="test-name">
+	<xsl:value-of select="@name"/>
+      </xsl:attribute>
+      <xsl:attribute name="test-status">
+	<xsl:value-of select="$status"/>
+      </xsl:attribute>
       <div class="header">
 	<xsl:if test="event or normalize-space(result/.)">
-	  <xsl:attribute name="onclick">activate_content('<xsl:value-of select="$cid"/>')</xsl:attribute>
 	  <xsl:attribute name="full">
 	    <xsl:text>true</xsl:text>
 	  </xsl:attribute>
@@ -170,7 +184,7 @@
 	<span class="title"><xsl:value-of select="@name"/></span>
       </div>
       <xsl:if test="event or normalize-space(result/.)">
-	<div class="content" id="{$cid}" name="test-content">
+	<div class="content">
 	  <xsl:for-each select="event">
 	    <xsl:call-template name="emit-event"/>
 	  </xsl:for-each>
@@ -227,5 +241,32 @@
 
   <!-- Emit backtrace -->
   <xsl:template name="emit-backtrace">
+  </xsl:template>
+  
+  <!-- Emit UI controls -->
+  <xsl:template name="emit-controls">
+    <div id="controls">
+      <div class="header">Controls</div>
+      <div class="content">
+	<div id="filter-control">
+	  <div class="header">Filter</div>
+	  <div class="content">
+	    <div class="inputs">
+	      <div class="input">
+		<label>Search</label><input type="text" id="filter-name"/>
+	      </div>
+	      <div class="input">
+		<input type="checkbox" checked="true" id="filter-pass"/><label>Pass</label>
+		<input type="checkbox" checked="true" id="filter-fail"/><label>Fail</label>
+		<input type="checkbox" checked="true" id="filter-skip"/><label>Skip</label>
+	      </div>
+	    </div>
+	    <div class="buttons">
+	      <input type="button" value="Reset" id="filter-reset-button"/>
+	    </div>
+	  </div>
+	</div>
+      </div>
+    </div>
   </xsl:template>
 </xsl:stylesheet>

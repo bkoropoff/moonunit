@@ -170,9 +170,9 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
     if (event->line)
         fprintf(self->out, " line=\"%u\"", event->line);
 
-    fprintf(self->out, ">\n");
-    fprintf(self->out, INDENT_TEST INDENT INDENT "<![CDATA[%s]]>\n", event->message);
-    fprintf(self->out, INDENT_TEST INDENT "</event>\n");
+    fprintf(self->out, ">");
+    fprintf(self->out, "<![CDATA[%s]]>", event->message);
+    fprintf(self->out, "</event>\n");
 }
 
 static void test_leave(MuLogger* _self, 
@@ -235,9 +235,9 @@ static void test_leave(MuLogger* _self,
             if (summary->line)
                 fprintf(out, " line=\"%i\"", summary->line);
 
-            fprintf(out, ">\n");
-            fprintf(out, INDENT_TEST INDENT INDENT "<![CDATA[%s]]>\n", summary->reason);
-            fprintf(out, INDENT_TEST INDENT "</result>\n");
+            fprintf(out, ">");
+            fprintf(out, "<![CDATA[%s]]>", summary->reason);
+            fprintf(out, "</result>\n");
         }
         else
         {

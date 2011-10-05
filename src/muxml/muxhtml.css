@@ -97,7 +97,8 @@ body {
 
 .library > .header > .title {
     height: 20px;
-    padding: 3px 0 0 6px;
+    line-height: 20px;
+    padding: 3px 0 0 3px;
     margin: 0;
     cursor: pointer;
     max-width: 20%;

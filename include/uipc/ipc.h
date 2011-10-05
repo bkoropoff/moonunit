@@ -43,9 +43,7 @@ typedef struct __uipc_message uipc_message;
 typedef unsigned int uipc_message_type;
 
 uipc_handle* uipc_attach(int socket);
-uipc_status uipc_recv_async(uipc_handle* handle, uipc_message** message);
 uipc_status uipc_recv(uipc_handle* handle, uipc_message** message, uipc_time* abs);
-uipc_status uipc_send_async(uipc_handle* handle, uipc_message* message);
 uipc_status uipc_send(uipc_handle* handle, uipc_message* message, uipc_time* abs);
 uipc_status uipc_detach(uipc_handle* handle);
 uipc_status uipc_close(uipc_handle* handle);

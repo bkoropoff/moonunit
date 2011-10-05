@@ -57,8 +57,15 @@ typedef struct uipc_packet
 	} u;
 } uipc_packet;
 
-uipc_status uipc_packet_send(int socket, uipc_packet* packet);
-uipc_status uipc_packet_recv(int socket, uipc_packet** packet);
+typedef struct __uipc_async_context
+{
+    size_t transferred;
+    uipc_packet_header header;
+    uipc_packet* packet;
+} uipc_async_context;
+
+uipc_status uipc_packet_send(int socket, uipc_async_context* context, uipc_packet* packet);
+uipc_status uipc_packet_recv(int socket, uipc_async_context* context, uipc_packet** packet);
 uipc_status uipc_packet_available(int socket, uipc_time* abs);
 uipc_status uipc_packet_sendable(int socket, uipc_time* abs);
 

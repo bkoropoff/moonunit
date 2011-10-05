@@ -51,11 +51,11 @@
 #include <stdio.h>
 
 uipc_status
-uipc_packet_send(int socket, uipc_packet* packet)
+uipc_packet_send(int socket, uipc_async_context* context, uipc_packet* packet)
 {
     char* buffer = (char*) packet;
     ssize_t total = sizeof(uipc_packet_header) + packet->header.length;
-    ssize_t remaining = total;
+    ssize_t remaining = total - context->transferred;
 
     while (remaining)
     {
@@ -78,13 +78,7 @@ uipc_packet_send(int socket, uipc_packet* packet)
         {
             if (errno == EAGAIN || errno == EINTR)
             {
-                // If we haven't sent anything yet...
-                if (remaining == total)
-                    // It's safe to return
-                    return UIPC_RETRY;
-                else
-                    // Otherwise we better push through the rest
-                    continue;
+                return UIPC_RETRY;
             }
             else if (errno == EPIPE)
             {
@@ -103,6 +97,7 @@ uipc_packet_send(int socket, uipc_packet* packet)
         else
         {
             remaining -= sent;
+            context->transferred += sent;
         }
     }
 
@@ -110,52 +105,63 @@ uipc_packet_send(int socket, uipc_packet* packet)
 }
 
 uipc_status
-uipc_packet_recv(int socket, uipc_packet** packet)
+uipc_packet_recv(int socket, uipc_async_context* context, uipc_packet** packet)
 {
-	uipc_packet_header header;
-    ssize_t amount_read;
-    ssize_t remaining;
-    char* buffer;
+	ssize_t amount_read = 0;
+    ssize_t remaining = 0;
+    char* buffer = NULL;
 
-    amount_read = read(socket, &header, sizeof(uipc_packet_header));
+    while (context->transferred < sizeof(context->header))
+    {
+        amount_read = read(
+            socket,
+            (char*) &context->header + context->transferred,
+            sizeof(context->header) - context->transferred);
     
-    if (amount_read < 0)
-    {
-        if (errno == EAGAIN || errno == EINTR)
+        if (amount_read < 0)
         {
-            return UIPC_RETRY;
+            if (errno == EAGAIN || errno == EINTR)
+            {
+                return UIPC_RETRY;
+            }
+            else
+            {
+                *packet = NULL;
+                return UIPC_ERROR;
+            }
         }
-        else
+        else if (amount_read == 0)
         {
-            *packet = NULL;
-            return UIPC_ERROR;
+            return UIPC_EOF;
         }
-	}
-    else if (amount_read == 0)
-    {
-        return UIPC_EOF;
+
+        context->transferred += amount_read;
     }
-	
-	*packet = malloc(sizeof(uipc_packet) + header.length);
 
-    if (!*packet)
-        return UIPC_NOMEM;
+    if (!context->packet)
+    {
+        context->packet = malloc(sizeof(uipc_packet) + context->header.length);
 
-    memcpy(*packet, &header, sizeof(header));
-	
+        if (!context->packet)
+            return UIPC_NOMEM;
+
+        memcpy(context->packet, &context->header, sizeof(context->header));
+    }
+
     amount_read = 0;
-    remaining = header.length;
-    buffer = ((char*) (*packet)) + sizeof(uipc_packet_header);
+    remaining = sizeof(uipc_packet_header) + context->header.length - context->transferred;
+    buffer = (char*) context->packet + context->transferred;
 
     while (remaining)
     {
-        amount_read = read(socket, buffer + (header.length - remaining), remaining);
+        amount_read = read(socket, buffer, remaining);
 
         if (amount_read < 0)
         {
             if (errno == EAGAIN || errno == EINTR)
-                // Must finish since we've already read something
-                continue;
+            {
+                return UIPC_RETRY;
+            }
             else
             {
                 free(*packet);
@@ -170,8 +176,12 @@ uipc_packet_recv(int socket, uipc_packet** packet)
         else
         {
             remaining -= amount_read;
+            context->transferred += amount_read;
         }
     }
+
+    *packet = context->packet;
+    context->packet = NULL;
 
     return UIPC_SUCCESS;
 }

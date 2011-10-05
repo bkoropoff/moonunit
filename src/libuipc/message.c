@@ -119,8 +119,9 @@ uipc_attach(int socket)
     return handle;
 }
 
+static
 uipc_status
-uipc_recv_async(uipc_handle* handle, uipc_message** message)
+uipc_recv_async(uipc_handle* handle, uipc_async_context* context, uipc_message** message)
 {
     uipc_packet* packet = NULL;
     uipc_status result;
@@ -128,7 +129,7 @@ uipc_recv_async(uipc_handle* handle, uipc_message** message)
     if (!handle->readable)
         return UIPC_EOF;
 
-    result = uipc_packet_recv(handle->socket, &packet);
+    result = uipc_packet_recv(handle->socket, context, &packet);
         
     if (result == UIPC_EOF)
     {
@@ -165,20 +166,34 @@ uipc_status
 uipc_recv(uipc_handle* handle, uipc_message** message, uipc_time* abs)
 {
     uipc_status result = UIPC_SUCCESS;
+    uipc_async_context context = {0};
     
     do
     {
-        result = uipc_packet_available(handle->socket, abs);
+        do
+        {
+            result = uipc_packet_available(handle->socket, abs);
+        } while (result == UIPC_RETRY);
+
+        if (result != UIPC_SUCCESS)
+        {
+            if (context.packet)
+                free(context.packet);
+            return result;
+        }
+
+        result = uipc_recv_async(handle, &context, message);
     } while (result == UIPC_RETRY);
-    
-    if (result != UIPC_SUCCESS)
-        return result;
-    
-	return uipc_recv_async(handle, message);
+
+    if (context.packet)
+        free(context.packet);
+
+    return result;
 }
 
+static
 uipc_status
-uipc_send_async(uipc_handle* handle, uipc_message* message)
+uipc_send_async(uipc_handle* handle, uipc_async_context* context, uipc_message* message)
 {
     uipc_status result = UIPC_SUCCESS;
     uipc_packet* packet = NULL;
@@ -191,7 +206,7 @@ uipc_send_async(uipc_handle* handle, uipc_message* message)
 
     packet = packet_from_message(message);
 
-    result = uipc_packet_send(handle->socket, packet);
+    result = uipc_packet_send(handle->socket, context, packet);
         
     if (result == UIPC_EOF)
     {
@@ -214,16 +229,22 @@ uipc_status
 uipc_send(uipc_handle* handle, uipc_message* message, uipc_time* abs)
 {
     uipc_status result = UIPC_SUCCESS;
+    uipc_async_context context = {0};
     
     do
     {
-        result = uipc_packet_sendable(handle->socket, abs);
+        do
+        {
+            result = uipc_packet_sendable(handle->socket, abs);
+        } while (result == UIPC_RETRY);
+
+        if (result != UIPC_SUCCESS)
+            return result;
+
+        result = uipc_send_async(handle, &context, message);
     } while (result == UIPC_RETRY);
-    
-    if (result != UIPC_SUCCESS)
-        return result;
-    
-	return uipc_send_async(handle, message);
+
+    return result;
 }
 
 uipc_status

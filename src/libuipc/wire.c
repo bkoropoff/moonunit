@@ -190,9 +190,8 @@ uipc_status
 uipc_packet_available(int socket, uipc_time* abs)
 {
 	fd_set readset;
-	fd_set exset;
-	
-	struct timeval timeout;
+    struct timeval timeout;
+    int ret = -1;
 
     if (abs)
     {
@@ -212,14 +211,19 @@ uipc_packet_available(int socket, uipc_time* abs)
 	FD_ZERO(&readset);
 	FD_SET(socket, &readset);
 	
-	FD_ZERO(&exset);
-	FD_SET(socket, &exset);
-		
-	select(socket+1, &readset, NULL, &exset, abs ? &timeout : NULL);
+	ret = select(socket+1, &readset, NULL, NULL, abs ? &timeout : NULL);
 
-	if (FD_ISSET(socket, &exset))
-		return UIPC_ERROR;
-	else if (FD_ISSET(socket, &readset))
+    if (ret < 0)
+    {
+        if (errno == EAGAIN || errno == EINTR)
+        {
+            return UIPC_RETRY;
+        }
+        else
+        {
+            return UIPC_ERROR;
+        }
+    } else if (FD_ISSET(socket, &readset))
 		return UIPC_SUCCESS;
     else if (abs && uipc_time_is_past(abs))
         return UIPC_TIMEOUT;
@@ -231,9 +235,8 @@ uipc_status
 uipc_packet_sendable(int socket, uipc_time* abs)
 {
 	fd_set writeset;
-	fd_set exset;
-	
 	struct timeval timeout;
+    int ret = -1;
 
     if (abs)
     {
@@ -253,13 +256,19 @@ uipc_packet_sendable(int socket, uipc_time* abs)
 	FD_ZERO(&writeset);
 	FD_SET(socket, &writeset);
 	
-	FD_ZERO(&exset);
-	FD_SET(socket, &exset);
-		
-	select(socket+1, NULL, &writeset, &exset, abs ? &timeout : NULL);
+	ret = select(socket+1, NULL, &writeset, NULL, abs ? &timeout : NULL);
 
-	if (FD_ISSET(socket, &exset))
-		return UIPC_ERROR;
+    if (ret < 0)
+    {
+        if (errno == EAGAIN || errno == EINTR)
+        {
+            return UIPC_RETRY;
+        }
+        else
+        {
+            return UIPC_ERROR;
+        }
+    }
 	else if (FD_ISSET(socket, &writeset))
 		return UIPC_SUCCESS;
 	else if (abs && uipc_time_is_past(abs))

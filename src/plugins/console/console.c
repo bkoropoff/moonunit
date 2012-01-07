@@ -306,7 +306,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     ConsoleLogger* self = (ConsoleLogger*) _self;
     FILE* out = self->out;
 	int i;
-	const char* reason, *stage, *status;
+	const char *stage, *status;
     bool result = summary->status == MU_STATUS_SKIPPED || summary->status == summary->expected;
     const char* result_str = NULL;
     unsigned int result_code;
@@ -393,7 +393,6 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
         for (i = self->align - self->position - strlen(stage) - 1 - strlen(result_str); i > 0; i--)
             fprintf(out, " ");
         
-        reason = summary->reason ? summary->reason : "unknown";
         if (self->ansi)
         {
             fprintf(out, "%s \e[%um\e[1m%s\e[22m\e[0m\n", stage, result_code, result_str);

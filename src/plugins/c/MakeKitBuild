@@ -9,5 +9,5 @@ make()
         INSTALLDIR="$MU_PLUGIN_PATH" \
         INCLUDEDIRS="../../../include" \
         SOURCES="$C_SOURCES" \
-        LIBDEPS="moonunit $LIB_PTHREAD"
+        LIBDEPS="moonunit $LIB_PTHREAD $LIB_DL"
 }

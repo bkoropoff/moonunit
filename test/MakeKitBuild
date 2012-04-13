@@ -62,9 +62,11 @@ run_test()
     RES="$1"
     shift
 
+    mk_get "$MK_LIBPATH_VAR"   
+
     mk_run_or_fail \
         env \
-        LD_LIBRARY_PATH="${MK_STAGE_DIR}${MK_LIBDIR}:${MK_STAGE_DIR}${MU_PLUGIN_PATH}:$LD_LIBRARY_PATH" \
+        "$MK_LIBPATH_VAR=${MK_STAGE_DIR}${MK_LIBDIR}:${MK_STAGE_DIR}${MU_PLUGIN_PATH}:$result" \
         MU_EXTRA_PLUGINS="c${MK_DLO_EXT} console${MK_DLO_EXT} shell${MK_DLO_EXT}" \
         "${MK_STAGE_DIR}${MK_BINDIR}/moonunit" \
         --loader-option "sh:helper=${MK_STAGE_DIR}${MK_LIBEXECDIR}/mu.sh" \

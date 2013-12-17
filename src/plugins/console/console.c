@@ -513,7 +513,7 @@ set_ansi(ConsoleLogger* self, const char* ansi)
     {
         self->ansi = ANSI_TRUE;
     }
-    if (!strcmp(ansi, "false"))
+    else if (!strcmp(ansi, "false"))
     {
         self->ansi = ANSI_FALSE;
     }

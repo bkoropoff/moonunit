@@ -48,11 +48,7 @@ test_compare(const void* _a, const void* _b)
 	if ((result = strcmp(mu_test_suite(a), mu_test_suite(b))))
 		return result;
 	else
-#ifdef SYMBOL_LAYOUT_REVERSE
-		return (a == b) ? 0 : ((a < b) ? 1 : -1);
-#else
-		return (a == b) ? 0 : ((a < b) ? -1 : 1);
-#endif
+	    return strcmp(mu_test_name(a), mu_test_name(b));
 }
 
 static unsigned int

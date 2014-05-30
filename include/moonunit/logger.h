@@ -42,7 +42,7 @@ typedef struct MuLogger
     void (*suite_enter) (struct MuLogger*, const char*);
     void (*suite_leave) (struct MuLogger*);
     void (*test_enter) (struct MuLogger*, struct MuTest* test);
-    void (*test_log) (struct MuLogger*, struct MuLogEvent* event);
+    void (*test_log) (struct MuLogger*, struct MuLogEvent const* event);
     void (*test_leave) (struct MuLogger*, 
                     struct MuTest*, struct MuTestResult*);
     void (*destroy) (struct MuLogger*);
@@ -63,7 +63,7 @@ void mu_logger_library_leave (struct MuLogger*);
 void mu_logger_suite_enter (struct MuLogger*, const char*);
 void mu_logger_suite_leave (struct MuLogger*);
 void mu_logger_test_enter (struct MuLogger*, struct MuTest* test);
-void mu_logger_test_log (struct MuLogger*, struct MuLogEvent* event);
+void mu_logger_test_log (struct MuLogger*, struct MuLogEvent const* event);
 void mu_logger_test_leave (struct MuLogger*, 
                           struct MuTest*, struct MuTestResult*);
 void mu_logger_destroy(MuLogger* logger);

@@ -229,13 +229,13 @@ test_enter(MuLogger* _self, MuTest* test)
 }
 
 static void
-test_log(MuLogger* _self, MuLogEvent* event)
+test_log(MuLogger* _self, MuLogEvent const* event)
 {
     ConsoleLogger* self = (ConsoleLogger*) _self;
     char* level_str = NULL;
     int level_code = 0;
 
-    if (self->loglevel == -1 || event->level > self->loglevel)
+    if (self->loglevel == (MuLogLevel) -1 || event->level > self->loglevel)
         return;
 
     switch (event->level)

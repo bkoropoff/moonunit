@@ -124,7 +124,7 @@ test_enter(MuLogger* _self, MuTest* test)
 }
 
 static void
-test_log(MuLogger* _self, MuLogEvent* event)
+test_log(MuLogger* _self, MuLogEvent const* event)
 {
     MultiLogger* self = (MultiLogger*) _self;
     unsigned int index;

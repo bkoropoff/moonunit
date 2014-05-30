@@ -93,7 +93,7 @@ done:
 }
 
 static void
-event_proxy_cb(MuLogEvent* event, void* data)
+event_proxy_cb(MuLogEvent const* event, void* data)
 {
     MuLogger* logger = (MuLogger*) data;
 

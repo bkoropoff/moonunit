@@ -185,7 +185,7 @@ static void test_enter(MuLogger* _self, MuTest* test)
     xml_escape_wrap(self->out, INDENT_TEST "<test name=\"", mu_test_name(test), "\">\n");
 }
 
-static void test_log(MuLogger* _self, MuLogEvent* event)
+static void test_log(MuLogger* _self, MuLogEvent const* event)
 {
     XmlLogger* self = (XmlLogger*) _self;
     const char* level_str = "unknown";

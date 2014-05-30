@@ -39,7 +39,7 @@ C_BEGIN_DECLS
 
 struct MuLibrary;
 
-typedef void (*MuLogCallback)(struct MuLogEvent* event, void* data);
+typedef void (*MuLogCallback)(struct MuLogEvent const* event, void* data);
 
 typedef struct MuLoader
 {

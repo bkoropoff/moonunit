@@ -91,9 +91,20 @@
         <term><option>--resource</option> <replaceable>file</replaceable></term>
         <listitem>
           <para>
-	    Read in resource definitions from <replaceable>file</replaceable>, which
-	    should be a simple ini-style configuration file.
-	  </para>
+	        Read in resource definitions from <replaceable>file</replaceable>, which
+	        should be a simple ini-style configuration file.
+	      </para>  
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--list-tests</option></term>
+        <listitem>
+          <para>
+            Prints a list of all tests available in the libraries passed on the command
+            line.  If <option>-t</option> is specified, only tests matching it are printed.
+            Each test is printed in the form that <option>-t</option> accepts:
+            <replaceable>library</replaceable><literal>/</literal><replaceable>suite</replaceable><literal>/</literal><replaceable>test</replaceable>.
+          </para>
         </listitem>
       </varlistentry>
       <varlistentry>

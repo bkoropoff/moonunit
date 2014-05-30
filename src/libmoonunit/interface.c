@@ -98,10 +98,6 @@ mu_interface_assert(const char* file, unsigned int line, const char* expr, int s
     {
         MuTestResult summary;
         
-        /* Normalize booleans */
-        result = result ? 1 : 0;
-        sense = sense ? 1 : 0;
-            
         summary.status = MU_STATUS_ASSERTION;
         summary.reason = sense ? format("Expression was false: %s", expr)
                                : format("Expression was true: %s", expr);
@@ -203,8 +199,8 @@ mu_interface_assert_equal(const char* file, unsigned int line,
                          int sense, MuType type, ...)
 {
     MuInterfaceToken* token = mu_interface_current_token();
-	int result;
-	char* reason;
+	int result = 0;
+	char* reason = NULL;
 	
 	va_list ap;
 	

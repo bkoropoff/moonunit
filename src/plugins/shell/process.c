@@ -54,7 +54,7 @@ int process_open(Process* handle, char * const argv[],
     
     handle->num_channels = num_channels;
     handle->channels = calloc(num_channels, sizeof(ProcessChannel));
-    pipes = calloc(num_channels * 2, sizeof(int));
+    pipes = calloc(num_channels, sizeof(fdpair));
     
     va_start (ap, num_channels);
 

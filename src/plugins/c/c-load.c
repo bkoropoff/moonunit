@@ -336,23 +336,26 @@ cloader_close (MuLoader* _self, MuLibrary* _handle)
     CLibrary* handle = (CLibrary*) _handle;
     int i;
 
-	if (handle->dlhandle)
+    if (handle->dlhandle)
         dlclose(handle->dlhandle);
     if (handle->path)
         free((void*) handle->path);
     if (handle->name)
         free((void*) handle->name);
 
-    for (i = 0; i < array_size((array*) handle->tests); i++)
+    if (handle->tests)
     {
-        free(handle->tests[i]);
+        for (i = 0; i < array_size((array*) handle->tests); i++)
+        {
+            free(handle->tests[i]);
+        }
     }
 
     array_free((array*) handle->tests);
     array_free((array*) handle->fixture_setups);
     array_free((array*) handle->fixture_teardowns);
 
-   	free(handle);
+    free(handle);
 }
 
 const char*

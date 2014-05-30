@@ -377,7 +377,7 @@ mu_sh_dispatch (ShTest* test, MuLogCallback lcb, void* data)
         result->stage = MU_STAGE_UNKNOWN;
         result->reason = format("Test timed out");
     }
-    else if (!result)
+    else
     {
         result->status = MU_STATUS_SUCCESS;
         result->expected = MU_STATUS_SUCCESS;

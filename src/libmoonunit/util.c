@@ -84,9 +84,14 @@ char* formatv(const char* format, va_list ap)
         result = realloc(result, length+1);
         
         if (vsnprintf(result, length+1, format, mine) < length)
+        {
+            free(result);
             return NULL;
+        }
         else
+        {
             return result;
+        }
     }
 }
 

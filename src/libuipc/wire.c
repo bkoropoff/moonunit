@@ -148,7 +148,6 @@ uipc_packet_recv(int socket, uipc_async_context* context, uipc_packet** packet)
         memcpy(context->packet, &context->header, sizeof(context->header));
     }
 
-    amount_read = 0;
     remaining = sizeof(uipc_packet_header) + context->header.length - context->transferred;
     buffer = (char*) context->packet + context->transferred;
 

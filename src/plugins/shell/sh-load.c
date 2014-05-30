@@ -158,6 +158,7 @@ sh_close (struct MuLoader* self, struct MuLibrary* handle)
     }
 
     free((char*) library->path);
+    free(library->name);
     free(library);
 }
 

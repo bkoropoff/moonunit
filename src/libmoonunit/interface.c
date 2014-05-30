@@ -236,7 +236,7 @@ mu_interface_assert_equal(const char* file, unsigned int line,
     }
     else
     {
-        MuTestResult summary;
+        MuTestResult summary = {};
         
         summary.status = MU_STATUS_ASSERTION;
         summary.reason = reason;

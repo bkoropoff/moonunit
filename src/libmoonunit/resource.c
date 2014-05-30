@@ -45,6 +45,7 @@ section_free(void* key, void* value, void* unused)
     MuResourceSection* section = (MuResourceSection*) value;
     free(section->name);  
     hashtable_free(section->contents);
+    free(section);
 }
 
 /* A section owns its key/value resource pairs */
@@ -165,3 +166,16 @@ mu_resource_get_for_test(const char* library, const char* suite, const char* tes
     return info.value;
 }
 
+void
+mu_resource_shutdown(void)
+{
+    if (section_map)
+    {
+        hashtable_free(section_map);
+    }
+
+    if (section_array)
+    {
+        array_free((array*) section_array);
+    }
+}

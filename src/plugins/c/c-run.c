@@ -905,7 +905,7 @@ cloader_construct(MuLoader* _self, MuLibrary* _library, MuError** err)
 
     if (library->library_construct)
     {
-        MuTestResult* result = cloader_run_thunk_inproc(library->library_construct->run);
+        result = cloader_run_thunk_inproc(library->library_construct->run);
 
         if (result->status != MU_STATUS_SUCCESS)
         {
@@ -929,7 +929,7 @@ cloader_destruct(MuLoader* _self, MuLibrary* _library, MuError** err)
 
     if (library->library_destruct)
     {
-        MuTestResult* result = cloader_run_thunk_inproc(library->library_destruct->run);
+        result = cloader_run_thunk_inproc(library->library_destruct->run);
 
         if (result->status != MU_STATUS_SUCCESS)
         {

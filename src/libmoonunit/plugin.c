@@ -41,6 +41,7 @@
 #include <dirent.h>
 
 static array* plugin_list;
+static array* handle_list;
 
 static MuPlugin*
 load_plugin(const char* path)
@@ -53,6 +54,8 @@ load_plugin(const char* path)
     {
         return NULL;
     }
+
+    handle_list = array_append(handle_list, handle);
 
     load = dlsym(handle, "__mu_p_init");
 
@@ -264,5 +267,15 @@ mu_plugin_get_by_name(const char* name)
 void
 mu_plugin_shutdown(void)
 {
+    size_t i = 0;
+
+    if (handle_list)
+    {
+        for (i = 0; i < array_size(handle_list); i++)
+        {
+            dlclose(handle_list[i]);
+        }
+        array_free(handle_list);
+    }
     array_free(plugin_list);
 }

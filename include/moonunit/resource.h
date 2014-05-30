@@ -38,4 +38,6 @@ void mu_resource_set(const char* section_name, const char* key, const char* valu
 bool mu_resource_iterate_sections(MuResourceSectionIter iter, void* data);
 const char* mu_resource_get_for_test(const char* library, const char* suite, const char* test, const char* key);
 
+void mu_resource_shutdown(void);
+
 #endif

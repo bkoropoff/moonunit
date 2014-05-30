@@ -259,7 +259,7 @@ mu_interface_result(const char* file, unsigned int line, MuTestStatus result, co
 {
     MuInterfaceToken* token = mu_interface_current_token();
     va_list ap;
-    MuTestResult summary;
+    MuTestResult summary = {};
 
     va_start(ap, message);
     summary.status = result;

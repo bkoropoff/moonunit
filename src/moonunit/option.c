@@ -391,6 +391,8 @@ option_process_resources(OptionTable* option)
         }
 
         ini_read(file, add_resource, NULL);
+
+        fclose(file);
     }
 
     return 0;

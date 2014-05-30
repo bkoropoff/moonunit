@@ -386,6 +386,7 @@ hashtable_free(hashtable* table)
         }
     }
 
+    free(table->buckets);
     free(table);
 }
 

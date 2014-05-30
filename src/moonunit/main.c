@@ -36,6 +36,7 @@
 #include <moonunit/loader.h>
 #include <moonunit/private/util.h>
 #include <moonunit/plugin.h>
+#include <moonunit/resource.h>
 
 #include "option.h"
 #include "run.h"
@@ -261,6 +262,7 @@ main (int argc, char** argv)
     }
 
     mu_plugin_shutdown();
+    mu_resource_shutdown();
 
     return res;
 }

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <moonunit/private/util.h>
 #include <uipc/wire.h>
 #include <uipc/time.h>
 
@@ -140,7 +141,7 @@ uipc_packet_recv(int socket, uipc_async_context* context, uipc_packet** packet)
 
     if (!context->packet)
     {
-        context->packet = malloc(sizeof(uipc_packet) + context->header.length);
+        context->packet = xmalloc(sizeof(uipc_packet) + context->header.length);
 
         if (!context->packet)
             return UIPC_NOMEM;

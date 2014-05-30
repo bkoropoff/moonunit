@@ -36,6 +36,50 @@
 
 #include <moonunit/private/util.h>
 
+void
+panic(const char* message)
+{
+    fprintf(stderr, "Panic: %s\n", message);
+    abort();
+}
+
+void*
+xmalloc(size_t size)
+{
+    void* mem = malloc(size ? size : 1);
+    if (mem == NULL)
+    {
+        panic("Out of memory");
+    }
+
+    return mem;
+}
+
+void*
+xcalloc(size_t nmemb, size_t size)
+{
+    void* mem = calloc(nmemb ? nmemb : 1, size ? size : 1);
+    if (mem == NULL)
+    {
+        panic("Out of memory");
+    }
+
+    return mem;
+}
+
+void*
+xrealloc(void* ptr, size_t size)
+{
+    void* mem = realloc(ptr, size ? size : 1);
+
+    if (mem == NULL)
+    {
+        panic("Out of memory");
+    }
+
+    return mem;
+}
+
 bool
 ends_with (const char* haystack, const char* needle)
 {
@@ -58,7 +102,7 @@ char* formatv(const char* format, va_list ap)
 {
     va_list mine;
     int length;
-    char* result = malloc(1);
+    char* result = xmalloc(1);
     
     va_copy(mine, ap);
     
@@ -71,7 +115,7 @@ char* formatv(const char* format, va_list ap)
         {
             capacity *= 2;
             va_copy(mine, ap);
-            result = realloc(result, capacity);
+            result = xrealloc(result, capacity);
         } while ((length = vsnprintf(result, capacity-1, format, mine)) == -1 || capacity <= length);
         result[length] = '\0';
         
@@ -81,7 +125,7 @@ char* formatv(const char* format, va_list ap)
     {
         va_copy(mine, ap);
         
-        result = realloc(result, length+1);
+        result = xrealloc(result, length+1);
         
         if (vsnprintf(result, length+1, format, mine) < length)
         {
@@ -162,7 +206,7 @@ ensure(_array* a, size_t size)
         {
             a->capacity *= 2;
         }
-        a = realloc(a, sizeof(_array) + sizeof(void*) * a->capacity);
+        a = xrealloc(a, sizeof(_array) + sizeof(void*) * a->capacity);
         return a;
     }
 }
@@ -170,7 +214,7 @@ ensure(_array* a, size_t size)
 array*
 array_new(void)
 {
-    _array* a = malloc(sizeof(_array) + sizeof(void*));
+    _array* a = xmalloc(sizeof(_array) + sizeof(void*));
 
     a->size = 0;
     a->capacity = 1;
@@ -218,7 +262,7 @@ array_dup(array* a)
     {
         _array* _a = reveal(a);
         unsigned long size = sizeof(_array) + sizeof(void*) * _a->capacity;
-        _array* _b = malloc(size);
+        _array* _b = xmalloc(size);
         memcpy(_b, _a, size);
 
         return hide(_b);
@@ -236,7 +280,7 @@ array_from_generic(void** g)
 
     for (size = 0; g[size]; size++);
     
-    a = malloc(sizeof(_array) + sizeof(void*) * (size + 1));
+    a = xmalloc(sizeof(_array) + sizeof(void*) * (size + 1));
     a->capacity = size + 1;
     a->size = size;
 
@@ -280,10 +324,10 @@ struct _hashtable
 hashtable*
 hashtable_new(size_t size, hashfunc hash, hashequal equal, hashfree free, void* data)
 {
-    hashtable* table = malloc(sizeof(hashtable));
+    hashtable* table = xmalloc(sizeof(hashtable));
 
     table->size = size;
-    table->buckets = calloc(size, sizeof(hashlink*));
+    table->buckets = xcalloc(size, sizeof(hashlink*));
     table->hash = hash;
     table->equal = equal;
     table->free = free;
@@ -322,7 +366,7 @@ hashtable_set(hashtable* table, void* key, void* value)
     }
     else
     {
-        link = malloc(sizeof(hashlink));
+        link = xmalloc(sizeof(hashlink));
         link->next = NULL;
         *linkref = link;
     }
@@ -440,7 +484,7 @@ void ini_read(FILE* file, inievent cb, void* data)
     char* equals = NULL;
     char* chomped;
 
-    line = malloc(line_size);
+    line = xmalloc(line_size);
 
     /* Try to read a line */
     while (fgets(line, line_size, file))
@@ -453,7 +497,7 @@ void ini_read(FILE* file, inievent cb, void* data)
         {
             /* Double the buffer size */
             line_size *= 2;
-            line = realloc(line, line_size);
+            line = xrealloc(line, line_size);
 
             /* Try to read the rest of the line */
             if (!fgets(line + line_len, line_size - line_len, file))

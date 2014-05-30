@@ -647,7 +647,7 @@ static ConsoleLogger consolelogger =
 static MuLogger*
 create_consolelogger()
 {
-    ConsoleLogger* logger = malloc(sizeof(ConsoleLogger));
+    ConsoleLogger* logger = xmalloc(sizeof(ConsoleLogger));
 
     *logger = consolelogger;
 

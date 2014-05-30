@@ -72,7 +72,7 @@ sh_open (struct MuLoader* self, const char* path, MuError** err)
                       path);
     }
 
-    library = calloc(1, sizeof(ShLibrary));
+    library = xcalloc(1, sizeof(ShLibrary));
 
     library->base.loader = self;
     library->path = strdup(path);
@@ -88,7 +88,7 @@ sh_open (struct MuLoader* self, const char* path, MuError** err)
 
     while ((len = process_channel_read_line(&handle, 4, &line)))
     {
-        ShTest* test = calloc(1, sizeof(ShTest));
+        ShTest* test = xcalloc(1, sizeof(ShTest));
         char* div1, *div2;
 
         line[len-1] = '\0';

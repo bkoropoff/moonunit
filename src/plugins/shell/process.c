@@ -53,8 +53,8 @@ int process_open(Process* handle, char * const argv[],
     /* Set up channels */
     
     handle->num_channels = num_channels;
-    handle->channels = calloc(num_channels, sizeof(ProcessChannel));
-    pipes = calloc(num_channels, sizeof(fdpair));
+    handle->channels = xcalloc(num_channels, sizeof(ProcessChannel));
+    pipes = xcalloc(num_channels, sizeof(fdpair));
     
     va_start (ap, num_channels);
 
@@ -176,7 +176,7 @@ process_channel_read_line(Process* handle, unsigned int cnum, char** out)
     if (!channel->buffer)
     {
         channel->bufferlen = 1024;
-        channel->buffer = malloc(channel->bufferlen);
+        channel->buffer = xmalloc(channel->bufferlen);
         channel->buffer[0] = '\0';
     }
 
@@ -189,7 +189,7 @@ process_channel_read_line(Process* handle, unsigned int cnum, char** out)
         if (filled + 1 == channel->bufferlen)
         {
             channel->bufferlen *= 2;
-            channel->buffer = realloc(channel->buffer, channel->bufferlen);
+            channel->buffer = xrealloc(channel->buffer, channel->bufferlen);
         }
 
         res = read(channel->fd, channel->buffer + filled, channel->bufferlen - filled - 1);
@@ -209,7 +209,7 @@ process_channel_read_line(Process* handle, unsigned int cnum, char** out)
     if (newline)
     {
         res = newline - channel->buffer + 1;
-        *out = malloc(res + 1);
+        *out = xmalloc(res + 1);
         memcpy(*out, channel->buffer, res);
         (*out)[res] = '\0';
 

@@ -46,7 +46,7 @@ struct UpoptContext
 UpoptContext*
 upopt_create_context(const UpoptOptionInfo* options, int argc, char** argv)
 {
-    UpoptContext* context = malloc(sizeof(*context));
+    UpoptContext* context = xmalloc(sizeof(*context));
     
     context->argc = argc;
     context->argv = argv;

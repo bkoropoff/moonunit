@@ -40,6 +40,11 @@
 
 C_BEGIN_DECLS
 
+void panic(const char* message);
+void* xmalloc(size_t size);
+void* xcalloc(size_t nmemb, size_t size);
+void* xrealloc(void* ptr, size_t size);
+
 bool match_path (const char* path, const char* pattern);
 bool ends_with (const char* haystack, const char* needle);
 char* format(const char* format, ...);

@@ -26,6 +26,7 @@
  */
 
 #include "config.h"
+#include <moonunit/private/util.h>
 #include <uipc/marshal.h>
 #include <stdio.h>
 #include <string.h>
@@ -140,7 +141,7 @@ uipc_unmarshal_payload(void** out, const void* payload, uipc_typeinfo* type)
     void* member;
     const void* base = payload;
 
-    object = malloc(type->size);
+    object = xmalloc(type->size);
     memcpy(object, payload, type->size);
 
     payload += type->size;

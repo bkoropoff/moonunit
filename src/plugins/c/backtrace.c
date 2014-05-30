@@ -36,6 +36,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <moonunit/private/util.h>
 #include <moonunit/test.h>
 
 #include "backtrace.h"
@@ -93,7 +94,7 @@ get_backtrace(int skip)
 
     for (i = skip; i < num_frames; i++)
     {
-        *out = calloc(1, sizeof(MuBacktrace));
+        *out = xcalloc(1, sizeof(MuBacktrace));
         fill_backtrace(*out, symbols[i]);
         out = &(*out)->up;
     }

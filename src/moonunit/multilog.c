@@ -184,7 +184,7 @@ static MultiLogger multilogger =
 MuLogger*
 create_multilogger(array* loggers)
 {
-    MultiLogger* logger = malloc(sizeof(MultiLogger));
+    MultiLogger* logger = xmalloc(sizeof(MultiLogger));
 
     *logger = multilogger;
     

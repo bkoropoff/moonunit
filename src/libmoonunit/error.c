@@ -52,7 +52,7 @@ mu_error_raise(MuError** err, MuStatusCode code, const char* format, ...)
         abort();
     }
 
-    *err = malloc(sizeof(MuError));
+    *err = xmalloc(sizeof(MuError));
 
     if (!err)
     {

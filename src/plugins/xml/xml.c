@@ -498,7 +498,7 @@ static XmlLogger xmllogger =
 static MuLogger*
 create_xmllogger()
 {
-    XmlLogger* logger = malloc(sizeof(XmlLogger));
+    XmlLogger* logger = xmalloc(sizeof(XmlLogger));
 
     *logger = xmllogger;
 

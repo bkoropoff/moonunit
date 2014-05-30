@@ -335,7 +335,7 @@ mu_sh_dispatch (ShTest* test, MuLogCallback lcb, void* data)
 {
     Process handle;
     ProcessTimeout timeout;
-    MuTestResult* result = calloc(1, sizeof(*result));
+    MuTestResult* result = xcalloc(1, sizeof(*result));
     int res;
     char* command;
 
@@ -393,7 +393,7 @@ mu_sh_run_limited(ShLibrary* library, const char* command)
 {
     Process handle;
     ProcessTimeout timeout;
-    MuTestResult* result = calloc(1, sizeof(*result));
+    MuTestResult* result = xcalloc(1, sizeof(*result));
     int res;
     
     process_get_time(&timeout, mu_sh_timeout);

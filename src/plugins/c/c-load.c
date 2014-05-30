@@ -48,7 +48,7 @@ extern MuLoader mu_cloader;
 static CTest*
 ctest_new(CLibrary* library, MuEntryInfo* entry)
 {
-    CTest* test = calloc(1, sizeof(CTest));
+    CTest* test = xcalloc(1, sizeof(CTest));
 
     if (!test)
         return NULL;
@@ -165,7 +165,7 @@ cloader_can_open(MuLoader* self, const char* path)
 MuLibrary*
 cloader_open(MuLoader* _self, const char* path, MuError** _err)
 {
-	CLibrary* library = malloc(sizeof (CLibrary));
+	CLibrary* library = xmalloc(sizeof (CLibrary));
     MuError* err = NULL;
     void (*stub_hook)(MuEntryInfo*** es);
     char *last_dot;

@@ -72,7 +72,7 @@ get_section(const char* name)
 
     if (!section)
     {
-        section = malloc(sizeof(*section));
+        section = xmalloc(sizeof(*section));
         section->name = strdup(name);
         section->contents = hashtable_new(511, string_hashfunc, string_hashequal, resource_free, NULL);
         hashtable_set(section_map, section->name, section);

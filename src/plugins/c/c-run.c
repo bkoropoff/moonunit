@@ -414,7 +414,7 @@ signal_setup(void)
 static CTokenFork*
 ctoken_new_fork(MuTest* test)
 {
-    CTokenFork* token = calloc(1, sizeof(CTokenFork));
+    CTokenFork* token = xcalloc(1, sizeof(CTokenFork));
 
     token->base.test = test;
     token->base.meta = ctoken_meta_fork;
@@ -429,7 +429,7 @@ ctoken_new_fork(MuTest* test)
 static CTokenInproc*
 ctoken_new_inproc(MuTest* test)
 {
-    CTokenInproc* token = calloc(1, sizeof(CTokenInproc));
+    CTokenInproc* token = xcalloc(1, sizeof(CTokenInproc));
 
     token->base.test = test;
     token->base.meta = ctoken_meta_inproc;
@@ -744,7 +744,7 @@ process:
         
     if (!summary)
     {
-        summary = calloc(1, sizeof(MuTestResult));
+        summary = xcalloc(1, sizeof(MuTestResult));
         // Timed out waiting for response
         if (uipc_result == UIPC_TIMEOUT)
         {
@@ -869,7 +869,7 @@ static MuTestResult*
 cloader_run_thunk_inproc(MuThunk thunk)
 {
     CTokenInproc* token = ctoken_new_inproc(NULL);
-    MuTestResult* volatile result = calloc(1, sizeof(*result));
+    MuTestResult* volatile result = xcalloc(1, sizeof(*result));
 
     result->status = MU_STATUS_SUCCESS;
 
@@ -944,7 +944,7 @@ timeout_signal(int sig)
 static MuTestResult*
 cloader_debug(MuTest* test, MuLogCallback cb, void* data, unsigned int* iterations)
 {
-    MuTestResult* volatile result = calloc(1, sizeof(*result));
+    MuTestResult* volatile result = xcalloc(1, sizeof(*result));
     CTokenInproc* token = ctoken_new_inproc(test);
     long int timeout = default_timeout;
 

@@ -26,6 +26,7 @@
  */
 
 #define _GNU_SOURCE
+#include <moonunit/private/util.h>
 #include <uipc/ipc.h>
 #include <uipc/wire.h>
 #include <stdio.h>
@@ -56,7 +57,7 @@ static
 uipc_packet*
 packet_from_message(uipc_message* message)
 {
-    uipc_packet* packet = malloc(sizeof (uipc_packet_header) + 
+    uipc_packet* packet = xmalloc(sizeof (uipc_packet_header) + 
                                  sizeof (uipc_packet_message) +
                                  PAYLOAD_BUFFER_SIZE);
     unsigned long payload_length;
@@ -72,7 +73,7 @@ packet_from_message(uipc_message* message)
     
     if (payload_length > PAYLOAD_BUFFER_SIZE)
     {
-        packet = realloc(packet, 
+        packet = xrealloc(packet, 
                          sizeof(uipc_packet_header) +
                          sizeof(uipc_packet_message) +
                          payload_length);
@@ -92,7 +93,7 @@ packet_from_message(uipc_message* message)
 static uipc_message* 
 message_from_packet(uipc_packet* packet)
 {
-    uipc_message* message = malloc(sizeof(uipc_message));
+    uipc_message* message = xmalloc(sizeof(uipc_message));
 	
     if (!message)
         return NULL;
@@ -108,7 +109,7 @@ message_from_packet(uipc_packet* packet)
 uipc_handle* 
 uipc_attach(int socket)
 {
-    uipc_handle* handle = malloc(sizeof (uipc_handle));
+    uipc_handle* handle = xmalloc(sizeof (uipc_handle));
 
     if (!handle)
         return NULL;
@@ -277,7 +278,7 @@ uipc_close(uipc_handle* handle)
 uipc_message* 
 uipc_msg_new(uipc_message_type type)
 {
-    uipc_message* message = malloc(sizeof (uipc_message));
+    uipc_message* message = xmalloc(sizeof (uipc_message));
 	
     if (!message)
         return NULL;

@@ -194,15 +194,15 @@
 		<span class="result-tag">result</span>
 	      </div>
 	      <!-- Emit file/line number if we know it -->
+	    <xsl:if test="result/@file">
 	      <div class="message-source">
 		<span class="source-tag">
-		  <xsl:if test="result/@file">
 		    <xsl:value-of select="result/@file"/>
 		    <xsl:text>:</xsl:text>
 		    <xsl:value-of select="result/@line"/>
-		  </xsl:if>
 		</span>
 	      </div>
+	     </xsl:if>
 	      <div class="message-content">
 		<xsl:value-of select="result"/>
 	      </div>

@@ -57,28 +57,74 @@ typedef struct
 } XmlLogger;
 
 static void
+output(FILE* out, char const* str)
+{
+    fputs(str, out);
+}
+
+static void
+xml_escape(FILE* out, char const* str)
+{
+    for (; *str; str++)
+    {
+        if (*str <= 0x1f || *str == 0x7f)
+        {
+            fprintf(out, "&#%u;", (unsigned int) *str);
+        }
+        else switch (*str)
+        {
+        case '"':
+            output(out, "&quot;");
+            break;
+        case '\'':
+            output(out, "&apos;");
+            break;
+        case '&':
+            output(out, "&amp;");
+            break;
+        case '<':
+            output(out, "&lt;");
+            break;
+        case '>':
+            output(out, "&gt;");
+            break;
+        default:
+            fputc(*str, out);
+        }
+    }
+}
+
+static void
+xml_escape_wrap(FILE* out, char const* prefix, char const* str, char const* suffix)
+{
+    output(out, prefix);
+    xml_escape(out, str);
+    output(out, suffix);
+}
+
+static void
 enter(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-    fprintf(self->out, INDENT_MOONUNIT "<moonunit");
+    output(self->out, INDENT_MOONUNIT "<moonunit");
     if (self->title)
     {
-        fprintf(self->out, " title=\"%s\"", self->title);
+        xml_escape_wrap(self->out, " title=\"", self->title, "\"");
     }
 
-    fprintf(self->out, ">\n");
+    output(self->out, ">\n");
 
-    fprintf(self->out, INDENT_RUN "<run");
+    output(self->out, INDENT_RUN "<run");
 
     if (self->name)
     {
-        fprintf(self->out, " name=\"%s\"", self->name);
+        xml_escape_wrap(self->out, " name=\"", self->name, "\"");
     }
 
-    fprintf(self->out,
-            " cpu=\"%s\" vendor=\"%s\" os=\"%s\">\n",
-            HOST_CPU, HOST_VENDOR, HOST_OS);
+    xml_escape_wrap(self->out, " cpu=\"", HOST_CPU, "\"");
+    xml_escape_wrap(self->out, " vendor=\"", HOST_VENDOR, "\"");
+    xml_escape_wrap(self->out, " os=\"", HOST_OS, "\">\n");
 }
 
 static void
@@ -86,52 +132,47 @@ leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-    fprintf(self->out, INDENT_RUN "</run>\n");
-    fprintf(self->out, INDENT_MOONUNIT "</moonunit>\n");
+    output(self->out, INDENT_RUN "</run>\n" INDENT_MOONUNIT "</moonunit>\n");
 }
 
 static void library_enter(MuLogger* _self, const char* path, MuLibrary* library)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
+    xml_escape_wrap(self->out, INDENT_LIBRARY "<library file=\"", basename_pure(path), "\"");
     if (library)
     {
-        fprintf(self->out, INDENT_LIBRARY "<library file=\"%s\" name=\"%s\">\n",
-                basename_pure(path), mu_library_name(library));
+        xml_escape_wrap(self->out, " name=\"", mu_library_name(library), "\"");
     }
-    else
-    {
-        fprintf(self->out, INDENT_LIBRARY "<library file=\"%s\">\n", basename_pure(path));
-    }
+    output(self->out, ">\n");
 }
 
 static void library_fail(MuLogger* _self, const char* reason)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-    fprintf(self->out, INDENT_LIBRARY INDENT "<abort reason=\"%s\"/>\n", reason);
+    xml_escape_wrap(self->out, INDENT_LIBRARY INDENT "<abort reason=\"", reason, "\"/>\n");
 }
-
 
 static void library_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
 
-	fprintf(self->out, INDENT_LIBRARY "</library>\n");
+	output(self->out, INDENT_LIBRARY "</library>\n");
 }
 
 static void suite_enter(MuLogger* _self, const char* name)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-	fprintf(self->out, INDENT_SUITE "<suite name=\"%s\">\n", name);
+	xml_escape_wrap(self->out, INDENT_SUITE "<suite name=\"", name, "\">\n");
 }
 
 static void suite_leave(MuLogger* _self)
 {
     XmlLogger* self = (XmlLogger*) _self;
     
-	fprintf(self->out, INDENT_SUITE "</suite>\n");
+	output(self->out, INDENT_SUITE "</suite>\n");
 }
 
 static void test_enter(MuLogger* _self, MuTest* test)
@@ -140,7 +181,7 @@ static void test_enter(MuLogger* _self, MuTest* test)
 
     self->current_test = test;
 
-    fprintf(self->out, INDENT_TEST "<test name=\"%s\">\n", mu_test_name(test));
+    xml_escape_wrap(self->out, INDENT_TEST "<test name=\"", mu_test_name(test), "\">\n");
 }
 
 static void test_log(MuLogger* _self, MuLogEvent* event)
@@ -166,13 +207,14 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
     fprintf(self->out, " stage=\"%s\"", mu_test_stage_to_string(event->stage));
     
     if (event->file)
-        fprintf(self->out, " file=\"%s\"", basename_pure(event->file));
+    {
+        xml_escape_wrap(self->out, " file=\"", basename_pure(event->file), "\"");
+    }
+
     if (event->line)
         fprintf(self->out, " line=\"%u\"", event->line);
 
-    fprintf(self->out, ">");
-    fprintf(self->out, "<![CDATA[%s]]>", event->message);
-    fprintf(self->out, "</event>\n");
+    xml_escape_wrap(self->out, ">", event->message, "</event>\n");
 }
 
 static void test_leave(MuLogger* _self, 
@@ -231,22 +273,26 @@ static void test_leave(MuLogger* _self,
         {
             fprintf(out, INDENT_TEST INDENT "<result status=\"%s\" stage=\"%s\"", result_str, stage);
             if (summary->file)
-                fprintf(out, " file=\"%s\"", basename_pure(summary->file));
+            {
+                xml_escape_wrap(out, " file=\"", basename_pure(summary->file), "\"");
+            }
             if (summary->line)
                 fprintf(out, " line=\"%i\"", summary->line);
 
-            fprintf(out, ">");
-            fprintf(out, "<![CDATA[%s]]>", summary->reason);
-            fprintf(out, "</result>\n");
+            output(out, ">");
+            xml_escape(out, summary->reason);
+            output(out, "</result>\n");
         }
         else
         {
             fprintf(out, INDENT_TEST INDENT "<result status=\"fail\" stage=\"%s\"", stage);
             if (summary->file)
-                fprintf(out, " file=\"%s\"", basename_pure(summary->file));
+            {
+                xml_escape_wrap(out, " file=\"", basename_pure(summary->file), "\"");
+            }
             if (summary->line)
                 fprintf(out, " line=\"%i\"", summary->line);
-            fprintf(out, "/>\n");
+            output(out, "/>\n");
         }
 	}
 
@@ -259,11 +305,11 @@ static void test_leave(MuLogger* _self,
             fprintf(out, INDENT_TEST INDENT INDENT "<frame");
             if (frame->file_name)
             {
-                fprintf(out, " binary_file=\"%s\"", frame->file_name);
+                xml_escape_wrap(out, " binary_file=\"", frame->file_name, "\"");
             }
             if (frame->func_name)
             {
-                fprintf(out, " function=\"%s\"", frame->func_name);
+                xml_escape_wrap(out, " function=\"", frame->func_name, "\"");
             }
             if (frame->func_addr)
             {
@@ -273,12 +319,12 @@ static void test_leave(MuLogger* _self,
             {
                 fprintf(out, " return_addr=\"%lx\"", frame->return_addr);
             }
-            fprintf(out, "/>\n");
+            output(out, "/>\n");
         }
-        fprintf(out, INDENT_TEST " 　</backtrace>\n");
+        output(out, INDENT_TEST " 　</backtrace>\n");
     }
 
-    fprintf(out, INDENT_TEST "</test>\n");
+    output(out, INDENT_TEST "</test>\n");
 }
 
 static int

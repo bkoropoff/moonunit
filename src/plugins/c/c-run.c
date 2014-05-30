@@ -274,6 +274,33 @@ ctoken_meta_fork(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 }
 
 static void
+longjmp_on_signal(int sig)
+{
+    CTokenInproc* token = (CTokenInproc*) current_token;
+
+    siglongjmp(token->jmpbuf, 1);
+}
+
+static void
+ctoken_longjmp_inproc(CTokenInproc* token)
+{
+    if (pthread_self() == token->self)
+    {
+        siglongjmp(token->jmpbuf, 1);
+    }
+    else
+    {
+        struct sigaction action = {};
+        action.sa_handler = longjmp_on_signal;
+        action.sa_flags = SA_RESETHAND;
+
+        (void) sigaction(SIGINT, &action, NULL);
+
+        pthread_kill(token->self, SIGINT);
+    }
+}
+
+static void
 ctoken_event_inproc(MuInterfaceToken* _token, const MuLogEvent* event)
 {
     CTokenInproc* token = (CTokenInproc*) _token;
@@ -286,17 +313,63 @@ ctoken_result_inproc(MuInterfaceToken* _token, const MuTestResult* summary)
 {    
     CTokenInproc* token = (CTokenInproc*) _token;
 
-    if (summary->status != token->expected)
+    if (summary->status != MU_STATUS_SKIPPED && summary->status != token->result->expected)
     {
         abort();
     }
 
-    *token->result = *summary;
-
+    token->result->status = summary->status;
     token->result->reason = safe_strdup(summary->reason);
     token->result->file = safe_strdup(summary->file);
 
-    siglongjmp(token->jmpbuf, 1);
+    ctoken_longjmp_inproc(token);
+}
+
+// This signal handler is wildly unsafe.  It is used
+// to make a best-effort attempt to deal with crashing
+// tests when forking is disabled.
+static
+void crash_recover(int sig)
+{
+    CTokenInproc* token = (CTokenInproc*) current_token;
+
+    token->result->status = MU_STATUS_CRASH;
+
+    ctoken_longjmp_inproc(token);
+}
+
+static int crash_signals[] =
+{
+    SIGILL,
+    SIGABRT,
+    SIGFPE,
+    SIGSEGV,
+    SIGPIPE
+    -1
+};
+
+static
+void
+prepare_for_crash(void)
+{
+    int i = 0;
+
+    for (i = 0; crash_signals[i] >= 0; i++)
+    {
+        (void) signal(crash_signals[i], crash_recover);
+    }
+}
+
+static
+void
+reset_crash_signals()
+{
+    int i = 0;
+
+    for (i = 0; crash_signals[i] >= 0; i++)
+    {
+        (void) signal(crash_signals[i], SIG_DFL);
+    }
 }
 
 static
@@ -314,7 +387,14 @@ ctoken_meta_inproc(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
     switch (type)
     {
     case MU_META_EXPECT:
-        token->expected = va_arg(ap, MuTestStatus);
+        token->result->expected = va_arg(ap, MuTestStatus);
+        if (token->result->expected == MU_STATUS_CRASH)
+        {
+            // The test intends to crash.  Install signal handlers
+            // to attempt to deal with it.  This is, of course, on
+            // a best-effort basis only.
+            prepare_for_crash();
+        }
         break;
     case MU_META_TIMEOUT:
         timeout = va_arg(ap, long int);
@@ -379,16 +459,16 @@ signal_setup(void)
 {
     /* List of signals we care about */
     static int siglist[] =
-        {
-            SIGSEGV,
-            SIGBUS,
-            SIGILL,
-            SIGPIPE,
-            SIGFPE,
-            SIGABRT,
-            SIGTERM,
-            0
-        };
+    {
+        SIGSEGV,
+        SIGBUS,
+        SIGILL,
+        SIGPIPE,
+        SIGFPE,
+        SIGABRT,
+        SIGTERM,
+        0
+    };
 
     struct sigaction act;
     int i;
@@ -435,7 +515,6 @@ ctoken_new_inproc(MuTest* test)
     token->base.meta = ctoken_meta_inproc;
     token->base.result = ctoken_result_inproc;
     token->base.event = ctoken_event_inproc;
-    token->expected = MU_STATUS_SUCCESS;
     pthread_mutex_init(&token->lock, NULL);
 
     return token;
@@ -903,30 +982,30 @@ cloader_run_inproc(MuTest* test, CTokenInproc* token)
     mu_interface_set_current_token_callback(ctoken_current, token);
 
     /* Stage: library setup */
-    token->current_stage = MU_STAGE_LIBRARY_SETUP;
+    token->result->stage = MU_STAGE_LIBRARY_SETUP;
 
     if ((thunk = cloader_library_setup(test->loader, test->library)))
         INVOKE(thunk);
 
     /* Stage: fixture setup */
-    token->current_stage = MU_STAGE_FIXTURE_SETUP;
+    token->result->stage = MU_STAGE_FIXTURE_SETUP;
 
     if ((thunk = cloader_fixture_setup(test->loader, test)))
         INVOKE(thunk);
 
     /* Stage: test */
-    token->current_stage = MU_STAGE_TEST;
+    token->result->stage = MU_STAGE_TEST;
 
     INVOKE(((CTest*) test)->entry->run);
 
     /* Stage: fixture teardown */
-    token->current_stage = MU_STAGE_FIXTURE_TEARDOWN;
+    token->result->stage = MU_STAGE_FIXTURE_TEARDOWN;
 
     if ((thunk = cloader_fixture_teardown(test->loader, test)))
         INVOKE(thunk);
 
     /* Stage: library teardown */
-    token->current_stage = MU_STAGE_LIBRARY_TEARDOWN;
+    token->result->stage = MU_STAGE_LIBRARY_TEARDOWN;
 
     if ((thunk = cloader_library_teardown(test->loader, test->library)))
         INVOKE(thunk);
@@ -938,7 +1017,16 @@ cloader_run_inproc(MuTest* test, CTokenInproc* token)
 static void
 timeout_signal(int sig)
 {
-    abort();
+    CTokenInproc* token = (CTokenInproc*) current_token;
+
+    if (token->result->expected != MU_STATUS_TIMEOUT)
+    {
+        abort();
+    }
+
+    token->result->status = MU_STATUS_TIMEOUT;
+
+    ctoken_longjmp_inproc(token);
 }
 
 static MuTestResult*
@@ -955,6 +1043,7 @@ cloader_debug(MuTest* test, MuLogCallback cb, void* data, unsigned int* iteratio
     token->cb = cb;
     token->data = data;
     token->iterations = iterations;
+    token->self = pthread_self();
 
     if (timeout < 1000)
     {
@@ -970,6 +1059,7 @@ cloader_debug(MuTest* test, MuLogCallback cb, void* data, unsigned int* iteratio
     }
 
     (void) alarm(0);
+    reset_crash_signals();
 
     ctoken_free_inproc(token);
 

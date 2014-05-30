@@ -25,14 +25,58 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
+DEPENDS="compiler"
 
-MK_MSG_DOMAIN="nuke"
+### section configure
 
-for _target in "$@"
-do
-    if [ -e "$_target" ]
+option()
+{
+    mk_option \
+        OPTION="harden-pie" \
+        VAR=MK_HARDEN_PIE \
+        PARAM="yes|no" \
+        DEFAULT="no" \
+        HELP="Enable position-independent executables"
+
+    mk_option \
+        OPTION="harden-stack" \
+        VAR=MK_HARDEN_STACK \
+        PARAM="all|yes|no" \
+        DEFAULT="no" \
+        HELP="Enable stack smash protection"
+}
+
+configure()
+{
+    if [ "$MK_HARDEN_PIE" = "yes" ]
     then
-        mk_msg "${_target}"
-        mk_safe_rm "$_target"
+        mk_add_link_target_prehook _mk_pie_link_hook
+        mk_add_compile_target_prehook _mk_pie_compile_hook
     fi
-done
+    if [ "$MK_HARDEN_STACK" = "all" ]
+    then
+        MK_CFLAGS="$MK_CFLAGS -fstack-protector -fstack-protector-all"
+        MK_CXXFLAGS="$MK_CXXFLAGS -fstack-protector -fstack-protector-all"
+    elif [ "$MK_HARDEN_STACK" = "yes" ]
+    then
+        MK_CFLAGS="$MK_CFLAGS -fstack-protector"
+        MK_CXXFLAGS="$MK_CXXFLAGS -fstack-protector"
+    fi
+}
+
+_mk_pie_link_hook()
+{
+    if [ "$1" = "mk_program" ]
+    then
+        LDFLAGS="$LDFLAGS -pie"
+    fi
+}
+
+_mk_pie_compile_hook()
+{
+    if [ "$PIC" = "no" ]
+    then
+        CFLAGS="$CFLAGS -fPIE"
+        CXXFLAGS="$CXXFLAGS -fPIE"
+    fi
+}

@@ -44,7 +44,10 @@ option()
 
     for candidate in \
         /usr/share/xml/docbook/stylesheet/docbook-xsl \
-        /usr/share/sgml/docbook/xsl-stylesheets
+        /usr/share/sgml/docbook/xsl-stylesheets \
+        /usr/share/doc/docbook-style-xsl \
+        /usr/share/doc/docbook5-style-xsl \
+        /opt/local/share/xsl/docbook-xsl
     do
         if [ -d "$candidate" ]
         then
@@ -102,6 +105,34 @@ mk_check_docbook()
 }
 
 #<
+# @brief Check for PDF-specific DocBook prerequisites on the build system
+# @usage
+#
+# Checks for the availability of Apache FOP, necessary to generate PDF
+# documents from DocBook sources.  This Check must be issued after
+# <funcref>mk_check_docbook</funcref> succeeds.  The result can be
+# tested with <funcref>mk_have_docbook_pdf</funcref>.  If successful,
+# you may then use functions such as <funcref>mk_docbook_pdf</funcref>
+# to generate documentation from DocBook sources as part of your
+# project.
+#>
+mk_check_docbook_pdf()
+{
+    MK_HAVE_DOCBOOK_PDF=no
+
+    if mk_have_docbook
+    then
+        mk_check_program "fop"
+        
+        [ -n "$FOP" ] && MK_HAVE_DOCBOOK_PDF=yes
+    fi
+
+    mk_msg "docbook pdf enabled: $MK_HAVE_DOCBOOK_PDF"
+
+    mk_declare -i MK_HAVE_DOCBOOK_PDF
+}
+
+#<
 # @brief Test if DocBook processing is available
 # @usage
 #
@@ -112,6 +143,19 @@ mk_check_docbook()
 mk_have_docbook()
 {
     [ "$MK_HAVE_DOCBOOK" = "yes" ]
+}
+
+#<
+# @brief Test if DocBook pdf processing is available
+# @usage
+#
+# Returns <lit>0</lit> (logical true) if DocBook pdf prerequistes
+# were successfully found by <funcref>mk_check_docbook_pdf</funcref>,
+# or <lit>1</lit> (logical false) otherwise.
+#>
+mk_have_docbook_pdf()
+{
+    [ "$MK_HAVE_DOCBOOK_PDF" = "yes" ]
 }
 
 #<
@@ -162,11 +206,30 @@ mk_docbook_html()
         DEPS="$DEPS $SOURCE $STYLESHEET $INCLUDES" \
         _mk_docbook '$@' "&$INSTALLDIR" "&$SOURCE" "&$STYLESHEET" "$INCLUDES"
 
+    DEPS=""
+
     # Install CSS file
-    [ -n "$CSS" ] && mk_stage SOURCE="$CSS" DESTDIR="${INSTALLDIR}"
+    if [ -n "$CSS" ]
+    then
+        mk_stage SOURCE="$CSS" DESTDIR="${INSTALLDIR}" @DEPS={ "$INSTALLDIR" }
+        mk_quote "$result"
+        DEPS="$DEPS $result"
+    fi
 
     # Install image files
-    [ -n "$IMAGES" ] && mk_stage SOURCE="$IMAGES" DEST="${INSTALLDIR}/images"
+    if [ -n "$IMAGES" ]
+    then
+        mk_stage SOURCE="$IMAGES" DEST="${INSTALLDIR}/images" @DEPS={ "$INSTALLDIR" }
+        mk_quote "$result"
+        DEPS="$DEPS $result"
+    fi
+
+    mk_basename "$SOURCE"
+
+    mk_target \
+        TARGET=".docbook-html.$result.stamp" \
+        DEPS="$DEPS" \
+        mk_run_or_fail touch '$@'
 
     mk_pop_vars
 }
@@ -219,11 +282,13 @@ mk_docbook_man()
 
     mk_target \
         TARGET="$man_outdir/.stamp" \
-        DEPS="$DEPS $SOURCE $INCLUDES" \
+        DEPS="$DEPS $STYLESHEET $SOURCE $INCLUDES" \
         _mk_docbook '$@' "&$man_outdir" "&$SOURCE" "&$STYLESHEET" "$INCLUDES"
 
     mk_quote "$result"
     man_stamp="$result"
+
+    DEPS=""
 
     mk_unquote_list "$MANPAGES"
     for manfile
@@ -235,17 +300,139 @@ mk_docbook_man()
         mk_target \
             TARGET="$man_outdir/$manfile" \
             DEPS="$man_stamp" \
-            :
+            mk_run_or_fail touch '$@'
 
         mk_stage \
             SOURCE="$man_outdir/$manfile" \
             DESTDIR="$INSTALLDIR/man${section}"
+
+        mk_quote "$result"
+        DEPS="$DEPS $result"
     done
+
+    mk_basename "$SOURCE"
+
+    mk_target \
+        TARGET=".docbook-man.$result.stamp" \
+        DEPS="$DEPS" \
+        mk_run_or_fail touch '$@'
+
+    mk_pop_vars
+}
+
+#<
+# @brief Generate PDF documentation
+# @usage SOURCE=source_file PDF=pdf_name
+# @option SOURCE=source_file Specifies the DocBook XML
+# source file to process.
+# @option STYLESHEET=xsl_file Specifies the XSL stylesheet
+# for generating Formatting Objects.  Defaults to
+# <lit>$MK_DOCBOOK_XSL_DIR/fo/profile-docbook.xsl</lit>.
+# @option INSTALLDIR=install_dir Specifies the directory
+# where the generated PDF will be placed.  Defaults
+# to <lit>$MK_DOCDIR/pdf</lit>.
+# @option INCLUDES=source_list Specifies a list of additional
+# files that might be included or referenced by
+# <param>source_file</param>, such as included xml files
+# or images.
+# @option DEPS=deps Specifies any additional dependencies
+# needed to generate the documentation
+#
+# Processes the specified source file with XSLT and Apache FOP
+# to produce a PDF file called <param>pdf_name</param>.
+#
+# To use this function, you must use <funcref>mk_check_docbook</funcref>
+# as well as <funcref>mk_check_docbook_pdf</funcref> to check for all
+# prerequisits in a <lit>configure</lit> section of your project,
+# and both must succeed.
+#
+# You can test if DocBook processing is available with
+# <funcref>mk_have_docbook</funcref> and if PDF generation is available
+# with <funcref>mk_have_docbook_pdf</funcref>.
+# This function will fail it is not available.
+#>
+mk_docbook_pdf()
+{
+    mk_have_docbook_pdf || mk_fail "mk_docbook_pdf: docbook pdf unavailable"
+
+    mk_push_vars \
+        STYLESHEET="@$MK_DOCBOOK_XSL_DIR/fo/profile-docbook.xsl" \
+        INSTALLDIR="$MK_DOCDIR/pdf" \
+        PDF="docbook.pdf" \
+        SOURCE \
+        INCLUDES \
+        DEPS \
+        FOP_PARAMS
+
+    mk_parse_params
+    mk_require_params mk_docbook_pdf SOURCE
+
+    mk_target \
+        TARGET="$INSTALLDIR/$PDF" \
+        DEPS="$DEPS $SOURCE $STYLESHEET $INCLUDES" \
+        _mk_docbook_pdf %FOP_PARAMS \
+        '$@' "&$SOURCE" "&$STYLESHEET" "$INCLUDES"
 
     mk_pop_vars
 }
 
 ### section build
+
+_mk_docbook_pdf()
+{
+    mk_push_vars FOP_PARAMS
+    mk_parse_params
+
+    mk_msg_domain "docbook-pdf"
+
+    mk_pretty_path "$1"
+    mk_msg "$result"
+
+    mk_absolute_path "$1"
+    OUTPUT="$result"
+    SOURCE="$2"
+    mk_absolute_path "$3"
+    SHEET="$result"
+
+    mk_tempfile "docbook-pdf"
+    TMPDIR="$result"
+
+    mk_mkdir "$TMPDIR"
+    mk_run_or_fail cp "$SOURCE" "$TMPDIR/in.xml"
+
+    mk_expand_pathnames "$4"
+    mk_unquote_list "$result"
+
+    for f
+    do
+        mk_resolve_file "$f"
+        mk_mkdirname "$TMPDIR/$f"
+        mk_run_or_fail mk_clone "$result" "$TMPDIR/$f"
+    done
+
+    mk_cd_or_fail "$TMPDIR"
+
+    mk_run_or_fail \
+        "${XSLTPROC}" \
+        --xinclude \
+        --output "fo.xml" \
+        "$SHEET" \
+        "in.xml"
+
+    mk_mkdirname "$OUTPUT"
+
+    mk_unquote_list "$FOP_PARAMS"
+
+    mk_run_or_fail \
+        "${FOP}" \
+        -fo "fo.xml" \
+        -pdf "$OUTPUT" \
+        "$@"
+
+    mk_cd_or_fail "$MK_ROOT_DIR"
+
+    mk_pop_vars
+}
 
 _mk_docbook()
 {
@@ -291,6 +478,7 @@ _mk_docbook()
     mk_cd_or_fail "$TMPDIR"
     mk_run_or_fail \
         "${XSLTPROC}" \
+        --nonet \
         --xinclude \
         --output "$MK_ROOT_DIR/$OUTPUT" \
         "$SHEET" \

@@ -26,18 +26,21 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-MK_MSG_DOMAIN="test"
-LIBS=""
+MK_MSG_DOMAIN="scour"
 
-for la
+for _target in "$@"
 do
-    mk_quote "${la%.la}${MK_DLO_EXT}"
-    LIBS="$LIBS $result"
+    if [ -e "$_target" ]
+    then
+        mk_basename "$_target"
+        case "$result" in
+            .*) :;;
+            *) 
+                mk_pretty_target "$_target"
+                mk_msg "$result"
+                ;;
+        esac
+
+        mk_safe_rm "$_target"
+    fi
 done
-
-mk_unquote_list "$LIBS"
-
-mk_msg "moonunit"
-mk_run_or_fail \
-    env "$MK_LIBPATH_VAR"="${MK_STAGE_DIR}${MK_LIBDIR}" \
-    ${MOONUNIT} "$@"

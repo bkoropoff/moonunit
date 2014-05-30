@@ -92,6 +92,7 @@ DEPENDS="core platform path"
 #         <funcref>mk_program</funcref>,
 #         <funcref>mk_group</funcref>,
 #         <funcref>mk_library</funcref>,
+#         <funcref>mk_prebuilt_library</funcref>,
 #         <funcref>mk_dlo</funcref>
 #     </item>
 #   </defentry>
@@ -160,6 +161,7 @@ DEPENDS="core platform path"
 #           Applicable functions: 
 #         <funcref>mk_program</funcref>,
 #         <funcref>mk_library</funcref>,
+#         <funcref>mk_prebuilt_library</funcref>,
 #         <funcref>mk_dlo</funcref>
 #       </para>
 #     </item>
@@ -173,6 +175,7 @@ DEPENDS="core platform path"
 #       <para>
 #           Applicable functions: 
 #         <funcref>mk_library</funcref>,
+#         <funcref>mk_prebuilt_library</funcref>,
 #         <funcref>mk_dlo</funcref>
 #       </para>
 #     </item>
@@ -188,6 +191,51 @@ DEPENDS="core platform path"
 #           and do not override those in the <var>MK_CPPFLAGS</var>,
 #           <var>MK_CFLAGS</var>, and <var>MK_LDFLAGS</var>
 #           variables.  All default to being empty.
+#       </para>
+#     </item>
+#   </defentry>
+#   <defentry>
+#     <term><lit>PCH=</lit><param>header</param></term>
+#     <item>
+#       <para>
+#         Specifies a header to automatically precompile and include when
+#         building source files.  Precompiled headers can speed up
+#         compilation of some projects.  If the header is also included
+#         directly by the source code, it should use include guards to
+#         avoid being processed twice.
+#       </para>
+#       <para>
+#         The <var>result</var> of an explict call to
+#         <funcref>mk_pch</funcref> may be used instead of a plain header.
+#         This allows sharing a single precompiled header across multiple build
+#         targets, but care must be taken to ensure that compiler
+#         flags match or the precompiled header may be rejected.
+#       </para>
+#       <para>
+#         Applicable functions: 
+#         <funcref>mk_compile</funcref>,
+#         <funcref>mk_group</funcref>,
+#         <funcref>mk_program</funcref>,
+#         <funcref>mk_library</funcref>,
+#         <funcref>mk_dlo</funcref>
+#       </para>
+#     </item>
+#   </defentry>
+#   <defentry>
+#     <term><lit>COMPILER=</lit><param>compiler</param></term>
+#     <item>
+#       <para>
+#         Explicitly overrides the compiler used to build source files.
+#         Must be precisely <lit>c</lit> or <lit>c++</lit>.
+#       </para>
+#       <para>
+#         Applicable functions: 
+#         <funcref>mk_compile</funcref>,
+#         <funcref>mk_pch</funcref>,
+#         <funcref>mk_group</funcref>,
+#         <funcref>mk_program</funcref>,
+#         <funcref>mk_library</funcref>,
+#         <funcref>mk_dlo</funcref>
 #       </para>
 #     </item>
 #   </defentry>
@@ -313,6 +361,7 @@ DEPENDS="core platform path"
 # @brief Style of C compiler
 # @export
 # @system
+# @value none No working C compiler is available
 # @value gcc The C compiler is gcc or gcc-compatible
 # @value unknown The C compiler style is unknown
 #
@@ -327,6 +376,7 @@ DEPENDS="core platform path"
 # @brief Style of C++ compiler
 # @export
 # @system
+# @value none No working C++ compiler is available
 # @value gcc The C++ compiler is g++ or g++-compatible
 # @value unknown The C++ compiler style is unknown
 #
@@ -491,6 +541,7 @@ fi
 #
 # Utility functions
 #
+
 mk_resolve_header()
 {
     case "$1" in
@@ -507,6 +558,19 @@ mk_resolve_header()
 # Extension functions
 #
 
+_mk_compiler_run_hooks()
+{
+    mk_push_vars result hook hooks="$1"
+    shift
+
+    for hook in ${hooks}
+    do
+        ${hook} "$@"
+    done
+
+    mk_pop_vars
+}
+
 mk_add_link_target_posthook()
 {
     _MK_LINK_TARGET_HOOKS="$_MK_LINK_TARGET_HOOKS $*"
@@ -519,26 +583,59 @@ mk_add_link_posthook()
 
 mk_run_link_target_posthooks()
 {
-    mk_push_vars result
-    for _hook in ${_MK_LINK_TARGET_HOOKS}
-    do
-        ${_hook} "$@"
-    done
-    mk_pop_vars
+    _mk_compiler_run_hooks "$_MK_LINK_TARGET_HOOKS" "$@"
+}
+
+mk_add_link_target_prehook()
+{
+    _MK_LINK_TARGET_PREHOOKS="$_MK_LINK_TARGET_PREHOOKS $*"
+}
+
+mk_run_link_target_prehooks()
+{
+    _mk_compiler_run_hooks "$_MK_LINK_TARGET_PREHOOKS" "$@"
+}
+
+mk_add_compile_target_prehook()
+{
+    _MK_COMPILE_TARGET_PREHOOKS="$_MK_COMPILE_TARGET_PREHOOKS $*"
+}
+
+mk_run_compile_target_prehooks()
+{
+    _mk_compiler_run_hooks "$_MK_COMPILE_TARGET_PREHOOKS" "$@"
 }
 
 #
 # Helper functions for make() stage
 #
 
+# Generates name for object file
+# $1 = source file
+# $2 = suffix (avoids collisions for same source file)
+# $3 = extension
 _mk_objname()
 {
-    result="${1%.*}${OSUFFIX}.${MK_SYSTEM%/*}"
+    result="${1%.*}${2}.${MK_SYSTEM%/*}"
     if [ "${MK_SYSTEM#*/}" != "${MK_SYSTEM}" ]
     then
         result="$result.${MK_SYSTEM#*/}"
     fi
-    result="$result.o"
+    result="$result$3"
+}
+
+# Generates name for pch file
+# $1 = source file
+# $2 = compiler
+# $3 = extension
+_mk_pchname()
+{
+    result="${1%.*}${2}.${MK_SYSTEM%/*}"
+    if [ "${MK_SYSTEM#*/}" != "${MK_SYSTEM}" ]
+    then
+        result="$result.${MK_SYSTEM#*/}"
+    fi
+    result="$result.${1##*.}$3"
 }
 
 _mk_process_headerdeps()
@@ -565,44 +662,101 @@ _mk_process_headerdeps()
     done
 }
 
+_mk_set_compiler_for_link()
+{
+    COMPILER=c
+    $USED_CXX && COMPILER=c++
+}
+
 _mk_compile()
 {
-    mk_basename "$SOURCE"
-    _mk_objname "$result"
-    _object="$result"
-    
+    # Preserve variables so prehooks can change them
+    mk_push_vars \
+        CPPFLAGS="$CPPFLAGS" \
+        CFLAGS="$CFLAGS" \
+        CXXFLAGS="$CXXFLAGS" \
+        DEPS="$DEPS" \
+        SOURCE="$SOURCE" \
+        OBJECT="$OBJECT" \
+        INCLUDEDIRS="$INCLUDEDIRS" \
+        COMPILER="$COMPILER" \
+        PCH="$PCH"
+
+    mk_run_compile_target_prehooks
+
+    # Resolve PCH
+    case "$PCH" in
+        "")
+            : # Nothing to do
+            ;;
+        *.gch)
+            # Already resolved (likely result of manual mk_pch invocation)
+            mk_resolve_file "$PCH"
+            PCH="$result"
+            mk_append_list DEPS "@$result"
+            ;;
+        *)
+            # Resolve to specific file for compiler and ISA
+            mk_basename "$PCH"
+            _mk_pchname "$result" "$OSUFFIX.$COMPILER" ".gch"
+            mk_resolve_file "$result"
+            PCH="$result"
+            mk_append_list DEPS "@$result"
+            ;;
+    esac
+
     mk_resolve_target "${SOURCE}"
-    _res="$result"
-    mk_quote "$_res"
+    mk_append_list DEPS "$result"
     
     mk_target \
-        TARGET="$_object" \
-        DEPS="$DEPS $_INT_DEPS $result" \
-        mk_run_script compile %INCLUDEDIRS %CPPFLAGS %CFLAGS %CXXFLAGS %COMPILER %PIC '$@' "$_res"
+        TARGET="$OBJECT" \
+        DEPS="$DEPS" \
+        mk_run_script compile %INCLUDEDIRS %CPPFLAGS %CFLAGS %CXXFLAGS %COMPILER %PIC %PCH '$@' "$result"
+
+    mk_pop_vars
 }
 
 _mk_compile_detect()
 {
-    # Invokes _mk_compile after autodetecting COMPILER
-    case "${SOURCE##*.}" in
-        c|s)
-            COMPILER="c"
-            ;;
-        [cC][pP]|[cC][pP][pP]|[cC][xX][xX]|[cC][cC]|C)
-            COMPILER="c++"
-            ;;
-        *)
-            mk_fail "unsupport source file type: .${SOURCE##*.}"
-            ;;
-    esac
+    # Detect COMPILER and OBJECT if not set
+    mk_push_vars OBJECT="$OBJECT" COMPILER="$COMPILER"
     
+    if [ -z "$COMPILER" ]
+    then
+        case "${SOURCE##*.}" in
+            c|s)
+                COMPILER="c"
+                ;;
+            [cC][pP]|[cC][pP][pP]|[cC][xX][xX]|[cC][cC]|C)
+                COMPILER="c++"
+                ;;
+            *)
+                mk_fail "unsupported source file type: .${SOURCE##*.}"
+                ;;
+        esac
+    fi
+        
+    # Update USED_{CC,CXX} so caller knows how to link or generate PCHs
+    [ "$COMPILER" = "c++" ] && USED_CXX=true
+    [ "$COMPILER" = "c" ] && USED_CC=true
+
+    if [ -z "$OBJECT" ]
+    then
+        mk_basename "$SOURCE"
+        _mk_objname "$result" "$OSUFFIX" ".o"
+        OBJECT="$result"
+    fi
+  
     _mk_compile
+
+    mk_pop_vars
 }
 
 #<
 # @brief Build an object file
 # @usage SOURCE=source options...
-# @option SOURCE=source indicates the source file to compile.
+# @option SOURCE=source Indicates the source file to compile.
+# @option OBJECT=object Sets explicit output object file.
 # @option ... Common options are documented in the
 # <modref>compiler</modref> module.
 #
@@ -611,11 +765,112 @@ _mk_compile_detect()
 #>
 mk_compile()
 {
-    mk_push_vars SOURCE HEADERDEPS DEPS INCLUDEDIRS CPPFLAGS CFLAGS CXXFLAGS PIC OSUFFIX COMPILER
+    mk_push_vars \
+        SOURCE HEADERDEPS DEPS INCLUDEDIRS CPPFLAGS CFLAGS CXXFLAGS PIC \
+        OBJECT OSUFFIX COMPILER USED_CXX USED_CC
     mk_parse_params
     
     _mk_process_headerdeps "$SOURCE"
     _mk_compile_detect
+    
+    mk_pop_vars
+}
+
+_mk_pch()
+{
+    mk_push_vars \
+        COMPILER="$COMPILER" \
+        OBJECT="$OBJECT" \
+        CFLAGS="$CFLAGS -x c-header" \
+        CXXFLAGS="$CXXFLAGS -x c++-header" \
+        PCH
+
+    if [ -z "$COMPILER" ]
+    then
+        case "$SOURCE" in
+            *.h)
+                COMPILER="c"
+                ;;
+            *.[hH][pP][pP])
+                COMPILER="c++"
+                ;;
+            *)
+                mk_fail "unsupported source file type: .${SOURCE##*.}"
+                ;;
+        esac
+    fi
+
+    if [ -z "$OBJECT" ]
+    then
+        mk_basename "$SOURCE"
+        _mk_pchname "$result" "$OSUFFIX.$COMPILER" ".gch"
+        OBJECT="$result"
+    fi
+    
+    _mk_compile
+    
+    mk_pop_vars
+}
+
+_mk_gen_pch()
+{
+    mk_push_vars COMPILER SOURCE
+
+    case "$PCH" in
+        *.gch|"")
+            : # Already resolved or not used, nothing to do
+            ;;
+        *)
+            # We were given a plain header, so we need
+            # to generate rules for building the PCH now
+            SOURCE="$PCH"
+            
+            if $USED_CC
+            then
+                COMPILER=c
+                _mk_pch
+            fi
+            
+            if $USED_CXX
+            then
+                COMPILER=c++
+                _mk_pch
+            fi
+            ;;
+    esac
+
+    mk_pop_vars
+}
+
+#<
+# @brief Build pre-compiled header
+# @usage SOURCE=source options...
+# @option SOURCE=source Indicates the header file to compile.
+# @option ... Common options are documented in the
+# <modref>compiler</modref> module.
+#
+# Defines a target to build a pre-compiled C/C++ header file.  Sets
+# <var>result</var> to the generated target.  By default, the correct
+# language to use is guessed based on the file extension.  Use
+# the <param>COMPILER</param> option to choose explicitly (e.g. compile
+# a <filename>.h</filename> file with the C++ compiler).
+#
+# It is generally preferable to avoid explicitly building pre-compiled
+# headers and instead pass the header to compile directly to the
+# <param>PCH</param> option to <funcref>mk_program</funcref> et al.
+# This helps ensure that the header is compiled with the same set of
+# compiler flags and for the correct language.
+#>
+mk_pch()
+{
+    mk_push_vars \
+        SOURCE HEADERDEPS DEPS INCLUDEDIRS CPPFLAGS CFLAGS CXXFLAGS PIC \
+        OBJECT OSUFFIX COMPILER USED_CXX USED_CC
+    mk_parse_params
+    
+    _mk_process_headerdeps "$SOURCE"
+
+    _mk_pch
     
     mk_pop_vars
 }
@@ -949,9 +1204,10 @@ _mk_library()
         mk_quote "$result"
         _deps="$_deps $result"
         _objects="$_objects $result"
-        [ "$COMPILER" = "c++" ] && IS_CXX=true
     done
     
+    _mk_gen_pch
+
     _mk_add_groups
     _objects="$_objects $result"
     _deps="$_deps $result"
@@ -965,7 +1221,7 @@ _mk_library()
         fi
     done
     
-    ${IS_CXX} && COMPILER="c++"
+    _mk_set_compiler_for_link
 
     mk_target \
         TARGET="$TARGET" \
@@ -1001,6 +1257,8 @@ _mk_library_static()
         _objects="$_objects $result"
     done
     
+    _mk_gen_pch
+
     _mk_add_groups
     _objects="$_objects $result"
     _deps="$_deps $result"
@@ -1089,13 +1347,14 @@ mk_library()
 {
     mk_push_vars \
         INSTALLDIR="$MK_LIBDIR" LIB SOURCES SOURCE GROUPS CPPFLAGS CFLAGS CXXFLAGS LDFLAGS LIBDEPS \
-        HEADERDEPS LIBDIRS INCLUDEDIRS VERSION=0:0:0 DEPS OBJECTS \
-        SYMFILE SONAME LINKS COMPILER=c IS_CXX=false EXT="${MK_LIB_EXT}" \
-        TARGET STATIC_NAME static_deps
+        HEADERDEPS LIBDIRS INCLUDEDIRS PCH VERSION=0:0:0 DEPS OBJECTS \
+        SYMFILE SONAME LINKS COMPILER USED_CXX=false USED_CC=false \
+        EXT="${MK_LIB_EXT}" TARGET STATIC_NAME static_deps
     mk_parse_params
+    mk_require_params mk_library LIB
 
-    [ "$COMPILER" = "c++" ] && IS_CXX=true
-    
+    mk_run_link_target_prehooks mk_library
+
     _mk_verify_libdeps "lib$LIB${EXT}" "$LIBDEPS $MK_LIBDEPS"
     _mk_process_headerdeps "lib$LIB${EXT}"
 
@@ -1151,6 +1410,117 @@ mk_library()
     mk_pop_vars
 }
 
+#<
+# @brief Stage a pre-built library
+# @usage LIB=name options...
+# @option LIB=name Sets the name of the library.
+# Do not specify a leading <lit>lib</lit> or file extension.
+# @option SHARED=shared Specifies the shared library binary.
+# @option STATIC=static Specifies the static library file.
+# @option LA=la Specifies the libtool archive file.  If not
+# specified, one will be generated.
+# @option VERSION=verspec Sets the version as in
+# <funcref>mk_library</funcref>.
+# @option ... Other common options documented in the <modref>compiler</modref>
+# module.
+# 
+# Defines a target to install a pre-built a C/C++ library.
+# This may be useful if you do not have the source for
+# a library you wish to use and bundle with your project.
+#
+# At least one of <param>shared</param> and <param>static</param>
+# must be specified.
+#
+# Sets <var>result</var> to the staged <lit>.la</lit> file in
+# canonical target notation.
+#>
+mk_prebuilt_library()
+{
+    mk_push_vars \
+        INSTALLDIR="$MK_LIBDIR" VERSION=0:0:0 LIB SHARED STATIC LA DEPS \
+        LIBDEPS SONAME LINKS EXT="${MK_LIB_EXT}" TARGET STATIC_NAME
+        
+    mk_parse_params
+    mk_require_params mk_prebuilt_library LIB
+    [ -z "$SHARED" -a -z "$STATIC" ] && 
+        mk_fail "mk_prebuilt_library: at least one of SHARED and STATIC must be specified"
+
+    _mk_verify_libdeps "lib$LIB${EXT}" "$LIBDEPS $MK_LIBDEPS"
+    _mk_library_process_version
+
+    if [ -n "$SHARED" ]
+    then
+        _mk_library_process_version
+        mk_unquote_list "$LINKS"
+        TARGET="${INSTALLDIR:+$INSTALLDIR/}$1"
+
+        mk_stage \
+            SOURCE="$SHARED" \
+            DEST="$TARGET" \
+            MODE=0644
+        
+        TARGET="$result"
+        mk_run_link_target_posthooks "$TARGET"
+        mk_quote "$TARGET"
+        DEPS="$DEPS $result"
+        TARGET="$1"
+        shift
+
+        for _link
+        do
+            mk_symlink \
+                TARGET="$TARGET" \
+                LINK="${INSTALLDIR:+$INSTALLDIR}/$_link"
+            mk_quote "$result"
+            DEPS="$DEPS $result"
+        done
+    fi
+
+    if [ -n "$STATIC" ]
+    then
+        TARGET="${INSTALLDIR:+$INSTALLDIR/}lib$LIB.a"
+        STATIC_NAME="lib$LIB.a"
+
+        mk_stage \
+            SOURCE="$STATIC" \
+            DEST="$TARGET" \
+            MODE=0644
+
+        mk_quote "$result"
+        DEPS="$DEPS $result"
+    fi
+
+    for result in ${LIBDEPS} ${MK_LIBDEPS}
+    do
+        if _mk_contains "$result" ${MK_INTERNAL_LIBS}
+        then
+            mk_quote "$MK_LIBDIR/lib${result}.la"
+            DEPS="$DEPS $result"
+        fi
+    done
+
+    TARGET="${INSTALLDIR:+$INSTALLDIR/}lib$LIB.la"
+
+    if [ -n "$LA" ]
+    then
+        mk_stage \
+            SOURCE="$LA" \
+            DEST="$TARGET" \
+            DEPS="$DEPS" \
+            MODE=0644
+    else
+        mk_target \
+            TARGET="$TARGET" \
+            DEPS="$DEPS" \
+            mk_run_script link MODE=la \
+            LIBDEPS="$LIBDEPS $MK_LIBDEPS" %LINKS %SONAME %STATIC_NAME %EXT '$@'
+    fi
+
+    mk_declare_internal_library "$LIB"
+
+    mk_pop_vars
+}
+
 _mk_dlo()
 {
     unset _deps _objects
@@ -1171,9 +1541,10 @@ _mk_dlo()
         mk_quote "$result"
         _deps="$_deps $result"
         _objects="$_objects $result"
-        [ "$COMPILER" = "c++" ] && IS_CXX=true
     done
     
+    _mk_gen_pch
+
     _mk_add_groups
     _objects="$_objects $result"
     _deps="$_deps $result"
@@ -1187,7 +1558,7 @@ _mk_dlo()
         fi
     done
     
-    ${IS_CXX} && COMPILER="c++"
+    _mk_set_compiler_for_link
 
     mk_target \
         TARGET="$TARGET" \
@@ -1217,14 +1588,15 @@ mk_dlo()
     mk_push_vars \
         DLO SOURCES SOURCE GROUPS CPPFLAGS CFLAGS CXXFLAGS \
         LDFLAGS LIBDEPS HEADERDEPS LIBDIRS INCLUDEDIRS VERSION="no" \
-        OBJECTS DEPS INSTALLDIR EXT="${MK_DLO_EXT}" SYMFILE SONAME COMPILER=c \
-        IS_CXX=false OSUFFIX PIC=yes
+        OBJECTS PCH DEPS INSTALLDIR EXT="${MK_DLO_EXT}" SYMFILE SONAME COMPILER \
+        USED_CXX=false USED_CC=false OSUFFIX PIC=yes
     mk_parse_params
+    mk_require_params mk_dlo DLO
+
+    mk_run_link_target_prehooks mk_dlo
 
     [ -z "$INSTALLDIR" ] && INSTALLDIR="${MK_LIBDIR}"
 
-    [ "$COMPILER" = "c++" ] && IS_CXX=true
-    
     _mk_verify_libdeps "$DLO${EXT}" "$LIBDEPS $MK_LIBDEPS"
     _mk_process_headerdeps "$DLO${EXT}"
 
@@ -1274,9 +1646,10 @@ mk_dlo()
 _mk_add_group()
 {
     mk_push_vars \
-        COMPILER CPPFLAGS CFLAGS CXXFLAGS DEPS SOURCE INCLUDEDIRS \
+        COMPILER CPPFLAGS CFLAGS CXXFLAGS DEPS SOURCE INCLUDEDIRS PCH \
         MK_SUBDIR="$MK_SUBDIR" OSUFFIX="$OSUFFIX.${1##*/}" \
-        sources cppflags cflags cxxflags ldflags subdir libdirs libdeps deps groupdeps
+        sources cppflags cflags cxxflags ldflags subdir libdirs \
+        libdeps pch deps groupdeps
     
     mk_resolve_file "$1.${MK_SYSTEM%/*}.${MK_SYSTEM#*/}.og"
     mk_source_or_fail "$result"
@@ -1290,6 +1663,7 @@ _mk_add_group()
     LIBDIRS="$LIBDIRS $libdirs"
     LIBDEPS="$LIBDEPS $libdeps"
     INCLUDEDIRS="$includedirs"
+    PCH="$pch"
     groups="$groups $groupdeps"
     groups="${groups# }"
 
@@ -1299,8 +1673,9 @@ _mk_add_group()
         _mk_compile_detect
         mk_quote "$result"
         objects="$objects $result"
-        [ "$COMPILER" = "c++" ] && IS_CXX=true
     done
+
+    _mk_gen_pch
 
     mk_pop_vars
 }
@@ -1349,6 +1724,8 @@ _mk_group()
         echo libdirs="$result"
         mk_quote "$INCLUDEDIRS"
         echo includedirs="$result"
+        mk_quote "$PCH"
+        echo pch="$result"
         mk_quote "$DEPS"
         echo deps="$result"
         mk_quote "$GROUPDEPS"
@@ -1373,9 +1750,10 @@ mk_group()
 {
     mk_push_vars \
         GROUP SOURCES SOURCE CPPFLAGS CFLAGS CXXFLAGS LDFLAGS LIBDEPS \
-        HEADERDEPS GROUPDEPS LIBDIRS INCLUDEDIRS OBJECTS DEPS \
+        HEADERDEPS GROUPDEPS LIBDIRS INCLUDEDIRS OBJECTS DEPS PCH \
         includedir
     mk_parse_params
+    mk_require_params mk_group GROUP
 
     _mk_verify_libdeps "$GROUP" "$LIBDEPS $MK_LIBDEPS"
     _mk_process_headerdeps "$GROUP"
@@ -1395,6 +1773,13 @@ mk_group()
     mk_resolve_targets "$DEPS"
     DEPS="$result"
 
+    # Resolve PCH
+    if [ -n "$PCH" ]
+    then
+        mk_resolve_target "$PCH"
+        PCH="$result"
+    fi
+
     TARGET="$GROUP.${MK_SYSTEM%/*}.${MK_SYSTEM#*/}.og"
     _mk_group "$@"
 
@@ -1404,13 +1789,6 @@ mk_group()
 _mk_program()
 {
     unset _deps _objects
-    
-    if [ "${MK_SYSTEM%/*}" = "build" ]
-    then
-        _libdir="@${MK_RUNMK_LIBDIR}"
-    else
-        _libdir="$MK_LIBDIR"
-    fi
     
     mk_comment "program ${PROGRAM} ($MK_SYSTEM) from ${MK_SUBDIR#/}"
 
@@ -1428,23 +1806,24 @@ _mk_program()
         mk_quote "$result"
         _deps="$_deps $result"
         _objects="$_objects $result"
-        [ "$COMPILER" = "c++" ] && IS_CXX=true
     done
+
+    _mk_gen_pch
     
     _mk_add_groups
     _objects="$_objects $result"
     _deps="$_deps $result"
-    
+
     for _lib in ${LIBDEPS} ${MK_LIBDEPS}
     do
         if _mk_contains "$_lib" ${MK_INTERNAL_LIBS}
         then
-            mk_quote "${_libdir}/lib${_lib}.la"
+            mk_quote "$MK_LIBDIR/lib${_lib}.la"
             _deps="$_deps $result"
         fi
     done
 
-    ${IS_CXX} && COMPILER="c++"
+    _mk_set_compiler_for_link
     
     mk_target \
         TARGET="$TARGET" \
@@ -1468,9 +1847,12 @@ mk_program()
     mk_push_vars \
         PROGRAM SOURCES SOURCE OBJECTS GROUPS CPPFLAGS CFLAGS CXXFLAGS \
         LDFLAGS LIBDEPS HEADERDEPS DEPS LIBDIRS INCLUDEDIRS INSTALLDIR \
-        COMPILER=c IS_CXX=false PIC=no OSUFFIX
+        COMPILER PCH USED_CXX=false USED_CC=false PIC=no OSUFFIX
         EXT=""
     mk_parse_params
+    mk_require_params mk_program PROGRAM
+
+    mk_run_link_target_prehooks mk_program
 
     if [ -z "$INSTALLDIR" ]
     then
@@ -1482,8 +1864,6 @@ mk_program()
             INSTALLDIR="$MK_BINDIR"
         fi
     fi
-
-    [ "$COMPILER" = "c++" ] && IS_CXX=true
 
     _mk_verify_libdeps "$PROGRAM" "$LIBDEPS $MK_LIBDEPS"
     _mk_process_headerdeps "$PROGRAM"
@@ -1590,10 +1970,21 @@ mk_declare_internal_header()
     MK_INTERNAL_HEADERS="$MK_INTERNAL_HEADERS $1"
 }
 
+mk_have_internal_header()
+{
+    _mk_contains "$1" $MK_INTERNAL_HEADERS
+}
+
 mk_declare_internal_library()
 {
     MK_INTERNAL_LIBS="$MK_INTERNAL_LIBS $1"
 }
+
+mk_have_internal_library()
+{
+    _mk_contains "$1" $MK_INTERNAL_LIBS
+}
+
 
 #
 # Helper functions for configure() stage
@@ -2664,11 +3055,68 @@ EOF
 # @usage lang
 #
 # Sets the language used for subsequent configuration checks.
-# Valid values are "c" and "c++".
+# Valid values are "c" and "c++".  This function will fail
+# if a working compiler for the language is not available.
 #>
 mk_check_lang()
 {
+    case "$1" in
+        c)
+            [ "$MK_CC_STYLE" = "none" ] &&
+               mk_fail "C compiler unavailable"
+            ;;
+        c++)
+            [ "$MK_CXX_STYLE" = "none" ] &&
+               mk_fail "C++ compiler unavailable"
+            ;;
+        *)
+            mk_fail "Unsupported language: $1"
+            ;;
+    esac
     MK_CHECK_LANG="$1"
+}
+
+#<
+# @brief Turn on compiler warnings
+# @usage warning...
+#
+# Turns on the given list of warning flags
+# (<lit>-W</lit><param>warning</param>).
+# The <lit>error</lit> flag will be ignored
+# if the user disallowed it via the
+# <lit>--allow-werror</lit> option to
+# <filename>configure</filename>.
+#
+# @example
+# # Turn on all warnings and promote warnings to errors
+# mk_compiler_warnings all error
+# @endexample
+#>
+mk_compiler_warnings()
+{
+    mk_push_vars flag
+
+    for flag
+    do
+        case "$flag" in
+            all)
+                MK_CFLAGS="$MK_CFLAGS $MK_WARN_ALL_FLAGS"
+                MK_CXXFLAGS="$MK_CXXFLAGS $MK_WARN_ALL_FLAGS"
+                continue
+                ;;
+            error)
+                [ "$MK_ALLOW_WERROR" = "no" ] && continue
+                ;;
+        esac
+        
+        flag="-W$flag"
+        _mk_contains "$flag" ${MK_CFLAGS} ||
+           MK_CFLAGS="$MK_CFLAGS $flag"
+        _mk_contains "$flag" ${MK_CXXFLAGS} ||
+           MK_CXXFLAGS="$MK_CXXFLAGS $flag"
+    done
+
+    mk_pop_vars
 }
 
 option()
@@ -2679,6 +3127,20 @@ option()
     else
         _default_OPTFLAGS="-O2 -g"
     fi
+
+    mk_option \
+        OPTION="warn-all-flags" \
+        VAR="MK_WARN_ALL_FLAGS" \
+        PARAM="flags" \
+        DEFAULT="-Wall" \
+        HELP="Compiler flags to enable all warnings"
+
+    mk_option \
+        OPTION="allow-werror" \
+        VAR=MK_ALLOW_WERROR \
+        PARAM="yes|no" \
+        DEFAULT="yes" \
+        HELP="Allow failing on compiler warnings"
 
     mk_option \
         OPTION="static-libs" \
@@ -2910,15 +3372,23 @@ _mk_cxx_primitive()
 _mk_check_cc_style()
 {
     mk_msg_checking "C compiler style"
+
     if cat <<EOF | _mk_cc_primitive >/dev/null 2>&1
+int main(int argc, char** argv) { return 0; }
+EOF
+    then
+        if cat <<EOF | _mk_cc_primitive >/dev/null 2>&1
 #ifndef __GNUC__
 #error nope
 #endif
 EOF
-    then
-        result="gcc"
+        then
+            result="gcc"
+        else
+            result="unknown"
+        fi
     else
-        result="unknown"
+        result="none"
     fi
     
     MK_CC_STYLE="$result"
@@ -2929,16 +3399,23 @@ _mk_check_cxx_style()
 {
     mk_msg_checking "C++ compiler style"
     if cat <<EOF | _mk_cxx_primitive >/dev/null 2>&1
+int main(int argc, char** argv) { return 0; }
+EOF
+    then
+        if cat <<EOF | _mk_cxx_primitive >/dev/null 2>&1
 #ifndef __GNUC__
 #error nope
 #endif
 EOF
-    then
-        result="gcc"
+        then
+            result="gcc"
+        else
+            result="unknown"
+        fi
     else
-        result="unknown"
+        result="none"
     fi
-    
+        
     MK_CXX_STYLE="$result"
     mk_msg_result "$MK_CXX_STYLE"
 }
@@ -2948,6 +3425,9 @@ _mk_check_cc_ld_style()
     mk_msg_checking "C compiler linker style"
 
     case "$MK_CC_STYLE" in
+        none)
+            result="none"
+            ;;
         gcc)
             _ld="`${MK_CC} -print-prog-name=ld`"
             case "`"$_ld" -v 2>&1`" in
@@ -2972,6 +3452,9 @@ _mk_check_cxx_ld_style()
     mk_msg_checking "C++ compiler linker style"
 
     case "$MK_CXX_STYLE" in
+        none)
+            result="none"
+            ;;
         gcc)
             _ld="`${MK_CXX} -print-prog-name=ld`"
             case "`"$_ld" -v 2>&1`" in

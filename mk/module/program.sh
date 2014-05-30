@@ -26,20 +26,24 @@
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-##
+#<
+# @module program
+# @brief Program finding
 #
-# program.sh -- search for runnable programs
-#
-# FIXME: move to core.sh?
-#
-##
-
+# This module provides functions for locating programs
+# on the build system.
+#>
 
 ### section configure
 
+_mk_is_executable()
+{
+    [ -x "$1" -a ! -d "$1" ]
+}
+
 #<
 # @brief Check for program on build system
-# @usage PROGRAM=name
+# @usage name
 # @usage VAR=varname candidates...
 # @option FAIL=yes|no If set to yes, fails configuration
 # if the program is not found.  Defaults to no.
@@ -83,7 +87,7 @@ mk_check_program()
             mk_msg_result "(internal)"
             _res="${MK_RUN_BINDIR}/${_cand}"
             break
-        elif [ -x "$_cand" ]
+        elif _mk_is_executable "$_cand"
         then
             _res="$_cand"
             mk_msg_result "$_cand"
@@ -93,7 +97,7 @@ mk_check_program()
             IFS=":"
             for __dir in ${MK_PATH} ${PATH}
             do
-                if [ -x "${__dir}/${_cand}" ]
+                if _mk_is_executable "${__dir}/${_cand}"
                 then
                     _res="${__dir}/${_cand}"
                     mk_msg_result "$_res"
@@ -115,4 +119,26 @@ mk_check_program()
     
     mk_pop_vars
     [ -n "$_res" ]
+}
+
+#<
+# @brief Check for programs on build system
+# @usage programs...
+# @option FAIL=yes|no If set to yes, fails configuration
+# if any program is not found.  Defaults to no.
+#
+# Checks for a list of available programs by passing
+# each to <funcref>mk_check_program</funcref>.
+#>
+mk_check_programs()
+{
+    mk_push_vars FAIL="no" prog
+    mk_parse_params
+    
+    for prog
+    do
+        mk_check_program FAIL="$FAIL" "$result"
+    done
+
+    mk_pop_vars
 }

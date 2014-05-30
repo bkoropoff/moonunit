@@ -74,6 +74,29 @@ fi
 #>
 alias mk_unquote_list='eval set --'
 
+#<
+# @brief Append to list variable
+# @usage var items...
+#
+# Quotes and appends <param>items</param> to
+# the variable <param>var</param>.
+#
+# @example
+# FOO="'foo'"
+# mk_append_list FOO bar
+# # FOO is now: 'foo' 'bar'
+#>
+mk_append_list()
+{
+    __result="$result"
+    __var="$1"
+    shift
+    mk_quote_list "$@"
+    [ -n "$result" ] && eval "$__var=\"\${$__var:+\$$__var }\$result\""
+    result="$__result"
+    unset __result __var
+}
+
 ##
 #
 # Extended parameter support
@@ -300,6 +323,33 @@ done'
         done
     }
 fi
+
+#<
+# @brief Check for missing keyword parameters
+# @usage funcname params..
+#
+# Checks that each variable in <param>params</param> is
+# not the empty string or fails with an error message.
+# The provided <param>funcname</param> will be used in the
+# message to identify to the user which function expected
+# the missing parameter.
+#
+# This function is intended for use after
+# <funcref>mk_parse_params</funcref> in order to verify
+# that all non-optional parameters were passed.
+#>
+mk_require_params()
+{
+    __func="$1"
+    shift
+    for __param
+    do
+        eval [ -n "\"\$${__param}\"" ] || 
+            mk_fail "$__func parameter unspecified: $__param"
+    done
+
+    unset __param __func
+}
 
 ##
 #
@@ -1180,16 +1230,23 @@ mk_normalize_path()
 
 _mk_find_resource()
 {
-    for __dir in ${MK_SEARCH_DIRS}
+    __resource="$1"
+    _IFS="$IFS"
+    IFS=":"
+    set -- ${MK_SEARCH_DIRS}
+    IFS="$_IFS"
+    for __dir
     do
-        __file="${__dir}/$1"
+        __file="${__dir}/$__resource"
         if [ -e "$__file" ]   
         then
             result="$__file"
+            unset __resource __file
             return 0
         fi
     done
 
+    unset __resource __file
     return 1
 }
 
@@ -1481,6 +1538,29 @@ _mk_clone_solaris()
     fi
 }
 
+mk_clone_filter()
+{
+    mk_fnmatch "$1" "$3" && return 0
+
+    if [ -d "$1" ]
+    then
+        { cd "$1" && find .; } | while mk_read_line
+        do
+            if [ -f "$1/$result" -o -h "$1/$result" ]
+            then
+                mk_mkdirname "$2/$result"
+                mk_clone_filter "$1/$result" "$2/$result" || return "$?"
+            fi
+        done
+    elif [ -h "$1" ]
+    then
+        mk_readlink "$1"
+        ln -s "$result" "$2" || return "$?"
+    else
+        cp -- "$1" "$2" || return "$?"
+    fi
+}
+
 #<
 # @brief Make path absolute
 # @usage path [rel]
@@ -1499,6 +1579,93 @@ mk_absolute_path()
         /*) result="$1";;
         *) result="$2/$1";;
     esac
+}
+
+_mk_canonical_path()
+{
+    if [ -d "$1" ]
+    then
+        __canon=`cd "$1" && pwd` || return 1
+    else
+        mk_dirname "$1"
+        __canon=`cd "$result" && pwd` || return 1
+        mk_basename "$1"
+        __canon="$__canon/$result"
+    fi
+    _IFS="$IFS"
+    IFS="/"
+    set -- $__canon
+    IFS="$_IFS"
+    __canon=""
+
+    for __part
+    do
+        if [ -h "$__canon/$__part" ]
+        then
+            mk_readlink "$__canon/$__part"
+            __part="$result"
+        fi
+        
+        case "$__part" in
+            /*)
+                __canon="/$__part"
+                ;;
+            .)
+                :
+                ;;
+            ..)
+                __canon="${__canon%/*}"
+                ;;
+            *)
+                __canon="${__canon}/$__part"
+                ;;
+        esac
+    done
+    
+    result="${__canon#/}"
+    unset __canon __part
+}
+
+#<
+# @brief Canonicalize file system path
+# @usage path
+#
+# Sets <var>result</var> to the canonical version of
+# <param>path</param>.  A canonical path is absolute
+# and contains no symlinks.
+#
+# Returns <lit>1</lit> (logical false) if the path
+# is invalid, or <lit>0</lit> (logical true) otherwise.
+#>
+mk_canonical_path()
+{
+    result=""
+    while [ "$result" != "$1" ]
+    do
+        set -- "$result"
+        _mk_canonical_path "$1" || return 1
+    done
+}
+
+#<
+# @brief Test if two paths are identical
+# @usage path1 path2
+#
+# Returns <lit>0</lit> (logical true) if <param>path1</param>
+# and <param>path2</param> represent the same physical file
+# system path.  Returns <lit>1</lit> (logical false) if they
+# do not, or if either path is invalid.
+#>
+mk_are_same_path()
+{
+    [ "$1" = "$2" ] && return 0
+    mk_push_vars result
+    mk_canonical_path "$1" || result="NOPE1"
+    set -- "$result" "$2"
+    mk_canonical_path "$2" || result="NOPE2"
+    set -- "$1" "$result"
+    mk_pop_vars
+    [ "$1" = "$2" ]
 }
 
 #<
@@ -1552,6 +1719,30 @@ mk_here_list()
     fi
 }
 
+#<
+# @brief Capture output of command as list
+# @usage command...
+#
+# Executes <param>command</param> and sets
+# <var>result</var> to a quoted list of its
+# lines of output.
+#
+# @example
+# mk_capture_lines find . -name "*.txt"
+# @endexample
+#>
+mk_capture_lines()
+{
+    _IFS="$IFS"
+    IFS=""
+    result=`"$@"`
+    IFS='
+'
+    set -- $result
+    IFS="$_IFS"
+    mk_quote_list "$@"
+}
+
 _MK_TMPCOUNT=0
 _MK_TMPLIST=""
 
@@ -1564,19 +1755,35 @@ mk_tempfile()
     result="$_result"
 }
 
+mk_tempfile_delete()
+{
+    mk_unquote_list "$_MK_TMPLIST"
+    _MK_TMPLIST=""
+    for _tmp
+    do
+        if [ "$_tmp" = "$1" ]
+        then
+            rm -rf -- "$_tmp"
+        else
+            mk_quote "$_tmp"
+            _MK_TMPLIST="$_MK_TMPLIST $result"
+        fi
+    done
+}
+
 mk_tempfile_clear()
 {
     mk_unquote_list "$_MK_TMPLIST"
     _MK_TMPLIST=""
     for _tmp
     do
-        rm -f "$_tmp"
+        rm -rf -- "$_tmp"
     done
 }
 
 _mk_cleanup_handler()
 {
-    cd "$MK_ROOT_DIR"
+    cd "$MK_ROOT_DIR" || exit 1
     mk_tempfile_clear
     exit "$1"
 }

@@ -55,6 +55,7 @@ enum
     OPTION_LIST_PLUGINS,
     OPTION_PLUGIN_INFO,
     OPTION_RESOURCE,
+    OPTION_LIST_TESTS,
     OPTION_USAGE,
     OPTION_HELP
 };
@@ -125,6 +126,13 @@ static const struct UpoptOptionInfo options[] =
         .constant = OPTION_TIMEOUT,
         .description = "Terminate unresponsive tests after t milliseconds",
         .argument = "t"
+    },
+    {
+        .longname = "list-tests",
+        .shortname = '\0',
+        .constant = OPTION_LIST_TESTS,
+        .description = "List tests instead of running them",
+        .argument = NULL
     },
     {
         .longname = "list-plugins",
@@ -213,6 +221,9 @@ option_parse(int argc, char** argv, OptionTable* option)
             break;
         case OPTION_TIMEOUT:
             option->timeout = atoi(value);
+            break;
+        case OPTION_LIST_TESTS:
+            option->mode = MODE_LIST_TESTS;
             break;
         case OPTION_LIST_PLUGINS:
             option->mode = MODE_LIST_PLUGINS;

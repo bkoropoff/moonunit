@@ -116,7 +116,17 @@ bool mu_error_equal(MuError* err, int code);
         if (mu_error_equal(err, code))          \
             goto lab;                           \
     } while (0)                                 \
-        
+
+#define MU_PROPAGATE(lab, err, src) \
+    do \
+    { \
+        MuError* e_ = (src); \
+        if (e_ != NULL) \
+        { \
+            MU_RERAISE_GOTO(lab, err, e_); \
+        } \
+    } while (0)
+
 #define MU_CATCH(err, code)             \
     if (mu_error_equal(err, code))      \
         

@@ -40,5 +40,6 @@ typedef struct
 
 unsigned int run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError** _err);
 unsigned int run_all(RunSettings* settings, const char* path, MuError** _err);
+void print_tests(MuLoader* loader, const char* path, int setc, char** set, MuError** _err);
 
 #endif

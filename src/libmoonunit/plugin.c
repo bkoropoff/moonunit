@@ -205,6 +205,13 @@ mu_plugin_get_loader_for_file(const char* file)
 {
     unsigned int index;
 
+    if (plugin_list == NULL)
+    {
+        load_plugins();
+        if (plugin_list == NULL)
+            return NULL;
+    }
+
     for (index = 0; index < array_size(plugin_list); index++)
     {
         MuPlugin* plugin = plugin_list[index];

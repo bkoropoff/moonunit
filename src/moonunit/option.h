@@ -37,6 +37,7 @@ typedef struct
     enum
     {
         MODE_RUN,
+        MODE_LIST_TESTS,
         MODE_LIST_PLUGINS,
         MODE_PLUGIN_INFO,
         MODE_USAGE,

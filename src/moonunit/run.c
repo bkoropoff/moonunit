@@ -212,3 +212,45 @@ run_all(RunSettings* settings, const char* path, MuError** _err)
 {
     return run_tests(settings, path, 0, NULL, _err);
 }
+
+void
+print_tests(MuLoader* loader, const char* path, int setc, char** set, MuError** _err)
+{
+    MuError* err = NULL;
+    MuLibrary* library = NULL;
+    MuTest** tests = NULL;
+
+    library = mu_loader_open(loader, path, &err);
+    MU_PROPAGATE(leave, _err, err);
+
+    tests = mu_library_get_tests(library);
+
+    if (tests)
+    {
+        qsort(tests, test_count(tests), sizeof(*tests), test_compare);
+
+        unsigned int index;
+
+        for (index = 0; tests[index]; index++)
+        {
+            MuTest* test = tests[index];
+
+            if (set != NULL && !in_set(test, setc, set))
+                continue;
+
+            printf("%s/%s/%s\n", mu_library_name(library), mu_test_suite(test), mu_test_name(test));
+        }
+    }
+
+leave:
+
+    if (tests)
+    {
+        mu_library_free_tests(library, tests);
+    }
+
+    if (library)
+    {
+        mu_library_close(library);
+    }
+}

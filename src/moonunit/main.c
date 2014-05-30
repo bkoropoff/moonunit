@@ -236,6 +236,36 @@ run(char* self)
         return (int) failed;
 }
 
+static
+int
+list_tests(void)
+{
+    MuError* err = NULL;
+    unsigned int file_index;
+    MuLoader* loader = NULL;
+
+    option_configure_loaders(&option);
+
+    for (file_index = 0; file_index < array_size(option.files); file_index++)
+    {
+        char* file = option.files[file_index];
+
+        loader = mu_plugin_get_loader_for_file(file);
+        if (!loader)
+        {
+            die("Error: Could not find loader for file %s", basename_pure(file));
+        }
+
+        print_tests(loader, file, array_size(option.tests), (char**) option.tests, &err);
+        MU_CATCH_ALL(err)
+        {
+            die("Error: %s", err->message);
+        }
+    }
+
+    return 0;
+}
+
 int
 main (int argc, char** argv)
 {
@@ -250,6 +280,9 @@ main (int argc, char** argv)
     {
     case MODE_RUN:
         res = run(argv[0]);
+        break;
+    case MODE_LIST_TESTS:
+        res = list_tests();
         break;
     case MODE_LIST_PLUGINS:
         res = list_plugins();

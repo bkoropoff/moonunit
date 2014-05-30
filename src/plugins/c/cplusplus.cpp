@@ -44,7 +44,7 @@ extern "C" void
 cplusplus_trampoline(MuThunk thunk)
 {
     MuInterfaceToken* _token = mu_interface_current_token();
-    CToken* token = reinterpret_cast<CToken*>(_token);
+    CTokenFork* token = reinterpret_cast<CTokenFork*>(_token);
 
     try
     {

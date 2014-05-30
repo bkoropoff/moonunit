@@ -107,7 +107,7 @@ mu_logger_test_enter (struct MuLogger* logger, struct MuTest* test)
 }
 
 void
-mu_logger_test_log (struct MuLogger* logger, struct MuLogEvent const* event)
+mu_logger_test_log (struct MuLogger* logger, MuLogEvent const* event)
 {
     logger->test_log(logger, event);
 }

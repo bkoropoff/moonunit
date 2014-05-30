@@ -70,9 +70,7 @@ typedef enum MuTestStatus
     /** Failure due to missing resource */
     MU_STATUS_RESOURCE,
     /** Test skipped */
-    MU_STATUS_SKIPPED,
-    /** Test debugged */
-    MU_STATUS_DEBUG
+    MU_STATUS_SKIPPED
 } MuTestStatus;
 
 /**

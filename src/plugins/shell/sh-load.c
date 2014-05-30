@@ -280,7 +280,6 @@ static MuLoader shloader =
 	.test_suite = sh_test_suite,
     .dispatch = sh_dispatch,
     .free_result = sh_free_result,
-    .debug = NULL,
     .construct = sh_construct,
     .destruct = sh_destruct,
     .options = cloader_options

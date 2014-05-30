@@ -46,7 +46,6 @@ MuLoader mu_cloader =
 	.test_suite = cloader_test_suite,
     .dispatch = cloader_dispatch,
     .free_result = cloader_free_result,
-    .debug = cloader_debug,
     .construct = cloader_construct,
     .destruct = cloader_destruct,
     .options = cloader_options

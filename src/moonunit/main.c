@@ -162,7 +162,6 @@ run(char* self)
     loggers = option_create_loggers(&option);
     
     settings.self = self;
-    settings.debug = option.debug;
 
     if (array_size(loggers) == 0)
     {
@@ -206,6 +205,11 @@ run(char* self)
             mu_loader_set_option(settings.loader, "iterations", option.iterations);
         }
         
+        if (option.debug && mu_loader_option_type(settings.loader, "debug") == MU_TYPE_BOOLEAN)
+        {
+            mu_loader_set_option(settings.loader, "debug", option.debug);
+        }
+
         if (option.all || array_size(option.tests) == 0)
         {
             failed += run_all(&settings, file, &err);

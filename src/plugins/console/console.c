@@ -311,13 +311,7 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     const char* result_str = NULL;
     unsigned int result_code;
 
-    if (summary->status == MU_STATUS_DEBUG)
-    {
-        result_str = "DEBUG";
-        result_code = 33;
-        self->num_skip++;
-    }
-    else if (result)
+    if (result)
     {
         result_code = 32;
 
@@ -341,8 +335,6 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             result_code = 33;
             self->num_skip++;
             break;
-        case MU_STATUS_DEBUG:
-            abort();
         }
     }
     else
@@ -369,13 +361,10 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
             result_code = 33;
             self->num_skip++;
             break;
-        case MU_STATUS_DEBUG:
-            abort();
         }
     }
 
     if (summary->status == MU_STATUS_SUCCESS ||
-        summary->status == MU_STATUS_DEBUG ||
         (result && !self->details))
     {
         for (i = self->align - self->position - strlen(result_str); i > 0; i--)

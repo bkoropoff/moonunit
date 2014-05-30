@@ -30,7 +30,6 @@
 
 MuTestResult* cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data);
 void cloader_free_result(MuLoader* _self, MuTestResult* result);
-void cloader_debug(MuLoader* _self, MuTest* test);
 void cloader_construct(MuLoader* _self, MuLibrary* _library, MuError** err);
 void cloader_destruct(MuLoader* _self, MuLibrary* _library, MuError** err);
 

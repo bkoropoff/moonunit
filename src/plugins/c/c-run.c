@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 #ifdef HAVE_SIGNAL_H
 #    include <signal.h>
 #endif
@@ -60,7 +61,8 @@
 
 static long default_timeout = 2000;
 static unsigned int default_iterations = 1;
-static CToken* current_token;
+static bool is_debug = false;
+static MuInterfaceToken* current_token;
 
 typedef struct
 {
@@ -156,9 +158,9 @@ ctoken_current(void* data)
 
 static
 void
-ctoken_event(MuInterfaceToken* _token, const MuLogEvent* event)
+ctoken_event_fork(MuInterfaceToken* _token, const MuLogEvent* event)
 {
-    CToken* token = (CToken*) _token;
+    CTokenFork* token = (CTokenFork*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
 
     if (!ipc_handle)
@@ -178,29 +180,16 @@ ctoken_event(MuInterfaceToken* _token, const MuLogEvent* event)
     pthread_mutex_unlock(&token->lock);
 }
 
-static void ctoken_free(CToken* token);
+static void ctoken_free_fork(CTokenFork* token);
 
 static
 void
-ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
+ctoken_result_fork(MuInterfaceToken* _token, const MuTestResult* summary)
 {    
-    CToken* token = (CToken*) _token;
+    CTokenFork* token = (CTokenFork*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
 
-    /* If we are in debug mode (no communication channel) */
-    if (!ipc_handle)
-    {
-        if (summary->status != token->expected)
-        {
-            /* Abort on failure */
-            abort();
-        }
-        else
-        {
-            /* Just return */
-            goto done;
-        }
-    }
+    assert(ipc_handle != NULL);
 
     pthread_mutex_lock(&token->lock);
     
@@ -210,23 +199,18 @@ ctoken_result(MuInterfaceToken* _token, const MuTestResult* summary)
     uipc_send(ipc_handle, message, NULL);
     uipc_msg_free(message);
 
-done:
-
-    if (ipc_handle)
-    {
-        ctoken_free(token);
-        uipc_close(ipc_handle);
-        exit(0);
-    }
+    ctoken_free_fork(token);
+    uipc_close(ipc_handle);
+    exit(0);
 
     pthread_mutex_unlock(&token->lock);
 }
 
 static
 void
-ctoken_meta(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
+ctoken_meta_fork(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 {
-    CToken* token = (CToken*) _token;
+    CTokenFork* token = (CTokenFork*) _token;
     va_list ap;
 
     if (!token->ipc_handle)
@@ -292,27 +276,62 @@ ctoken_meta(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 static void
 ctoken_event_inproc(MuInterfaceToken* _token, const MuLogEvent* event)
 {
-    return;
+    CTokenInproc* token = (CTokenInproc*) _token;
+
+    token->cb(event, token->data);
 }
 
 static void
 ctoken_result_inproc(MuInterfaceToken* _token, const MuTestResult* summary)
 {    
-    CToken* token = (CToken*) _token;
+    CTokenInproc* token = (CTokenInproc*) _token;
 
-    *(token->inproc_result) = *summary;
+    if (summary->status != token->expected)
+    {
+        abort();
+    }
 
-    token->inproc_result->reason = safe_strdup(summary->reason);
-    token->inproc_result->file = safe_strdup(summary->file);
+    *token->result = *summary;
 
-    siglongjmp(token->inproc_jmpbuf, 1);
+    token->result->reason = safe_strdup(summary->reason);
+    token->result->file = safe_strdup(summary->file);
+
+    siglongjmp(token->jmpbuf, 1);
 }
 
 static
 void
 ctoken_meta_inproc(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 {
-    return;
+    CTokenInproc* token = (CTokenInproc*) _token;
+    va_list ap;
+    long int timeout = 0;
+
+    pthread_mutex_lock(&token->lock);
+
+    va_start(ap, type);
+
+    switch (type)
+    {
+    case MU_META_EXPECT:
+        token->expected = va_arg(ap, MuTestStatus);
+        break;
+    case MU_META_TIMEOUT:
+        timeout = va_arg(ap, long int);
+        if (timeout < 1000)
+        {
+            timeout = 1000;
+        }
+        (void) alarm(timeout/1000);
+        break;
+    case MU_META_ITERATIONS:
+        *token->iterations = va_arg(ap, unsigned int);
+        break;
+    default:
+        break;
+    }
+
+    pthread_mutex_unlock(&token->lock);
 }
 
 static char*
@@ -328,19 +347,21 @@ signal_description(int sig)
 static void
 signal_handler(int sig)
 {
-    if (getpid() == current_token->child)
+    CTokenFork* token = (CTokenFork*) current_token;
+
+    if (getpid() == token->child)
     {
         MuTestResult summary;
     
         summary.status = MU_STATUS_CRASH;
-        summary.expected = current_token->expected;
-        summary.stage = current_token->current_stage;
+        summary.expected = token->expected;
+        summary.stage = token->current_stage;
         summary.reason = signal_description(sig);
         summary.file = NULL;
         summary.line = 0;
         summary.backtrace = get_backtrace(0);
 
-        current_token->base.result((MuInterfaceToken*) current_token, &summary);
+        current_token->result(current_token, &summary);
     }
     else
     {
@@ -390,25 +411,25 @@ signal_setup(void)
     }
 }
 
-static CToken*
-ctoken_new(MuTest* test)
+static CTokenFork*
+ctoken_new_fork(MuTest* test)
 {
-    CToken* token = calloc(1, sizeof(CToken));
+    CTokenFork* token = calloc(1, sizeof(CTokenFork));
 
     token->base.test = test;
-    token->base.meta = ctoken_meta;
-    token->base.result = ctoken_result;
-    token->base.event = ctoken_event;
+    token->base.meta = ctoken_meta_fork;
+    token->base.result = ctoken_result_fork;
+    token->base.event = ctoken_event_fork;
     token->expected = MU_STATUS_SUCCESS;
     pthread_mutex_init(&token->lock, NULL);
 
     return token;
 }
 
-static CToken*
+static CTokenInproc*
 ctoken_new_inproc(MuTest* test)
 {
-    CToken* token = calloc(1, sizeof(CToken));
+    CTokenInproc* token = calloc(1, sizeof(CTokenInproc));
 
     token->base.test = test;
     token->base.meta = ctoken_meta_inproc;
@@ -421,7 +442,14 @@ ctoken_new_inproc(MuTest* test)
 }
 
 static void
-ctoken_free(CToken* token)
+ctoken_free_fork(CTokenFork* token)
+{
+    pthread_mutex_destroy(&token->lock);
+    free(token);
+}
+
+static void
+ctoken_free_inproc(CTokenInproc* token)
 {
     pthread_mutex_destroy(&token->lock);
     free(token);
@@ -434,7 +462,7 @@ ctoken_free(CToken* token)
 #endif
 
 static void
-cloader_run_child(MuTest* test, CToken* token, int debug)
+cloader_run_child(MuTest* test, CTokenFork* token)
 {
     MuThunk thunk;
 
@@ -442,8 +470,7 @@ cloader_run_child(MuTest* test, CToken* token, int debug)
     mu_interface_set_current_token_callback(ctoken_current, token);
         
     /* Set up handlers to catch asynchronous/fatal signals */
-    if (!debug)
-        signal_setup();
+    signal_setup();
 
     /* Stage: library setup */
     token->current_stage = MU_STAGE_LIBRARY_SETUP;
@@ -599,9 +626,9 @@ wait_child(pid_t pid, int* status, int ms)
     
     if (waitpid(pid, status, WNOHANG) == pid)
     {
-	/* It's done now */
-	ret = 0;
-	goto done;
+        /* It's done now */
+        ret = 0;
+        goto done;
     }
     else
     {
@@ -626,7 +653,7 @@ done:
 
 /* Main loop for harvesting messages from the child process */
 static MuTestResult*
-cloader_run_parent(MuTest* test, CToken* token, MuLogCallback cb, void* cb_data, unsigned int* iterations)
+cloader_run_parent(MuTest* test, CTokenFork* token, MuLogCallback cb, void* cb_data, unsigned int* iterations)
 {
     uipc_handle* ipc = token->ipc_handle;
     MuTestResult *summary = NULL;
@@ -772,7 +799,9 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
 {
     int sockets[2];
     pid_t pid;
-    CToken* token = current_token = ctoken_new(test);
+    CTokenFork* token = ctoken_new_fork(test);
+
+    current_token = &token->base;
     
     socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
     
@@ -798,7 +827,7 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
         token->child = getpid();
         
         /* Run test procedure */
-        cloader_run_child(test, token, 0);
+        cloader_run_child(test, token);
 
         /* Tear down ipc handle and close connection */
         uipc_detach(ipc);
@@ -830,7 +859,7 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
         close(sockets[0]);
 
         /* Free token */
-        ctoken_free(token);
+        ctoken_free_fork(token);
 
         return result;
     }
@@ -839,19 +868,21 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
 static MuTestResult*
 cloader_run_thunk_inproc(MuThunk thunk)
 {
-    CToken* token = ctoken_new_inproc(NULL);
+    CTokenInproc* token = ctoken_new_inproc(NULL);
     MuTestResult* volatile result = calloc(1, sizeof(*result));
 
     result->status = MU_STATUS_SUCCESS;
 
-    if (!sigsetjmp(token->inproc_jmpbuf, 1))
+    if (!sigsetjmp(token->jmpbuf, 1))
     {
-        token->inproc_result = result;
+        token->result = result;
         /* Set up the C/C++ interface to call into our token */
         mu_interface_set_current_token_callback(ctoken_current, token);
         
         INVOKE(thunk);
     }
+
+    ctoken_free_inproc(token);
 
     return result;
 }
@@ -860,6 +891,89 @@ void
 cloader_free_result(MuLoader* _self, MuTestResult* result)
 {
     uipc_msg_free_payload(result, &testresult_info);
+}
+
+
+static void
+cloader_run_inproc(MuTest* test, CTokenInproc* token)
+{
+    MuThunk thunk;
+
+    /* Set up the C/C++ interface to call into our token */
+    mu_interface_set_current_token_callback(ctoken_current, token);
+
+    /* Stage: library setup */
+    token->current_stage = MU_STAGE_LIBRARY_SETUP;
+
+    if ((thunk = cloader_library_setup(test->loader, test->library)))
+        INVOKE(thunk);
+
+    /* Stage: fixture setup */
+    token->current_stage = MU_STAGE_FIXTURE_SETUP;
+
+    if ((thunk = cloader_fixture_setup(test->loader, test)))
+        INVOKE(thunk);
+
+    /* Stage: test */
+    token->current_stage = MU_STAGE_TEST;
+
+    INVOKE(((CTest*) test)->entry->run);
+
+    /* Stage: fixture teardown */
+    token->current_stage = MU_STAGE_FIXTURE_TEARDOWN;
+
+    if ((thunk = cloader_fixture_teardown(test->loader, test)))
+        INVOKE(thunk);
+
+    /* Stage: library teardown */
+    token->current_stage = MU_STAGE_LIBRARY_TEARDOWN;
+
+    if ((thunk = cloader_library_teardown(test->loader, test->library)))
+        INVOKE(thunk);
+
+    /* If we got this far without incident, explicitly succeed */
+    mu_interface_result(NULL, 0, MU_STATUS_SUCCESS, NULL);
+}
+
+static void
+timeout_signal(int sig)
+{
+    abort();
+}
+
+static MuTestResult*
+cloader_debug(MuTest* test, MuLogCallback cb, void* data, unsigned int* iterations)
+{
+    MuTestResult* volatile result = calloc(1, sizeof(*result));
+    CTokenInproc* token = ctoken_new_inproc(test);
+    long int timeout = default_timeout;
+
+    current_token = &token->base;
+
+    token->base.test = test;
+    token->result = result;
+    token->cb = cb;
+    token->data = data;
+    token->iterations = iterations;
+
+    if (timeout < 1000)
+    {
+        timeout = 1000;
+    }
+
+    (void) signal(SIGALRM, timeout_signal);
+    (void) alarm(timeout);
+
+    if (!sigsetjmp(token->jmpbuf, 1))
+    {
+        cloader_run_inproc(test, token);
+    }
+
+    (void) alarm(0);
+
+    ctoken_free_inproc(token);
+
+    return result;
 }
 
 MuTestResult*
@@ -875,26 +989,21 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
         {
             cloader_free_result(_self, result);
         }
-        result = cloader_run_fork(test, cb, data, &iterations);
+
+        if (is_debug)
+        {
+            result = cloader_debug(test, cb, data, &iterations);
+        }
+        else
+        {
+            result = cloader_run_fork(test, cb, data, &iterations);
+        }
+
         if (result->status == MU_STATUS_SKIPPED || result->status != result->expected)
             break;
     }
 
     return result;
-}
-
-void
-cloader_debug(MuLoader* _self, MuTest* test)
-{
-    CToken* token = current_token = ctoken_new(test);
-
-    token->child = getpid();
-    token->base.test = test;
-    token->ipc_handle = NULL;
-
-    cloader_run_child(test, token, 1);
-
-    ctoken_free(token);
 }
 
 void
@@ -973,6 +1082,19 @@ iterations_get(MuLoader* self)
     return (int) default_iterations;
 }
 
+static
+void
+debug_set(MuLoader* self, bool set)
+{
+    is_debug = set;
+}
+
+static
+bool
+debug_get(MuLoader* self)
+{
+    return is_debug;
+}
 
 MuOption cloader_options[] =
 {
@@ -983,5 +1105,8 @@ MuOption cloader_options[] =
 
     MU_OPTION("iterations", MU_TYPE_INTEGER, iterations_get, iterations_set,
               "The number of times each test is run (unless specified by the test)"),
+
+    MU_OPTION("debug", MU_TYPE_BOOLEAN, debug_get, debug_set,
+              "Whether to run in debug mode (avoid forking)"),
     MU_OPTION_END
 };

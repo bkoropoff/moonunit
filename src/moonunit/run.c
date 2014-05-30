@@ -124,13 +124,6 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
         goto leave;
     }
 
-    if (settings->debug && ! loader->debug)
-    {
-        // We can't do anything with this library, so log an error
-        mu_logger_library_fail(logger, "Loader does not support debugging");
-        goto leave;
-    }
-
     mu_library_construct(library, &err);
 
     MU_CATCH(err, MU_ERROR_CONSTRUCT_LIBRARY)
@@ -171,29 +164,15 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
                 mu_logger_suite_enter(logger, mu_test_suite(test));
             }
             
-            if (settings->debug)
-            {
-                MuTestResult dummy =
-                {
-                    .status = MU_STATUS_DEBUG
-                };
+            mu_logger_test_enter(logger, test);
+            summary = loader->dispatch(loader, test, event_proxy_cb, logger);
+            mu_logger_test_leave(logger, test, summary);
 
-                mu_logger_test_enter(logger, test);
-                loader->debug(loader, test);
-                mu_logger_test_leave(logger, test, &dummy);
-            }
-            else
-            {
-                mu_logger_test_enter(logger, test);
-                summary = loader->dispatch(loader, test, event_proxy_cb, logger);
-                mu_logger_test_leave(logger, test, summary);
-
-                if (summary->status != MU_STATUS_SKIPPED &&
+            if (summary->status != MU_STATUS_SKIPPED &&
                     summary->status != summary->expected)
-                    failed++;
+                failed++;
 
-                loader->free_result(loader, summary);
-            }
+            loader->free_result(loader, summary);
         }
         
         if (current_suite)

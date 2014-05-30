@@ -232,11 +232,7 @@ static void test_leave(MuLogger* _self,
     bool result = summary->status == summary->expected;
     const char* result_str;
 
-    if (summary->status == MU_STATUS_DEBUG)
-    {
-        result_str = "debug";
-    }
-    else if (result)
+    if (result)
     {
         switch (summary->status)
         {		

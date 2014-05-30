@@ -34,6 +34,7 @@
 #include <setjmp.h>
 
 #include <moonunit/private/interface-private.h>
+#include <moonunit/loader.h>
 
 typedef struct
 {
@@ -44,9 +45,20 @@ typedef struct
     uipc_handle* ipc_handle;
     pid_t child;
     pthread_mutex_t lock;
+} CTokenFork;
 
-    MuTestResult* inproc_result;
-    sigjmp_buf inproc_jmpbuf;
-} CToken;
+typedef struct
+{
+    MuInterfaceToken base;
+    MuTestStage current_stage;
+    MuTestStatus expected;
+    MuTest* current_test;
+    MuLogCallback cb;
+    void* data;
+    unsigned int* iterations;
+    MuTestResult* result;
+    sigjmp_buf jmpbuf;
+    pthread_mutex_t lock;
+} CTokenInproc;
 
 #endif

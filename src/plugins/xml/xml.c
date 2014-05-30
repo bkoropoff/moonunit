@@ -54,6 +54,7 @@ typedef struct
     MuTest* current_test;
     char* title;
     char* name;
+    MuLogLevel loglevel;
 } XmlLogger;
 
 static void
@@ -188,6 +189,11 @@ static void test_log(MuLogger* _self, MuLogEvent* event)
 {
     XmlLogger* self = (XmlLogger*) _self;
     const char* level_str = "unknown";
+
+    if (event->level > self->loglevel)
+    {
+        return;
+    }
 
     switch (event->level)
     {
@@ -388,6 +394,57 @@ set_title(XmlLogger* self, const char* title)
     self->title = strdup(title);
 }
 
+static const char*
+get_loglevel(XmlLogger* self)
+{
+    switch ((int) self->loglevel)
+    {
+    case -1:
+        return "none";
+    case MU_LEVEL_WARNING:
+        return "warning";
+    case MU_LEVEL_INFO:
+        return "info";
+    case MU_LEVEL_VERBOSE:
+        return "verbose";
+    case MU_LEVEL_DEBUG:
+        return "debug";
+    case MU_LEVEL_TRACE:
+        return "trace";
+    default:
+        return "unknown";
+    }
+}
+
+static void
+set_loglevel(XmlLogger* self, const char* level)
+{
+    if (!strcmp(level, "warning"))
+    {
+        self->loglevel = MU_LEVEL_WARNING;
+    }
+    else if (!strcmp(level, "info"))
+    {
+        self->loglevel = MU_LEVEL_INFO;
+    }
+    else if (!strcmp(level, "verbose"))
+    {
+        self->loglevel = MU_LEVEL_VERBOSE;
+    }
+    else if (!strcmp(level, "debug"))
+    {
+        self->loglevel = MU_LEVEL_DEBUG;
+    }
+    else if (!strcmp(level, "trace"))
+    {
+        self->loglevel = MU_LEVEL_TRACE;
+    }
+    else if (!strcmp(level, "none"))
+    {
+        self->loglevel = -1;
+    }
+}
+
 static void
 destroy(MuLogger* _logger)
 {
@@ -413,6 +470,8 @@ static MuOption xmllogger_options[] =
               "Value of the name attribute on the <run> node"),
     MU_OPTION("title", MU_TYPE_STRING, get_title, set_title,
               "Value of the title attribute on the <moonunit> node"),
+    MU_OPTION("loglevel", MU_TYPE_STRING, get_loglevel, set_loglevel,
+              "Maximum level of logged events which will be recorded"),
     MU_OPTION_END
 };
 
@@ -436,7 +495,8 @@ static XmlLogger xmllogger =
     .fd = -1,
     .file = NULL,
     .out = NULL,
-    .name = NULL
+    .name = NULL,
+    .loglevel = MU_LEVEL_INFO
 };
 
 static MuLogger*

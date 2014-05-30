@@ -133,14 +133,14 @@ MU_TEST(Arithmetic, crash)
 MU_FIXTURE_TEARDOWN(Crash)
 {
 	if (!strcmp(mu_test_name(MU_CURRENT_TEST), "segfault_teardown"))
-		*(int*)0 = 42;
+	    *(int volatile*)0 = 42;
 }
 
 MU_TEST(Crash, segfault)
 {
     MU_EXPECT(MU_STATUS_CRASH);
     
-    *(int*)0 = 42;
+    *(int volatile*)0 = 42;
 }
 
 MU_TEST(Crash, segfault_teardown)

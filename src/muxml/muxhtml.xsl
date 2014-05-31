@@ -113,19 +113,34 @@
     </div>
   </xsl:template>
 
+  <!-- Emit library name -->
+  <xsl:template name="emit-library-name">
+    <xsl:choose>
+      <xsl:when test="@name"><xsl:value-of select="@name"/></xsl:when>
+      <xsl:otherwise><xsl:value-of select="@file"/></xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <!-- Emit library entry -->
   <xsl:template name="emit-library">
     <div class="library">
       <xsl:attribute name="library-name">
-        <xsl:value-of select="@name"/>
+        <xsl:call-template name="emit-library-name"/>
       </xsl:attribute>
       <div class="header">
-        <div class="title"><xsl:value-of select="@name"/></div>
+        <div class="title"><xsl:call-template name="emit-library-name"/></div>
       </div>
       <div class="content">
-        <xsl:for-each select="suite">
-          <xsl:call-template name="emit-suite"/>
-        </xsl:for-each>
+        <xsl:choose>
+          <xsl:when test="abort">
+            <div class="abort"><xsl:value-of select="abort/@reason"/></div>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:for-each select="suite">
+              <xsl:call-template name="emit-suite"/>
+            </xsl:for-each>
+          </xsl:otherwise>
+        </xsl:choose>
       </div>
     </div>
   </xsl:template>

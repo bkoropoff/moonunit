@@ -127,6 +127,13 @@ body {
     border-radius: 4px 4px 0 0;
 }
 
+.library .abort {
+    background-color: #a40000;
+    color: #eeeeec;
+    padding: 0.5em;
+    text-align: center;
+}
+
 .suite > .header {
     background: #babdb6;
     font-size: 105%;

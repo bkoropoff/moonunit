@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>moonunit-stub</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1" /><link rel="home" href="index.html" title="MoonUnit Tool Reference" /><link rel="up" href="index.html" title="MoonUnit Tool Reference" /><link rel="prev" href="rn01re02.html" title="moonunit-lt" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">moonunit-stub</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="rn01re02.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> </td></tr></table><hr /></div><div class="refentry"><a id="moonunit-stub"></a><div class="titlepage"></div><div class="refnamediv"><a id="name"></a><h2>Name</h2><p>moonunit-stub — Generates MoonUnit test loading stubs</p></div><div class="refsynopsisdiv"><a id="synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">moonunit</code>  [<code class="option">-o</code> <em class="replaceable"><code>file</code></em>] [<em class="replaceable"><code>name</code></em>=<em class="replaceable"><code>value</code></em>...]  <em class="replaceable"><code>sources</code></em>... </p></div></div><div class="refsect1"><a id="description"></a><h2>Description</h2><p>
+      <span class="command"><strong>moonunit-stub</strong></span> scans C and C++ source files for
+      <span class="emphasis"><em>MoonUnit</em></span> unit tests and generates a C stub file
+      which assists the default test loader.  Scanned files
+      are first processed by the C or C++ preprocessor.
+    </p></div><div class="refsect1"><a id="rationale"></a><h2>Rationale</h2><p>
+      The default <span class="emphasis"><em>MoonUnit</em></span> test loader
+      can use symbol information read from dynamic libraries
+      to locate and access all unit tests. This symbol
+      scanning process allows for convenient, rapid prototyping,
+      but works only on some platforms.
+    </p><p>
+      By scanning the source code for unit tests prior to compilation,
+      <span class="command"><strong>moonunit-stub</strong></span> allows unit test modules to
+      be loadable on all supported platforms.
+    </p></div><div class="refsect1"><a id="options"></a><h2>Options</h2><p>
+      <span class="command"><strong>moonunit-stub</strong></span> expects one or more C or C++ source files
+      to be specified as arguments.
+    </p><p>
+      In addition, the following options are available:
+    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-o</code> <em class="replaceable"><code>file</code></em></span></dt><dd><p>Write the generated stub to <em class="replaceable"><code>file</code></em>.
+	    By default, the stub is written to stdout.
+	  </p></dd><dt><span class="term"><code class="option">-h</code>, </span><span class="term"><code class="option">--help</code></span></dt><dd><p>List brief usage and option information and exit.</p></dd><dt><span class="term"><em class="replaceable"><code>name</code></em><code class="literal">=</code><em class="replaceable"><code>value</code></em></span></dt><dd><p>Sets an environment variable for the duration of this
+	    scrpt.  This provides a convenient shorthand for
+	    setting variables such as <code class="literal">CPPFLAGS</code>.
+	    See <a class="xref" href="rn01re03.html#environment" title="Environment">the section called “Environment”</a> for more details.
+	  </p></dd></dl></div></div><div class="refsect1"><a id="environment"></a><h2>Environment</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">CPP</code></span></dt><dd><p>
+	  The C preprocessor which will be invoked to process C source files
+	  before scanning for unit tests.  Defaults to <span class="command"><strong>cpp</strong></span>.
+	</p></dd><dt><span class="term"><code class="literal">CXXCPP</code></span></dt><dd><p>
+	  The C++ preprocessor which will be invoked to process C++ source files
+	  before scanning for unit tests.  Defaults to <span class="command"><strong>cpp</strong></span>.
+	</p></dd><dt><span class="term"><code class="literal">CPPFLAGS</code></span></dt><dd><p>
+	  Additional arguments which will be passed to the C preprocessor.
+	</p></dd><dt><span class="term"><code class="literal">CXXCPPFLAGS</code></span></dt><dd><p>
+	  Additional arguments which will be passed to the C++ preprocessor.
+	  Defaults to the value of CPPFLAGS.
+	</p></dd></dl></div></div><div class="refsect1"><a id="examples"></a><h2>Examples</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">moonunit-stub foo.c bar.c</code></span></dt><dd><p>
+	    Scan <code class="literal">foo.c</code> and <code class="literal">bar.c</code> for unit
+	    tests and write the resulting stub to stdout.
+	  </p></dd><dt><span class="term">
+	  <code class="literal">moonunit-stub -o stub.c bob.c CPP="gcc -E"</code>
+	</span></dt><dd><p>
+	    Scan <code class="literal">bob.c</code> for tests and write the resulting stub to
+	    <code class="literal">stub.c</code>; invokes <code class="literal">gcc -E</code> to preprocess
+	    source files.
+	  </p></dd></dl></div></div><div class="refsect1"><a id="copyright"></a><h2>Copyright</h2><p>Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.</p><p>Redistribution in source and binary form is permitted under
+      the terms of the 3-clause BSD license.  See COPYING in the
+      documentation or source distribution for details.
+    </p></div><div class="refsect1"><a id="seealso"></a><h2>See also</h2><p>
+      <span class="citerefentry"><span class="refentrytitle">moonunit-lt</span>(1)</span>,
+      <span class="citerefentry"><span class="refentrytitle">moonunit</span>(1)</span>,
+      <span class="citerefentry"><span class="refentrytitle">moonunit-strip</span>(1)</span>
+    </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="rn01re02.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> </td></tr><tr><td width="40%" align="left" valign="top">moonunit-lt </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> </td></tr></table></div></body></html>

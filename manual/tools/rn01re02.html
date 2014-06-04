@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>moonunit-lt</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1" /><link rel="home" href="index.html" title="MoonUnit Tool Reference" /><link rel="up" href="index.html" title="MoonUnit Tool Reference" /><link rel="prev" href="rn01re01.html" title="moonunit" /><link rel="next" href="rn01re03.html" title="moonunit-stub" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">moonunit-lt</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="rn01re01.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="rn01re03.html">Next</a></td></tr></table><hr /></div><div class="refentry"><a id="moonunit-lt"></a><div class="titlepage"></div><div class="refnamediv"><a id="name"></a><h2>Name</h2><p>moonunit-lt — Libtool support for MoonUnit</p></div><div class="refsynopsisdiv"><a id="synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">moonunit-lt</code>  [--plugin <em class="replaceable"><code>module</code></em>] [--wrap <em class="replaceable"><code>command_prefix</code></em>]   <em class="replaceable"><code>moonunit_parameter</code></em>  |   <em class="replaceable"><code>libtool_library</code></em> ... </p></div></div><div class="refsect1"><a id="description"></a><h2>Description</h2><p>
+      <span class="command"><strong>moonunit-lt</strong></span> allows libtool library (.la) files
+      to be used with <span class="command"><strong>moonunit</strong></span>. Libraries will be relinked as
+      necessary and a modified set of parameters will be passed to <span class="command"><strong>moonunit</strong></span>.
+    </p><p>
+      This script allows <span class="emphasis"><em>MoonUnit</em></span> tests to be compiled and run
+      as part of a project built with <span class="command"><strong>libtool</strong></span>.  All types of
+      libraries -- including static -- are supported.  Non-libtool libraries will
+      still work as expected.
+    </p><p>
+      As a convenience to plugin writers, <span class="command"><strong>moonunit-lt</strong></span> also
+      supports loading additional libtool libraries as plugins.
+    </p></div><div class="refsect1"><a id="options"></a><h2>Options</h2><p>
+      <span class="command"><strong>moonunit-lt</strong></span> expects a list of parameters as appropriate for
+      <span class="command"><strong>moonunit</strong></span>, with the exception that libtool library files may
+      safely be specified.
+    </p><p>
+      In addition, the following options are available:
+    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">--plugin</code> <em class="replaceable"><code>module</code></em></span></dt><dd><p>
+	    Allows <em class="replaceable"><code>module</code></em> (which should be a libtool library) to be
+	    found and loaded as a <span class="emphasis"><em>MoonUnit</em></span> plugin.  This is useful
+	    for testing a new plugin within its own build tree.
+	  </p></dd><dt><span class="term"><code class="option">--wrap</code> <em class="replaceable"><code>command_prefix</code></em></span></dt><dd><p>
+	    Prefixes the invocation of <span class="command"><strong>moonunit</strong></span> with
+	    <em class="replaceable"><code>command_prefix</code></em>, e.g. <code class="literal">gdb --args</code>.
+	    This is used primarily for testing <span class="command"><strong>moonunit</strong></span> itself.
+	  </p></dd><dt><span class="term"><code class="option">-h</code>, </span><span class="term"><code class="option">--help</code></span></dt><dd><p>
+	    Lists brief usage and option information in addition to that
+	    provided by <span class="command"><strong>moonunit</strong></span>.
+	  </p></dd></dl></div></div><div class="refsect1"><a id="examples"></a><h2>Examples</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">moonunit-lt mylib.la</code></span></dt><dd><p>Run all unit tests in the libtool library <code class="literal">mylib.la</code>.</p></dd><dt><span class="term"><code class="literal">moonunit-lt --plugin mylogger.la -l mylogger mylib.la</code></span></dt><dd><p>
+	    Run all unit tests in the libtool library <code class="literal">mylib.la</code>, logging
+	    results using the logger plugin in the libtool library <code class="literal">mylogger.la</code>.
+	  </p></dd><dt><span class="term"><code class="literal">moonunit-lt --wrap valgrind mylib.la</code></span></dt><dd><p>
+	    Run all unit tests in the libtool library <code class="literal">mylib.la</code>, with
+	    <span class="command"><strong>moonunit</strong></span> itself being run in the memory debugger
+	    <span class="command"><strong>valgrind</strong></span>.
+	  </p></dd></dl></div></div><div class="refsect1"><a id="copyright"></a><h2>Copyright</h2><p>Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.</p><p>
+      Redistribution in source and binary form is permitted under
+      the terms of the 3-clause BSD license.  See COPYING in the
+      documentation or source distribution for details.
+    </p></div><div class="refsect1"><a id="seealso"></a><h2>See also</h2><p>
+      <span class="citerefentry"><span class="refentrytitle">moonunit</span>(1)</span>,
+      <span class="citerefentry"><span class="refentrytitle">moonunit-stub</span>(1)</span>,
+      <span class="citerefentry"><span class="refentrytitle">moonunit-strip</span>(1)</span>
+    </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="rn01re01.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="rn01re03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">moonunit </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> moonunit-stub</td></tr></table></div></body></html>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>moonunit</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.1" /><link rel="home" href="index.html" title="MoonUnit Tool Reference" /><link rel="up" href="index.html" title="MoonUnit Tool Reference" /><link rel="prev" href="index.html" title="MoonUnit Tool Reference" /><link rel="next" href="rn01re02.html" title="moonunit-lt" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">moonunit</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="index.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="rn01re02.html">Next</a></td></tr></table><hr /></div><div class="refentry"><a id="moonunit"></a><div class="titlepage"></div><div class="refnamediv"><a id="name"></a><h2>Name</h2><p>moonunit — Run MoonUnit unit tests</p></div><div class="refsynopsisdiv"><a id="synopsis"></a><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">moonunit</code>  [<em class="replaceable"><code>options</code></em>]  <em class="replaceable"><code>libraries</code></em>... </p></div></div><div class="refsect1"><a id="description"></a><h2>Description</h2><p>
+      <span class="command"><strong>moonunit</strong></span> detects, loads and invokes 
+      <span class="emphasis"><em>MoonUnit</em></span> unit tests in dynamic shared
+      objects and logs the results.
+    </p></div><div class="refsect1"><a id="options"></a><h2>Options</h2><p>
+      <span class="command"><strong>moonunit</strong></span> expects one or more shared objects
+      containing unit tests to be specified as arguments.
+    </p><p>
+      In addition, the following options are available:
+    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-t</code>, </span><span class="term"><code class="option">--test</code> <em class="replaceable"><code>library</code></em><code class="literal">/</code><em class="replaceable"><code>suite</code></em><code class="literal">/</code><em class="replaceable"><code>test</code></em></span></dt><dd><p>
+            Run a test or subset of tests specified by <em class="replaceable"><code>library</code></em>,
+	    <em class="replaceable"><code>suite</code></em>, and <em class="replaceable"><code>test</code></em>, which
+	    may be globs.  This option may be specified multiple times.
+          </p></dd><dt><span class="term"><code class="option">-a</code>, </span><span class="term"><code class="option">--all</code></span></dt><dd><p>
+            Run all tests in all suites.  This is the default behavior
+            if no instances of <code class="option">-t</code> are specified.
+          </p></dd><dt><span class="term"><code class="option">-d</code>, </span><span class="term"><code class="option">--debug</code></span></dt><dd><p>
+            Causes <span class="command"><strong>moonunit</strong></span> to run all tests directly
+            rather than in a separate process and ignore the results.
+            This lets you run <span class="command"><strong>moonunit</strong></span> under a debugger
+            to inspect failing tests.  Since running in this mode does
+            not enforce test isolation, you might want to use the
+            <code class="option">-t</code> to run just the failing test.
+          </p></dd><dt><span class="term"><code class="option">-l</code>, </span><span class="term"><code class="option">--logger</code> <em class="replaceable"><code>name</code></em>:<em class="replaceable"><code>key</code></em>=<em class="replaceable"><code>value</code></em>,...</span></dt><dd><p>
+            Attempts to load and use the logger plugin <em class="replaceable"><code>name</code></em>.
+            <em class="replaceable"><code>name</code></em> may be followed by a colon and a comma-separated
+            list of key-value pairs to pass configuration options to the logger.
+            To obtain a list of configuration options, see <a class="xref" href="rn01re01.html#option-plugin-info">--plugin-info</a>. 
+            The default is equivalent to <code class="literal">console:ansi=true,columns=60</code>, which
+            produces colored, human-readable output on stdout.
+          </p></dd><dt><span class="term"><code class="option">-r</code>, </span><span class="term"><code class="option">--resource</code> <em class="replaceable"><code>file</code></em></span></dt><dd><p>
+	        Read in resource definitions from <em class="replaceable"><code>file</code></em>, which
+	        should be a simple ini-style configuration file.
+	      </p></dd><dt><span class="term"><code class="option">--list-tests</code></span></dt><dd><p>
+            Prints a list of all tests available in the libraries passed on the command
+            line.  If <code class="option">-t</code> is specified, only tests matching it are printed.
+            Each test is printed in the form that <code class="option">-t</code> accepts:
+            <em class="replaceable"><code>library</code></em><code class="literal">/</code><em class="replaceable"><code>suite</code></em><code class="literal">/</code><em class="replaceable"><code>test</code></em>.
+          </p></dd><dt><span class="term"><code class="option">--list-plugins</code></span></dt><dd><p>
+            Prints a table showing all available plugins and what components 
+            (loader, harness, logger) they provide.
+          </p></dd><dt><a id="option-plugin-info"></a><span class="term"><code class="option">--plugin-info</code> <em class="replaceable"><code>name</code></em></span></dt><dd><p>
+            Show detailed information about a plugin, including available
+            configuration options.
+          </p></dd><dt><span class="term"><code class="option">-h</code>, </span><span class="term"><code class="option">--help</code></span></dt><dd><p>
+            Lists brief usage and option information and exits.
+          </p></dd></dl></div></div><div class="refsect1"><a id="examples"></a><h2>Examples</h2><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">moonunit library1.so library2.so</code></span></dt><dd><p>
+            Run all unit tests in <code class="literal">library1.so</code> and
+            <code class="literal">library2.so</code>, printing results to the console.
+          </p></dd><dt><span class="term"><code class="literal">moonunit -t Foo/bar -g library.so</code>
+        </span></dt><dd><p>
+            Run test <code class="literal">bar</code> in the suite <code class="literal">Foo</code>
+            in <code class="literal">library.so</code> and trace any failures in <span class="emphasis"><em>GDB</em></span>.
+          </p></dd><dt><span class="term"><code class="literal">moonunit -l console:ansi=false library.so</code></span></dt><dd><p>
+            Run all tests in <code class="literal">library.so</code>, printing results to the console without
+            ANSI color.
+          </p></dd><dt><span class="term"><code class="literal">moonunit -l xml:file=out.xml library.so</code></span></dt><dd><p>
+            Run all tests in <code class="literal">library.so</code>, writing the results
+	    as XML to out.xml.
+          </p></dd></dl></div></div><div class="refsect1"><a id="copyright"></a><h2>Copyright</h2><p>Copyright (c) 2007-2008, Brian Koropoff.  All rights reserved.</p><p>
+      Redistribution in source and binary form is permitted under
+      the terms of the 3-clause BSD license.  See COPYING in the
+      documentation or source distribution for details.
+    </p></div><div class="refsect1"><a id="seealso"></a><h2>See also</h2><p>
+      <span class="citerefentry"><span class="refentrytitle">moonunit-lt</span>(1)</span>,
+      <span class="citerefentry"><span class="refentrytitle">moonunit-stub</span>(1)</span>,
+      <span class="citerefentry"><span class="refentrytitle">moonunit-strip</span>(1)</span>
+    </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="index.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="rn01re02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">MoonUnit Tool Reference </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> moonunit-lt</td></tr></table></div></body></html>

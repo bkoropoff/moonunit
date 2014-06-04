@@ -13,6 +13,7 @@ make()
             INSTALLDIR="$MK_HTMLDIR/tools" \
             SOURCE="index.xml" \
             STYLESHEET="docbook-html.xsl" \
+            CSS="docbook.css" \
             INCLUDES="moonunit-lt.xml moonunit.xml moonunit-stub.xml"
 
         mk_docbook_man \

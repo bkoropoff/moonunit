@@ -83,6 +83,17 @@ mu_interface_event(const char* file, unsigned int line, MuLogLevel level, const 
     free((void*) event.message);
 }
 
+MuLogLevel
+mu_interface_max_log_level(void)
+{
+    MuInterfaceToken* token = mu_interface_current_token();
+    MuLogLevel level = 0;
+
+    token->meta(token, MU_META_LOG_LEVEL, &level);
+
+    return level;
+}
+
 void
 mu_interface_assert(const char* file, unsigned int line, const char* expr, int sense, int result)
 {

@@ -445,6 +445,15 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
 	}
 }
 
+static
+MuLogLevel
+max_log_level(struct MuLogger* logger_)
+{
+    ConsoleLogger* logger = (ConsoleLogger*) logger_;
+
+    return logger->loglevel;
+}
+
 static int
 get_fd(ConsoleLogger* self)
 {
@@ -634,6 +643,7 @@ static ConsoleLogger consolelogger =
         .test_enter = test_enter,
         .test_log = test_log,
         .test_leave = test_leave,
+        .max_log_level = max_log_level,
         .destroy = destroy,
         .options = consolelogger_options
     },

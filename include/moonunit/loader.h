@@ -62,7 +62,7 @@ typedef struct MuLoader
     // Get the suite of a test
     const char* (*test_suite) (struct MuLoader*, struct MuTest*);
     // Dispatch a single test
-    struct MuTestResult* (*dispatch)(struct MuLoader*, struct MuTest*, MuLogCallback, void*);
+    struct MuTestResult* (*dispatch)(struct MuLoader*, struct MuTest*, MuLogCallback, void*, MuLogLevel);
     // Free the result of a unit test
     void (*free_result)(struct MuLoader*, struct MuTestResult*);
     /* Runs the constructor for a library, which does any needed *one-time* setup */

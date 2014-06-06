@@ -28,7 +28,8 @@
 #ifndef __MU_C_RUN_H__
 #define __MU_C_RUN_H__
 
-MuTestResult* cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data);
+MuTestResult* cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data,
+                               MuLogLevel max_level);
 void cloader_free_result(MuLoader* _self, MuTestResult* result);
 void cloader_construct(MuLoader* _self, MuLibrary* _library, MuError** err);
 void cloader_destruct(MuLoader* _self, MuLibrary* _library, MuError** err);

@@ -45,6 +45,7 @@ typedef struct MuLogger
     void (*test_log) (struct MuLogger*, struct MuLogEvent const* event);
     void (*test_leave) (struct MuLogger*, 
                     struct MuTest*, struct MuTestResult*);
+    MuLogLevel (*max_log_level) (struct MuLogger*);
     void (*destroy) (struct MuLogger*);
     MuOption* options;
 } MuLogger;
@@ -66,6 +67,7 @@ void mu_logger_test_enter (struct MuLogger*, struct MuTest* test);
 void mu_logger_test_log (struct MuLogger*, struct MuLogEvent const* event);
 void mu_logger_test_leave (struct MuLogger*, 
                           struct MuTest*, struct MuTestResult*);
+MuLogLevel mu_logger_max_log_level(struct MuLogger*);
 void mu_logger_destroy(MuLogger* logger);
 
 C_END_DECLS

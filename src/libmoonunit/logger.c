@@ -124,3 +124,9 @@ mu_logger_destroy(MuLogger* logger)
 {
     logger->destroy(logger);
 }
+
+MuLogLevel
+mu_logger_max_log_level(struct MuLogger* logger)
+{
+    return logger->max_log_level(logger);
+}

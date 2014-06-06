@@ -147,6 +147,27 @@ test_leave(MuLogger* _self, MuTest* test, MuTestResult* summary)
     }
 }
 
+static
+MuLogLevel
+max_log_level(struct MuLogger* logger_)
+{
+    MultiLogger* self = (MultiLogger*) logger_;
+    unsigned int index = 0;
+    MuLogLevel level = 0;
+    MuLogLevel max_level = 0;
+
+    for (index = 0; index < array_size(self->loggers); index++)
+    {
+        level = mu_logger_max_log_level(self->loggers[index]);
+        if (level > max_level)
+        {
+            max_level = level;
+        }
+    }
+
+    return max_level;
+}
+
 static void
 destroy(MuLogger* _self)
 {
@@ -175,6 +196,7 @@ static MultiLogger multilogger =
         .test_enter = test_enter,
         .test_log = test_log,
         .test_leave = test_leave,
+        .max_log_level = max_log_level,
         .destroy = destroy,
         .options = NULL 
     },

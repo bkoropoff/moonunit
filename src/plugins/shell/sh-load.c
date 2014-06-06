@@ -205,7 +205,8 @@ sh_test_suite (struct MuLoader* self, struct MuTest* handle)
 }
 
 static struct MuTestResult*
-sh_dispatch (struct MuLoader* self, struct MuTest* handle, MuLogCallback lcb, void* data)
+sh_dispatch (struct MuLoader* self, struct MuTest* handle, MuLogCallback lcb, void* data,
+             MuLogLevel max_level)
 {
     ShTest* test = (ShTest*) handle;
     

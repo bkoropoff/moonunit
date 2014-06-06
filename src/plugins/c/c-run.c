@@ -163,7 +163,7 @@ ctoken_event_fork(MuInterfaceToken* _token, const MuLogEvent* event)
     CTokenFork* token = (CTokenFork*) _token;
     uipc_handle* ipc_handle = token->ipc_handle;
 
-    if (!ipc_handle)
+    if (!ipc_handle || event->level > token->max_log_level)
     {
         return;
     }
@@ -266,6 +266,9 @@ ctoken_meta_fork(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
         uipc_msg_free(message);
         break;
     }
+    case MU_META_LOG_LEVEL:
+        *va_arg(ap, MuLogLevel*) = token->max_log_level;
+        break;
     }
 
     va_end(ap);
@@ -305,7 +308,10 @@ ctoken_event_inproc(MuInterfaceToken* _token, const MuLogEvent* event)
 {
     CTokenInproc* token = (CTokenInproc*) _token;
 
-    token->cb(event, token->data);
+    if (event->level <= token->max_log_level)
+    {
+        token->cb(event, token->data);
+    }
 }
 
 static void
@@ -406,6 +412,9 @@ ctoken_meta_inproc(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
         break;
     case MU_META_ITERATIONS:
         *token->iterations = va_arg(ap, unsigned int);
+        break;
+    case MU_META_LOG_LEVEL:
+        *va_arg(ap, MuLogLevel*) = token->max_log_level;
         break;
     default:
         break;
@@ -874,7 +883,8 @@ process:
 }
 
 static MuTestResult*
-cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* iterations)
+cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, MuLogLevel max_level,
+                 unsigned int* iterations)
 {
     int sockets[2];
     pid_t pid;
@@ -903,6 +913,7 @@ cloader_run_fork(MuTest* test, MuLogCallback cb, void* data, unsigned int* itera
         
         /* Set up token */
         token->ipc_handle = ipc;
+        token->max_log_level = max_level;
         token->child = getpid();
         
         /* Run test procedure */
@@ -1030,7 +1041,8 @@ timeout_signal(int sig)
 }
 
 static MuTestResult*
-cloader_debug(MuTest* test, MuLogCallback cb, void* data, unsigned int* iterations)
+cloader_debug(MuTest* test, MuLogCallback cb, void* data, MuLogLevel max_level,
+              unsigned int* iterations)
 {
     MuTestResult* volatile result = xcalloc(1, sizeof(*result));
     CTokenInproc* token = ctoken_new_inproc(test);
@@ -1043,6 +1055,7 @@ cloader_debug(MuTest* test, MuLogCallback cb, void* data, unsigned int* iteratio
     token->cb = cb;
     token->data = data;
     token->iterations = iterations;
+    token->max_log_level = max_level;
     token->self = pthread_self();
 
     if (timeout < 1000)
@@ -1067,7 +1080,7 @@ cloader_debug(MuTest* test, MuLogCallback cb, void* data, unsigned int* iteratio
 }
 
 MuTestResult*
-cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
+cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data, MuLogLevel max_level)
 {
     unsigned int iterations = default_iterations;
     unsigned int i;
@@ -1082,11 +1095,11 @@ cloader_dispatch(MuLoader* _self, MuTest* test, MuLogCallback cb, void* data)
 
         if (is_debug)
         {
-            result = cloader_debug(test, cb, data, &iterations);
+            result = cloader_debug(test, cb, data, max_level, &iterations);
         }
         else
         {
-            result = cloader_run_fork(test, cb, data, &iterations);
+            result = cloader_run_fork(test, cb, data, max_level, &iterations);
         }
 
         if (result->status == MU_STATUS_SKIPPED || result->status != result->expected)

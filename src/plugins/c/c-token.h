@@ -41,6 +41,7 @@ typedef struct
     MuInterfaceToken base;
     MuTestStage current_stage;
     MuTestStatus expected;
+    MuLogLevel max_log_level;
     MuTest* current_test;
     uipc_handle* ipc_handle;
     pid_t child;
@@ -54,6 +55,7 @@ typedef struct
     MuLogCallback cb;
     void* data;
     unsigned int* iterations;
+    MuLogLevel max_log_level;
     MuTestResult* result;
     sigjmp_buf jmpbuf;
     pthread_t self;

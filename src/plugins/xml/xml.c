@@ -329,6 +329,15 @@ static void test_leave(MuLogger* _self,
     output(out, INDENT_TEST "</test>\n");
 }
 
+static
+MuLogLevel
+max_log_level(struct MuLogger* logger_)
+{
+    XmlLogger* logger = (XmlLogger*) logger_;
+
+    return logger->loglevel;
+}
+
 static int
 get_fd(XmlLogger* self)
 {
@@ -485,6 +494,7 @@ static XmlLogger xmllogger =
         .test_enter = test_enter,
         .test_log = test_log,
         .test_leave = test_leave,
+        .max_log_level = max_log_level,
         .destroy = destroy,
         .options = xmllogger_options
     },

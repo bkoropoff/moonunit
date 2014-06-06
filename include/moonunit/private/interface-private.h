@@ -37,7 +37,8 @@ typedef enum MuInterfaceMeta
 {
     MU_META_EXPECT,
     MU_META_TIMEOUT,
-    MU_META_ITERATIONS
+    MU_META_ITERATIONS,
+    MU_META_LOG_LEVEL
 } MuInterfaceMeta;
 
 typedef struct MuInterfaceToken

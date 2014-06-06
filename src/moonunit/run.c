@@ -165,7 +165,8 @@ run_tests(RunSettings* settings, const char* path, int setc, char** set, MuError
             }
             
             mu_logger_test_enter(logger, test);
-            summary = loader->dispatch(loader, test, event_proxy_cb, logger);
+            summary = loader->dispatch(loader, test, event_proxy_cb, logger,
+                                       mu_logger_max_log_level(logger));
             mu_logger_test_leave(logger, test, summary);
 
             if (summary->status != MU_STATUS_SKIPPED &&

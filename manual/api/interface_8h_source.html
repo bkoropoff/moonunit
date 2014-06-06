@@ -8,6 +8,13 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
 <script type="text/javascript">
@@ -39,6 +46,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -57,12 +65,27 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('interface_8h_source.html','');});
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Data Structures</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -71,11 +94,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<div id="nav-path" class="navpath">
-  <ul>
-<li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li>  </ul>
-</div>
-</div><!-- top -->
 <div class="header">
   <div class="headertitle">
 <div class="title">interface.h</div>  </div>
@@ -259,16 +277,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160;<span class="preprocessor">    (mu_interface_result(__FILE__, __LINE__, MU_STATUS_SUCCESS, NULL))</span></div>
 <div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160;<span class="preprocessor"></span></div>
 <div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;<span class="preprocessor">#ifdef DOXYGEN</span></div>
-<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#  define MU_FAILURE(format, ...)</span></div>
+<div class="line"><a name="l00570"></a><span class="lineno"><a class="line" href="group__test__result.html#ga215b9416321ca3ccb2d1581ece5bf09e">  570</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#  define MU_FAILURE(format, ...)</span></div>
 <div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00572"></a><span class="lineno"><a class="line" href="group__test__result.html#gad2247a0c2ea5bfad130dfe468b48f69b">  572</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#  define MU_FAILURE(...)                                               \</span></div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#  define MU_FAILURE(...)                                               \</span></div>
 <div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;<span class="preprocessor">    (mu_interface_result(__FILE__, __LINE__, MU_STATUS_FAILURE, __VA_ARGS__))</span></div>
 <div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;<span class="preprocessor"></span></div>
 <div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;<span class="preprocessor">#ifdef DOXYGEN</span></div>
-<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#    define MU_SKIP(format, ...)</span></div>
+<div class="line"><a name="l00598"></a><span class="lineno"><a class="line" href="group__test__result.html#ga1d4b23cbd98de9f250ebd51d62190f49">  598</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#    define MU_SKIP(format, ...)</span></div>
 <div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00600"></a><span class="lineno"><a class="line" href="group__test__result.html#ga928753c0396351e506dd2beef48c1bcd">  600</a></span>&#160;<span class="preprocessor"></span><span class="preprocessor">#    define MU_SKIP(...)                                                \</span></div>
+<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#    define MU_SKIP(...)                                                \</span></div>
 <div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;<span class="preprocessor">    (mu_interface_result(__FILE__, __LINE__, MU_STATUS_SKIPPED, __VA_ARGS__))</span></div>
 <div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="preprocessor"></span></div>
@@ -359,11 +377,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="group__test__bits_html_gaaedcd9e5685a5ebeeee3c6cecc1bc031"><div class="ttname"><a href="group__test__bits.html#gaaedcd9e5685a5ebeeee3c6cecc1bc031">MuLogLevel</a></div><div class="ttdeci">MuLogLevel</div><div class="ttdef"><b>Definition:</b> test.h:133</div></div>
 <div class="ttc" id="group__test__bits_html_gadc50d5383154535b052a469a8aca3b48"><div class="ttname"><a href="group__test__bits.html#gadc50d5383154535b052a469a8aca3b48">MuTestStatus</a></div><div class="ttdeci">MuTestStatus</div><div class="ttdef"><b>Definition:</b> test.h:56</div></div>
 </div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by &#160;<a href="http://www.doxygen.org/index.html">
-<img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.6
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li><li class="navelem"><b>interface.h</b></li>
+    <li class="footer">Generated by
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
 </body>
 </html>

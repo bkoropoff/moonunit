@@ -7,20 +7,24 @@
 
 var indexSectionsWithContent =
 {
-  0: "admrtu",
+  0: "admnrtuv",
   1: "m",
-  2: "m",
-  3: "drtu",
-  4: "am"
+  2: "adntv",
+  3: "m",
+  4: "m",
+  5: "drtu",
+  6: "am"
 };
 
 var indexSectionNames =
 {
   0: "all",
-  1: "enums",
-  2: "enumvalues",
-  3: "groups",
-  4: "pages"
+  1: "classes",
+  2: "variables",
+  3: "enums",
+  4: "enumvalues",
+  5: "groups",
+  6: "pages"
 };
 
 function convertToId(search)

@@ -8,6 +8,13 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
 <script type="text/javascript">
@@ -39,6 +46,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -58,12 +66,26 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     </ul>
   </div>
 </div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('group__test__result.html','');});
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Data Structures</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -100,12 +122,12 @@ Macros</h2></td></tr>
 <tr class="memitem:gace8241149dda457305a405f69772fd3a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__test__result.html#gace8241149dda457305a405f69772fd3a">MU_SUCCESS</a>()</td></tr>
 <tr class="memdesc:gace8241149dda457305a405f69772fd3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Succeed immediately.  <a href="#gace8241149dda457305a405f69772fd3a">More...</a><br/></td></tr>
 <tr class="separator:gace8241149dda457305a405f69772fd3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad2247a0c2ea5bfad130dfe468b48f69b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__test__result.html#gad2247a0c2ea5bfad130dfe468b48f69b">MU_FAILURE</a>(...)</td></tr>
-<tr class="memdesc:gad2247a0c2ea5bfad130dfe468b48f69b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fail immediately.  <a href="#gad2247a0c2ea5bfad130dfe468b48f69b">More...</a><br/></td></tr>
-<tr class="separator:gad2247a0c2ea5bfad130dfe468b48f69b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga928753c0396351e506dd2beef48c1bcd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__test__result.html#ga928753c0396351e506dd2beef48c1bcd">MU_SKIP</a>(...)</td></tr>
-<tr class="memdesc:ga928753c0396351e506dd2beef48c1bcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Skip test.  <a href="#ga928753c0396351e506dd2beef48c1bcd">More...</a><br/></td></tr>
-<tr class="separator:ga928753c0396351e506dd2beef48c1bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga215b9416321ca3ccb2d1581ece5bf09e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__test__result.html#ga215b9416321ca3ccb2d1581ece5bf09e">MU_FAILURE</a>(format,...)</td></tr>
+<tr class="memdesc:ga215b9416321ca3ccb2d1581ece5bf09e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fail immediately.  <a href="#ga215b9416321ca3ccb2d1581ece5bf09e">More...</a><br/></td></tr>
+<tr class="separator:ga215b9416321ca3ccb2d1581ece5bf09e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1d4b23cbd98de9f250ebd51d62190f49"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__test__result.html#ga1d4b23cbd98de9f250ebd51d62190f49">MU_SKIP</a>(format,...)</td></tr>
+<tr class="memdesc:ga1d4b23cbd98de9f250ebd51d62190f49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Skip test.  <a href="#ga1d4b23cbd98de9f250ebd51d62190f49">More...</a><br/></td></tr>
+<tr class="separator:ga1d4b23cbd98de9f250ebd51d62190f49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1ebcbb3c3578a83b3fc682c1c31240e6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__test__result.html#ga1ebcbb3c3578a83b3fc682c1c31240e6">MU_EXPECT</a>(result)</td></tr>
 <tr class="memdesc:ga1ebcbb3c3578a83b3fc682c1c31240e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify expected result.  <a href="#ga1ebcbb3c3578a83b3fc682c1c31240e6">More...</a><br/></td></tr>
 <tr class="separator:ga1ebcbb3c3578a83b3fc682c1c31240e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -292,30 +314,12 @@ MU_TYPE_BOOLEAN </li>
 </div><!-- fragment --> 
 </div>
 </div>
-<a class="anchor" id="gace8241149dda457305a405f69772fd3a"></a>
+<a class="anchor" id="ga597a5ab24a2893433055f0f83710bce3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MU_SUCCESS</td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Use of this macro will cause the current test to terminate and succeed immediately.</p>
-<p><b>Example:</b> </p>
-<div class="fragment"><div class="line"><a class="code" href="group__test__result.html#gace8241149dda457305a405f69772fd3a">MU_SUCCESS</a>;</div>
-</div><!-- fragment --> 
-</div>
-</div>
-<a class="anchor" id="gad2247a0c2ea5bfad130dfe468b48f69b"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define MU_FAILURE</td>
+          <td class="memname">#define MU_DEBUG</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname"><em>...</em></td><td>)</td>
@@ -323,41 +327,7 @@ MU_TYPE_BOOLEAN </li>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Use of this macro will cause the current test to terminate and fail immediately. This macro takes a printf format string and an arbitrary number of trailing arguments; the expansion of this string will become the explanation reported for the test failing.</p>
-<p><b>Example:</b> </p>
-<div class="fragment"><div class="line"><a class="code" href="group__test__result.html#gad2247a0c2ea5bfad130dfe468b48f69b">MU_FAILURE</a>(<span class="stringliteral">&quot;String &#39;%s&#39; does not contain an equal number of a&#39;s and b&#39;s&quot;</span>,</div>
-<div class="line">           the_string);</div>
-</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">format</td><td>a printf format string for the failure message </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="ga928753c0396351e506dd2beef48c1bcd"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define MU_SKIP</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Use of this macro will cause the current test to terminate immediately and be reported as skipped. Skipped tests are not counted as failures but are reported differently from successful tests. This macro takes a printf format string and an arbitrary number of trailing arguments; the expansion of this string will serve as an explanation for the test being skipped.</p>
-<p><b>Example:</b> </p>
-<div class="fragment"><div class="line"><a class="code" href="group__test__result.html#ga928753c0396351e506dd2beef48c1bcd">MU_SKIP</a>(<span class="stringliteral">&quot;This test is not applicable to the current system&quot;</span>);</div>
-</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">format</td><td>a printf format string for the explanation message </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Equivalent to MU_LOG(MU_LEVEL_DEBUG, ...) </p>
 
 </div>
 </div>
@@ -394,29 +364,56 @@ If the test result is MU_STATUS_SUCCESS, it will be classified as an unexpected 
 
 </div>
 </div>
-<a class="anchor" id="gae685b05bfacc415c0eb0f29ac4bcde62"></a>
+<a class="anchor" id="ga215b9416321ca3ccb2d1581ece5bf09e"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MU_TIMEOUT</td>
+          <td class="memname">#define MU_FAILURE</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">ms</td><td>)</td>
+          <td class="paramname">format, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Use of this macro will cause the current test to terminate and fail immediately. This macro takes a printf format string and an arbitrary number of trailing arguments; the expansion of this string will become the explanation reported for the test failing.</p>
+<p><b>Example:</b> </p>
+<div class="fragment"><div class="line"><a class="code" href="group__test__result.html#ga215b9416321ca3ccb2d1581ece5bf09e">MU_FAILURE</a>(<span class="stringliteral">&quot;String &#39;%s&#39; does not contain an equal number of a&#39;s and b&#39;s&quot;</span>,</div>
+<div class="line">           the_string);</div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">format</td><td>a printf format string for the failure message </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaca3157f9f2ed8184588fabc78358aedb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MU_INFO</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Use of this macro sets the time allowance for the current test. If the time allowance is exceeded before the test completes, the test will be forcefully terminated and reported as timing out. Time is counted down starting from the last use of MU_TIMEOUT.</p>
-<p><b>Example:</b> </p>
-<div class="fragment"><div class="line"><span class="comment">// This test should complete in at most 5 seconds</span></div>
-<div class="line"><a class="code" href="group__test__result.html#gae685b05bfacc415c0eb0f29ac4bcde62">MU_TIMEOUT</a>(5000);</div>
-</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ms</td><td>the time allowance in milliseconds </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Equivalent to MU_LOG(MU_LEVEL_INFO, ...) </p>
 
 </div>
 </div>
@@ -495,71 +492,82 @@ MU_LEVEL_TRACE - indicates a message designed to help trace the execution of a t
 
 </div>
 </div>
-<a class="anchor" id="gae637864004c2304a36471123fa0f2dbc"></a>
+<a class="anchor" id="ga1d4b23cbd98de9f250ebd51d62190f49"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MU_WARNING</td>
+          <td class="memname">#define MU_SKIP</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em></td><td>)</td>
+          <td class="paramname">format, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Equivalent to MU_LOG(MU_LEVEL_WARNING, ...) </p>
+<p>Use of this macro will cause the current test to terminate immediately and be reported as skipped. Skipped tests are not counted as failures but are reported differently from successful tests. This macro takes a printf format string and an arbitrary number of trailing arguments; the expansion of this string will serve as an explanation for the test being skipped.</p>
+<p><b>Example:</b> </p>
+<div class="fragment"><div class="line"><a class="code" href="group__test__result.html#ga1d4b23cbd98de9f250ebd51d62190f49">MU_SKIP</a>(<span class="stringliteral">&quot;This test is not applicable to the current system&quot;</span>);</div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">format</td><td>a printf format string for the explanation message </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a class="anchor" id="gaca3157f9f2ed8184588fabc78358aedb"></a>
+<a class="anchor" id="gace8241149dda457305a405f69772fd3a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MU_INFO</td>
+          <td class="memname">#define MU_SUCCESS</td>
           <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Equivalent to MU_LOG(MU_LEVEL_INFO, ...) </p>
-
+<p>Use of this macro will cause the current test to terminate and succeed immediately.</p>
+<p><b>Example:</b> </p>
+<div class="fragment"><div class="line"><a class="code" href="group__test__result.html#gace8241149dda457305a405f69772fd3a">MU_SUCCESS</a>;</div>
+</div><!-- fragment --> 
 </div>
 </div>
-<a class="anchor" id="gae5ff41e26ef49143b5d399baae597d06"></a>
+<a class="anchor" id="gae685b05bfacc415c0eb0f29ac4bcde62"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MU_VERBOSE</td>
+          <td class="memname">#define MU_TIMEOUT</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em></td><td>)</td>
+          <td class="paramname">ms</td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Equivalent to MU_LOG(MU_LEVEL_VERBOSE, ...) </p>
-
-</div>
-</div>
-<a class="anchor" id="ga597a5ab24a2893433055f0f83710bce3"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define MU_DEBUG</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Equivalent to MU_LOG(MU_LEVEL_DEBUG, ...) </p>
+<p>Use of this macro sets the time allowance for the current test. If the time allowance is exceeded before the test completes, the test will be forcefully terminated and reported as timing out. Time is counted down starting from the last use of MU_TIMEOUT.</p>
+<p><b>Example:</b> </p>
+<div class="fragment"><div class="line"><span class="comment">// This test should complete in at most 5 seconds</span></div>
+<div class="line"><a class="code" href="group__test__result.html#gae685b05bfacc415c0eb0f29ac4bcde62">MU_TIMEOUT</a>(5000);</div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ms</td><td>the time allowance in milliseconds </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -580,12 +588,49 @@ MU_LEVEL_TRACE - indicates a message designed to help trace the execution of a t
 
 </div>
 </div>
+<a class="anchor" id="gae5ff41e26ef49143b5d399baae597d06"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MU_VERBOSE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Equivalent to MU_LOG(MU_LEVEL_VERBOSE, ...) </p>
+
+</div>
+</div>
+<a class="anchor" id="gae637864004c2304a36471123fa0f2dbc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MU_WARNING</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Equivalent to MU_LOG(MU_LEVEL_WARNING, ...) </p>
+
+</div>
+</div>
 </div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by &#160;<a href="http://www.doxygen.org/index.html">
-<img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.6
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
 </body>
 </html>

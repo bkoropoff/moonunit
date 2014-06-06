@@ -8,6 +8,13 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
 <script type="text/javascript">
@@ -39,6 +46,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -57,12 +65,27 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('loader_8h_source.html','');});
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Data Structures</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -71,11 +94,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<div id="nav-path" class="navpath">
-  <ul>
-<li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li>  </ul>
-</div>
-</div><!-- top -->
 <div class="header">
   <div class="headertitle">
 <div class="title">loader.h</div>  </div>
@@ -120,55 +138,65 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;C_BEGIN_DECLS</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="keyword">struct </span>MuLibrary;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>;</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">typedef</span> void (*MuLogCallback)(<span class="keyword">struct </span>MuLogEvent const* event, <span class="keywordtype">void</span>* data);</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span>MuLoader</div>
+<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="structMuLoader.html">   44</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a></div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;{</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="keyword">struct </span>MuPlugin* plugin;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    MuOption* options;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="keyword">struct </span><a class="code" href="structMuPlugin.html">MuPlugin</a>* plugin;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <a class="code" href="structMuOption.html">MuOption</a>* options;</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="comment">// Determines if a library can be opened by this loader</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    bool (*can_open) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">const</span> <span class="keywordtype">char</span>* path);</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    bool (*can_open) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>* path);</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="comment">// Opens a library and returns a handle</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">struct </span>MuLibrary* (*open) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">const</span> <span class="keywordtype">char</span>* path, MuError** err);</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* (*open) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>* path, <a class="code" href="structMuError.html">MuError</a>** err);</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="comment">// Returns a null-terminated list of unit tests</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">struct </span>MuTest** (*get_tests) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuLibrary* handle);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">struct </span>MuTest** (*get_tests) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* handle);</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="comment">// Frees a list of unit tests that had been returned by get_tests</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    void (*free_tests) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuLibrary* handle, <span class="keyword">struct </span>MuTest** list);</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    void (*free_tests) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* handle, <span class="keyword">struct </span>MuTest** list);</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="comment">// Closes a library</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    void (*close) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuLibrary* handle);</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    void (*close) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* handle);</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="comment">// Get name of a library</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">char</span>* (*library_name) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuLibrary* handle);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">char</span>* (*library_name) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* handle);</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="comment">// Get the name of a test</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">char</span>* (*test_name) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuTest*);</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">char</span>* (*test_name) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span>MuTest*);</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="comment">// Get the suite of a test</span></div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">char</span>* (*test_suite) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuTest*);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">char</span>* (*test_suite) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span>MuTest*);</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="comment">// Dispatch a single test</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keyword">struct </span>MuTestResult* (*dispatch)(<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuTest*, MuLogCallback, <span class="keywordtype">void</span>*);</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keyword">struct </span>MuTestResult* (*dispatch)(<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span>MuTest*, MuLogCallback, <span class="keywordtype">void</span>*, <a class="code" href="group__test__bits.html#gaaedcd9e5685a5ebeeee3c6cecc1bc031">MuLogLevel</a>);</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    <span class="comment">// Free the result of a unit test</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    void (*free_result)(<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuTestResult*);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    void (*free_result)(<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span>MuTestResult*);</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <span class="comment">/* Runs the constructor for a library, which does any needed *one-time* setup */</span></div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    void (*construct) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuLibrary* handle, MuError** err);</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    void (*construct) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* handle, <a class="code" href="structMuError.html">MuError</a>** err);</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="comment">/* Runs the destructor for a library, which does any needed *one-time* teardown */</span></div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    void (*destruct) (<span class="keyword">struct </span>MuLoader*, <span class="keyword">struct </span>MuLibrary* handle, MuError** err);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;} MuLoader;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    void (*destruct) (<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>*, <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* handle, <a class="code" href="structMuError.html">MuError</a>** err);</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;} <a class="code" href="structMuLoader.html">MuLoader</a>;</div>
 <div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="keywordtype">bool</span> mu_loader_can_open(MuLoader* loader, <span class="keyword">const</span> <span class="keywordtype">char</span>* path);</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="keyword">struct </span>MuLibrary* mu_loader_open(MuLoader* loader, <span class="keyword">const</span> <span class="keywordtype">char</span>* path, MuError** err);</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="keywordtype">void</span> mu_loader_set_option(MuLoader* loader, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, ...);</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="keywordtype">void</span> mu_loader_set_option_string(MuLoader* loader, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, <span class="keyword">const</span> <span class="keywordtype">char</span> *value);</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;MuType mu_loader_option_type(MuLoader* loader, <span class="keyword">const</span> <span class="keywordtype">char</span> *name);</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="keywordtype">bool</span> mu_loader_can_open(<a class="code" href="structMuLoader.html">MuLoader</a>* loader, <span class="keyword">const</span> <span class="keywordtype">char</span>* path);</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* mu_loader_open(<a class="code" href="structMuLoader.html">MuLoader</a>* loader, <span class="keyword">const</span> <span class="keywordtype">char</span>* path, <a class="code" href="structMuError.html">MuError</a>** err);</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="keywordtype">void</span> mu_loader_set_option(<a class="code" href="structMuLoader.html">MuLoader</a>* loader, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, ...);</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="keywordtype">void</span> mu_loader_set_option_string(<a class="code" href="structMuLoader.html">MuLoader</a>* loader, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, <span class="keyword">const</span> <span class="keywordtype">char</span> *value);</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;MuType mu_loader_option_type(<a class="code" href="structMuLoader.html">MuLoader</a>* loader, <span class="keyword">const</span> <span class="keywordtype">char</span> *name);</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;C_END_DECLS</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="ttc" id="structMuLibrary_html"><div class="ttname"><a href="structMuLibrary.html">MuLibrary</a></div><div class="ttdef"><b>Definition:</b> library.h:38</div></div>
+<div class="ttc" id="structMuError_html"><div class="ttname"><a href="structMuError.html">MuError</a></div><div class="ttdef"><b>Definition:</b> error.h:60</div></div>
+<div class="ttc" id="structMuOption_html"><div class="ttname"><a href="structMuOption.html">MuOption</a></div><div class="ttdef"><b>Definition:</b> option.h:35</div></div>
+<div class="ttc" id="group__test__bits_html_gaaedcd9e5685a5ebeeee3c6cecc1bc031"><div class="ttname"><a href="group__test__bits.html#gaaedcd9e5685a5ebeeee3c6cecc1bc031">MuLogLevel</a></div><div class="ttdeci">MuLogLevel</div><div class="ttdef"><b>Definition:</b> test.h:133</div></div>
+<div class="ttc" id="structMuLoader_html"><div class="ttname"><a href="structMuLoader.html">MuLoader</a></div><div class="ttdef"><b>Definition:</b> loader.h:44</div></div>
+<div class="ttc" id="structMuPlugin_html"><div class="ttname"><a href="structMuPlugin.html">MuPlugin</a></div><div class="ttdef"><b>Definition:</b> plugin.h:37</div></div>
 </div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by &#160;<a href="http://www.doxygen.org/index.html">
-<img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.6
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li><li class="navelem"><b>loader.h</b></li>
+    <li class="footer">Generated by
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['types_2c_20enumerations_2c_20and_20structures',['Types, enumerations, and structures',['../group__test__bits.html',1,'']]],
-  ['testing_20and_20logging',['Testing and Logging',['../group__test__result.html',1,'']]]
+  ['reflection',['Reflection',['../group__test__reflect.html',1,'']]],
+  ['resource_20access',['Resource access',['../group__test__resources.html',1,'']]]
 ];

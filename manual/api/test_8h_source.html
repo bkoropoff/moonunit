@@ -8,6 +8,13 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
 <script type="text/javascript">
@@ -39,6 +46,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -57,12 +65,27 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('test_8h_source.html','');});
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Data Structures</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -71,11 +94,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<div id="nav-path" class="navpath">
-  <ul>
-<li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li>  </ul>
-</div>
-</div><!-- top -->
 <div class="header">
   <div class="headertitle">
 <div class="title">test.h</div>  </div>
@@ -121,8 +139,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment">/* Forward declarations */</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="keyword">struct </span>MuTestToken;</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="keyword">struct </span>MuTest;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="keyword">struct </span>MuLoader;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="keyword">struct </span>MuLibrary;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>;</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
 <div class="line"><a name="l00056"></a><span class="lineno"><a class="line" href="group__test__bits.html#gadc50d5383154535b052a469a8aca3b48">   56</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">enum</span> <a class="code" href="group__test__bits.html#gadc50d5383154535b052a469a8aca3b48">MuTestStatus</a></div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;{</div>
@@ -199,8 +217,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;</div>
 <div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span>MuTest</div>
 <div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;{</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    <span class="keyword">struct </span>MuLoader* loader;</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    <span class="keyword">struct </span>MuLibrary* library;</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    <span class="keyword">struct </span><a class="code" href="structMuLoader.html">MuLoader</a>* loader;</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;    <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* library;</div>
 <div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;} MuTest;</div>
 <div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;</div>
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;<span class="keyword">typedef</span> void (*MuThunk) (void);</div>
@@ -221,6 +239,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="group__test__bits_html_ggadc50d5383154535b052a469a8aca3b48ad6cef06f6936370eca7373bf1106df0b"><div class="ttname"><a href="group__test__bits.html#ggadc50d5383154535b052a469a8aca3b48ad6cef06f6936370eca7373bf1106df0b">MU_STATUS_CRASH</a></div><div class="ttdef"><b>Definition:</b> test.h:65</div></div>
 <div class="ttc" id="group__test__bits_html_gga68fefd0f75be591975fd18ae1581568ba00400b105451b2e9178b1bc0f815fafd"><div class="ttname"><a href="group__test__bits.html#gga68fefd0f75be591975fd18ae1581568ba00400b105451b2e9178b1bc0f815fafd">MU_STAGE_LIBRARY_SETUP</a></div><div class="ttdef"><b>Definition:</b> test.h:82</div></div>
 <div class="ttc" id="group__test__bits_html_ggaaedcd9e5685a5ebeeee3c6cecc1bc031a36167195231ab62de923b525aa7852d3"><div class="ttname"><a href="group__test__bits.html#ggaaedcd9e5685a5ebeeee3c6cecc1bc031a36167195231ab62de923b525aa7852d3">MU_LEVEL_INFO</a></div><div class="ttdef"><b>Definition:</b> test.h:138</div></div>
+<div class="ttc" id="structMuLibrary_html"><div class="ttname"><a href="structMuLibrary.html">MuLibrary</a></div><div class="ttdef"><b>Definition:</b> library.h:38</div></div>
 <div class="ttc" id="group__test__bits_html_ggaaedcd9e5685a5ebeeee3c6cecc1bc031a6d4ed80304c9337fd71eced294459fc9"><div class="ttname"><a href="group__test__bits.html#ggaaedcd9e5685a5ebeeee3c6cecc1bc031a6d4ed80304c9337fd71eced294459fc9">MU_LEVEL_TRACE</a></div><div class="ttdef"><b>Definition:</b> test.h:144</div></div>
 <div class="ttc" id="group__test__bits_html_ggadc50d5383154535b052a469a8aca3b48a9c44eddf51d3b4082af7086fca2fd6fc"><div class="ttname"><a href="group__test__bits.html#ggadc50d5383154535b052a469a8aca3b48a9c44eddf51d3b4082af7086fca2fd6fc">MU_STATUS_RESOURCE</a></div><div class="ttdef"><b>Definition:</b> test.h:71</div></div>
 <div class="ttc" id="group__test__bits_html_ggadc50d5383154535b052a469a8aca3b48a7cebda0018091671751c3d7ad48a72ae"><div class="ttname"><a href="group__test__bits.html#ggadc50d5383154535b052a469a8aca3b48a7cebda0018091671751c3d7ad48a72ae">MU_STATUS_FAILURE</a></div><div class="ttdef"><b>Definition:</b> test.h:61</div></div>
@@ -233,6 +252,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="group__test__bits_html_gadc50d5383154535b052a469a8aca3b48"><div class="ttname"><a href="group__test__bits.html#gadc50d5383154535b052a469a8aca3b48">MuTestStatus</a></div><div class="ttdeci">MuTestStatus</div><div class="ttdef"><b>Definition:</b> test.h:56</div></div>
 <div class="ttc" id="group__test__bits_html_gga68fefd0f75be591975fd18ae1581568bad3fe792fbc639868d4aceafad31cbe54"><div class="ttname"><a href="group__test__bits.html#gga68fefd0f75be591975fd18ae1581568bad3fe792fbc639868d4aceafad31cbe54">MU_STAGE_FIXTURE_TEARDOWN</a></div><div class="ttdef"><b>Definition:</b> test.h:88</div></div>
 <div class="ttc" id="group__test__bits_html_gga68fefd0f75be591975fd18ae1581568ba58bd8d8e9f6cac3186858265238e449d"><div class="ttname"><a href="group__test__bits.html#gga68fefd0f75be591975fd18ae1581568ba58bd8d8e9f6cac3186858265238e449d">MU_STAGE_FIXTURE_SETUP</a></div><div class="ttdef"><b>Definition:</b> test.h:84</div></div>
+<div class="ttc" id="structMuLoader_html"><div class="ttname"><a href="structMuLoader.html">MuLoader</a></div><div class="ttdef"><b>Definition:</b> loader.h:44</div></div>
 <div class="ttc" id="group__test__bits_html_ggadc50d5383154535b052a469a8aca3b48a6da55c6b23517db51b07fb470ea71b66"><div class="ttname"><a href="group__test__bits.html#ggadc50d5383154535b052a469a8aca3b48a6da55c6b23517db51b07fb470ea71b66">MU_STATUS_ASSERTION</a></div><div class="ttdef"><b>Definition:</b> test.h:63</div></div>
 <div class="ttc" id="group__test__bits_html_gga68fefd0f75be591975fd18ae1581568baddffa8d575d74345a3b57c1bcabec5dc"><div class="ttname"><a href="group__test__bits.html#gga68fefd0f75be591975fd18ae1581568baddffa8d575d74345a3b57c1bcabec5dc">MU_STAGE_UNKNOWN</a></div><div class="ttdef"><b>Definition:</b> test.h:92</div></div>
 <div class="ttc" id="group__test__bits_html_ggadc50d5383154535b052a469a8aca3b48a5cb720a68a875353eb0e2b51305a97e8"><div class="ttname"><a href="group__test__bits.html#ggadc50d5383154535b052a469a8aca3b48a5cb720a68a875353eb0e2b51305a97e8">MU_STATUS_SUCCESS</a></div><div class="ttdef"><b>Definition:</b> test.h:59</div></div>
@@ -240,11 +260,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="group__test__bits_html_ggaaedcd9e5685a5ebeeee3c6cecc1bc031ab2bf4dc14837b1b457fad98f12659110"><div class="ttname"><a href="group__test__bits.html#ggaaedcd9e5685a5ebeeee3c6cecc1bc031ab2bf4dc14837b1b457fad98f12659110">MU_LEVEL_DEBUG</a></div><div class="ttdef"><b>Definition:</b> test.h:142</div></div>
 <div class="ttc" id="group__test__bits_html_gga68fefd0f75be591975fd18ae1581568ba1db506cc55a81f64ac61292744afef52"><div class="ttname"><a href="group__test__bits.html#gga68fefd0f75be591975fd18ae1581568ba1db506cc55a81f64ac61292744afef52">MU_STAGE_LIBRARY_TEARDOWN</a></div><div class="ttdef"><b>Definition:</b> test.h:90</div></div>
 </div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by &#160;<a href="http://www.doxygen.org/index.html">
-<img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.6
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li><li class="navelem"><b>test.h</b></li>
+    <li class="footer">Generated by
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
 </body>
 </html>

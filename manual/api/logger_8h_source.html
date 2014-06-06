@@ -8,6 +8,13 @@
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript">
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+</script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/search.js"></script>
 <script type="text/javascript">
@@ -39,6 +46,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -57,12 +65,27 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){initNavTree('logger_8h_source.html','');});
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Data Structures</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -71,11 +94,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<div id="nav-path" class="navpath">
-  <ul>
-<li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li>  </ul>
-</div>
-</div><!-- top -->
 <div class="header">
   <div class="headertitle">
 <div class="title">logger.h</div>  </div>
@@ -114,52 +132,63 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#include &lt;moonunit/option.h&gt;</span></div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &lt;moonunit/test.h&gt;</span></div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span>MuLogger</div>
+<div class="line"><a name="l00034"></a><span class="lineno"><a class="line" href="structMuLogger.html">   34</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a></div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;{</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keyword">struct </span>MuPlugin* plugin;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    void (*enter) (<span class="keyword">struct </span>MuLogger*);</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    void (*leave) (<span class="keyword">struct </span>MuLogger*);</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    void (*library_enter) (<span class="keyword">struct </span>MuLogger*, <span class="keyword">const</span> <span class="keywordtype">char</span>* path, <span class="keyword">struct </span>MuLibrary* library);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    void (*library_fail) (<span class="keyword">struct </span>MuLogger*, <span class="keyword">const</span> <span class="keywordtype">char</span>* reason);</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    void (*library_leave) (<span class="keyword">struct </span>MuLogger*);</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    void (*suite_enter) (<span class="keyword">struct </span>MuLogger*, <span class="keyword">const</span> <span class="keywordtype">char</span>*);</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    void (*suite_leave) (<span class="keyword">struct </span>MuLogger*);</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    void (*test_enter) (<span class="keyword">struct </span>MuLogger*, <span class="keyword">struct </span>MuTest* test);</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    void (*test_log) (<span class="keyword">struct </span>MuLogger*, <span class="keyword">struct </span>MuLogEvent const* event);</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    void (*test_leave) (<span class="keyword">struct </span>MuLogger*, </div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keyword">struct </span><a class="code" href="structMuPlugin.html">MuPlugin</a>* plugin;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    void (*enter) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    void (*leave) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    void (*library_enter) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>* path, <span class="keyword">struct </span><a class="code" href="structMuLibrary.html">MuLibrary</a>* library);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    void (*library_fail) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>* reason);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    void (*library_leave) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    void (*suite_enter) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>*);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    void (*suite_leave) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    void (*test_enter) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">struct </span>MuTest* test);</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    void (*test_log) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">struct </span>MuLogEvent const* event);</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    void (*test_leave) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*, </div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;                    <span class="keyword">struct </span>MuTest*, <span class="keyword">struct </span>MuTestResult*);</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    void (*destroy) (<span class="keyword">struct </span>MuLogger*);</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    MuOption* options;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;} MuLogger;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;C_BEGIN_DECLS</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="keywordtype">void</span> mu_logger_set_option(MuLogger* logger, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, ...);</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="keywordtype">void</span> mu_logger_set_option_string(MuLogger* logger, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, <span class="keyword">const</span> <span class="keywordtype">char</span> *value);</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;MuType mu_logger_option_type(MuLogger* logger, <span class="keyword">const</span> <span class="keywordtype">char</span> *name);</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="keywordtype">void</span> mu_logger_enter(<span class="keyword">struct</span> MuLogger*);</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="keywordtype">void</span> mu_logger_leave(<span class="keyword">struct</span> MuLogger*);</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keywordtype">void</span> mu_logger_library_enter (<span class="keyword">struct</span> MuLogger*, <span class="keyword">const</span> <span class="keywordtype">char</span>*, <span class="keyword">struct</span> MuLibrary* library);</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keywordtype">void</span> mu_logger_library_fail (<span class="keyword">struct</span> MuLogger*, <span class="keyword">const</span> <span class="keywordtype">char</span>*);</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="keywordtype">void</span> mu_logger_library_leave (<span class="keyword">struct</span> MuLogger*);</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="keywordtype">void</span> mu_logger_suite_enter (<span class="keyword">struct</span> MuLogger*, <span class="keyword">const</span> <span class="keywordtype">char</span>*);</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="keywordtype">void</span> mu_logger_suite_leave (<span class="keyword">struct</span> MuLogger*);</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="keywordtype">void</span> mu_logger_test_enter (<span class="keyword">struct</span> MuLogger*, <span class="keyword">struct</span> MuTest* test);</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="keywordtype">void</span> mu_logger_test_log (<span class="keyword">struct</span> MuLogger*, <span class="keyword">struct</span> MuLogEvent <span class="keyword">const</span>* event);</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="keywordtype">void</span> mu_logger_test_leave (<span class="keyword">struct</span> MuLogger*, </div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;                          <span class="keyword">struct</span> MuTest*, <span class="keyword">struct</span> MuTestResult*);</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="keywordtype">void</span> mu_logger_destroy(MuLogger* logger);</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;C_END_DECLS</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <a class="code" href="group__test__bits.html#gaaedcd9e5685a5ebeeee3c6cecc1bc031">MuLogLevel</a> (*max_log_level) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    void (*destroy) (<span class="keyword">struct </span><a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <a class="code" href="structMuOption.html">MuOption</a>* options;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;} <a class="code" href="structMuLogger.html">MuLogger</a>;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;C_BEGIN_DECLS</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="keywordtype">void</span> mu_logger_set_option(<a class="code" href="structMuLogger.html">MuLogger</a>* logger, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, ...);</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="keywordtype">void</span> mu_logger_set_option_string(<a class="code" href="structMuLogger.html">MuLogger</a>* logger, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, <span class="keyword">const</span> <span class="keywordtype">char</span> *value);</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;MuType mu_logger_option_type(<a class="code" href="structMuLogger.html">MuLogger</a>* logger, <span class="keyword">const</span> <span class="keywordtype">char</span> *name);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="keywordtype">void</span> mu_logger_enter(<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keywordtype">void</span> mu_logger_leave(<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keywordtype">void</span> mu_logger_library_enter (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>*, <span class="keyword">struct</span> <a class="code" href="structMuLibrary.html">MuLibrary</a>* library);</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="keywordtype">void</span> mu_logger_library_fail (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>*);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="keywordtype">void</span> mu_logger_library_leave (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="keywordtype">void</span> mu_logger_suite_enter (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">const</span> <span class="keywordtype">char</span>*);</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="keywordtype">void</span> mu_logger_suite_leave (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="keywordtype">void</span> mu_logger_test_enter (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">struct</span> MuTest* test);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="keywordtype">void</span> mu_logger_test_log (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*, <span class="keyword">struct</span> MuLogEvent <span class="keyword">const</span>* event);</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="keywordtype">void</span> mu_logger_test_leave (<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*, </div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;                          <span class="keyword">struct</span> MuTest*, <span class="keyword">struct</span> MuTestResult*);</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<a class="code" href="group__test__bits.html#gaaedcd9e5685a5ebeeee3c6cecc1bc031">MuLogLevel</a> mu_logger_max_log_level(<span class="keyword">struct</span> <a class="code" href="structMuLogger.html">MuLogger</a>*);</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="keywordtype">void</span> mu_logger_destroy(<a class="code" href="structMuLogger.html">MuLogger</a>* logger);</div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;C_END_DECLS</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="ttc" id="structMuLibrary_html"><div class="ttname"><a href="structMuLibrary.html">MuLibrary</a></div><div class="ttdef"><b>Definition:</b> library.h:38</div></div>
+<div class="ttc" id="structMuOption_html"><div class="ttname"><a href="structMuOption.html">MuOption</a></div><div class="ttdef"><b>Definition:</b> option.h:35</div></div>
+<div class="ttc" id="group__test__bits_html_gaaedcd9e5685a5ebeeee3c6cecc1bc031"><div class="ttname"><a href="group__test__bits.html#gaaedcd9e5685a5ebeeee3c6cecc1bc031">MuLogLevel</a></div><div class="ttdeci">MuLogLevel</div><div class="ttdef"><b>Definition:</b> test.h:133</div></div>
+<div class="ttc" id="structMuPlugin_html"><div class="ttname"><a href="structMuPlugin.html">MuPlugin</a></div><div class="ttdef"><b>Definition:</b> plugin.h:37</div></div>
+<div class="ttc" id="structMuLogger_html"><div class="ttname"><a href="structMuLogger.html">MuLogger</a></div><div class="ttdef"><b>Definition:</b> logger.h:34</div></div>
 </div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by &#160;<a href="http://www.doxygen.org/index.html">
-<img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.6
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_4ea4c4ab324325d2597d67f2109e884b.html">moonunit</a></li><li class="navelem"><b>logger.h</b></li>
+    <li class="footer">Generated by
+    <a href="http://www.doxygen.org/index.html">
+    <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
+  </ul>
+</div>
 </body>
 </html>

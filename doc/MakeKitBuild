@@ -2,7 +2,7 @@ make()
 {
     mk_have_doxygen && mk_doxygen_html \
         INSTALLDIR="$MK_HTMLDIR/api" \
-        DOXYFILE="Doxyfile.makekit" \
+        DOXYFILE="Doxyfile" \
         HEADERDIRS="../include" \
         INPUT="main.doxy" \
         EXAMPLES="../test/example.c"

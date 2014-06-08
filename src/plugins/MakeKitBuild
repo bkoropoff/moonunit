@@ -1,1 +1,1 @@
-SUBDIRS="c shell console xml"
+SUBDIRS="c shell console xml json"

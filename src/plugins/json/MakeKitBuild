@@ -1,0 +1,9 @@
+make()
+{
+    mk_dlo \
+        DLO=json \
+        INSTALLDIR="$MU_PLUGIN_PATH" \
+        INCLUDEDIRS="../../../include" \
+        SOURCES="json.c" \
+        LIBDEPS="moonunit"
+}

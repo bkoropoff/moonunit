@@ -161,6 +161,11 @@ run(char* self)
     option_configure_loaders(&option);
     loggers = option_create_loggers(&option);
     
+    if (!loggers)
+    {
+        die("Error: %s", option.errormsg);
+    }
+
     settings.self = self;
 
     if (array_size(loggers) == 0)

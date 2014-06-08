@@ -341,10 +341,26 @@ option_create_loggers(OptionTable* option)
     for (index = 0; index < array_size(option->loggers); index++)
     {
         option_parse_plugin_options((char*) option->loggers[index], logger_parse_cb, &logger);
+        if (!logger)
+        {
+            error(option, -1, "No such logger plugin: %s", (char*)option->loggers[index]);
+            goto error;
+        }
         mu_loggers = array_append(mu_loggers, logger);
     }
 
     return mu_loggers;
+
+error:
+
+    for (index = 0; index < array_size(mu_loggers); index++)
+    {
+        mu_logger_destroy(((MuLogger**) mu_loggers)[index]);
+    }
+
+    array_free(mu_loggers);
+
+    return NULL;
 }
 
 static void

@@ -41,7 +41,7 @@ configure()
 
     mk_check_headers string.h strings.h sys/time.h execinfo.h unistd.h signal.h
 
-    mk_check_libraries socket dl pthread
+    mk_check_libraries socket dl pthread execinfo
 
     mk_check_types HEADERDEPS="sys/time.h" suseconds_t
 
@@ -54,6 +54,7 @@ configure()
 
     mk_check_functions \
         HEADERDEPS="string.h execinfo.h unistd.h signal.h" \
+        LIBDEPS="$LIB_EXECINFO" \
         strsignal backtrace backtrace_symbols \
         setpgid setpgrp tcgetpgrp tcsetpgrp sigtimedwait
 

@@ -113,13 +113,6 @@ MU_TEST(Arithmetic, bad2)
     MU_ASSERT(x > y);
 }
 
-MU_TEST(Arithmetic, crash)
-{
-    MU_EXPECT(MU_STATUS_CRASH);
-    
-    MU_ASSERT(x / (y - 3) == x);
-}
-
 /*
  * The following tests demonstrate various ways
  * to crash or otherwise fail

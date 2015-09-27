@@ -1,0 +1,7 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Allman
+BinPackParameters: true
+MaxEmptyLinesToKeep: 1
+ColumnLimit: 100
+IndentWidth: 4
+SpacesInContainerLiterals: true

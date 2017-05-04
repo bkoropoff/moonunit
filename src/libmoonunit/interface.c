@@ -207,18 +207,18 @@ assert_equal_boolean(const char* expr, const char* expected, va_list ap, int* re
 void
 mu_interface_assert_equal(const char* file, unsigned int line, 
                          const char* expr1, const char* expr2, 
-                         int sense, MuType type, ...)
+                         int sense, int type, ...)
 {
     MuInterfaceToken* token = mu_interface_current_token();
-	int result = 0;
-	char* reason = NULL;
-	
-	va_list ap;
-	
-	va_start(ap, type);
-	
-	switch (type)
-	{
+    int result = 0;
+    char* reason = NULL;
+
+    va_list ap;
+
+    va_start(ap, type);
+
+    switch ((MuType) type)
+    {
     case MU_TYPE_INTEGER:
         assert_equal_integer(expr1, expr2, ap, &result, sense, &reason);
         break;

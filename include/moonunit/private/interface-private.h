@@ -47,7 +47,7 @@ typedef struct MuInterfaceToken
     void (*result)(struct MuInterfaceToken*, const MuTestResult*);
     void (*event)(struct MuInterfaceToken*, const MuLogEvent* event);
     /* Extensible meta-data channel */
-    void (*meta)(struct MuInterfaceToken*, MuInterfaceMeta type, ...);
+    void (*meta)(struct MuInterfaceToken*, /*MuInterfaceMeta*/ int type, ...);
     /* Reserved */
     void* reserved1;
     void* reserved2;

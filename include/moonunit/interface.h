@@ -470,9 +470,9 @@ C_BEGIN_DECLS
  * @hideinitializer
  */
 #define MU_ASSERT_EQUAL(type, expr1, expr2)                     \
-    (mu_interface_assert_equal(__FILE__, __LINE__,               \
+    (mu_interface_assert_equal(__FILE__, __LINE__,              \
                               #expr1, #expr2, 1,                \
-                              type, (expr1), (expr2)))          \
+                              (int) (type), (expr1), (expr2)))
     
 /**
  * @brief Confirm inequality of values or fail
@@ -850,7 +850,7 @@ void mu_interface_timeout(long ms);
 void mu_interface_iterations(unsigned int count);
 void mu_interface_event(const char* file, unsigned int line, MuLogLevel level, const char* fmt, ...);
 void mu_interface_assert(const char* file, unsigned int line, const char* expr, int sense, int result);
-void mu_interface_assert_equal(const char* file, unsigned int line, const char* expr1, const char* expr2, int sense, MuType type, ...);
+void mu_interface_assert_equal(const char* file, unsigned int line, const char* expr1, const char* expr2, int sense, int type, ...);
 void mu_interface_result(const char* file, unsigned int line, MuTestStatus result, const char* message, ...);
 MuTest* mu_interface_current_test(void);
 

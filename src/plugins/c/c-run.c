@@ -208,7 +208,7 @@ ctoken_result_fork(MuInterfaceToken* _token, const MuTestResult* summary)
 
 static
 void
-ctoken_meta_fork(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
+ctoken_meta_fork(MuInterfaceToken* _token, int type, ...)
 {
     CTokenFork* token = (CTokenFork*) _token;
     va_list ap;
@@ -222,7 +222,7 @@ ctoken_meta_fork(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
     
     va_start(ap, type);
 
-    switch (type)
+    switch ((MuInterfaceMeta) type)
     {
     case MU_META_EXPECT:
     {
@@ -380,7 +380,7 @@ reset_crash_signals()
 
 static
 void
-ctoken_meta_inproc(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
+ctoken_meta_inproc(MuInterfaceToken* _token, int type, ...)
 {
     CTokenInproc* token = (CTokenInproc*) _token;
     va_list ap;
@@ -390,7 +390,7 @@ ctoken_meta_inproc(MuInterfaceToken* _token, MuInterfaceMeta type, ...)
 
     va_start(ap, type);
 
-    switch (type)
+    switch ((MuInterfaceMeta) type)
     {
     case MU_META_EXPECT:
         token->result->expected = va_arg(ap, MuTestStatus);

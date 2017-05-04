@@ -434,6 +434,11 @@ static void test_log(MuLogger* _self, MuLogEvent const* event)
         key_integer(self, "line", event->line);
     }
 
+    if (event->message)
+    {
+        key_string(self, "message", event->message);
+    }
+
     elem_object_end(self);
 }
 

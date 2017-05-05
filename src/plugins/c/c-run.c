@@ -201,7 +201,7 @@ ctoken_result_fork(MuInterfaceToken* _token, const MuTestResult* summary)
 
     ctoken_free_fork(token);
     uipc_close(ipc_handle);
-    exit(0);
+    _exit(0);
 
     pthread_mutex_unlock(&token->lock);
 }

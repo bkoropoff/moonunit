@@ -101,6 +101,7 @@ get_backtrace(int skip)
              
     *out = NULL;
 
+    free(symbols);
     return trace;
 }
 
